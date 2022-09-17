@@ -27,6 +27,7 @@ try {
 
 android {
     compileSdk = Application.targetSdk
+    namespace = Application.packageName
 
     defaultConfig {
         applicationId = Application.packageName
