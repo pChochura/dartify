@@ -2,6 +2,7 @@ package com.pointlessapps.dartify.compose.ui.components
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActionScope
 import androidx.compose.foundation.text.KeyboardActions
@@ -59,7 +60,7 @@ internal fun ComposeTextField(
     Box(modifier = modifier) {
         if (value.text.isEmpty()) {
             ComposeText(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxWidth(),
                 text = textFieldModel.placeholder,
                 textStyle = defaultComposeTextStyle().copy(
                     typography = textFieldModel.textStyle,
@@ -68,7 +69,7 @@ internal fun ComposeTextField(
             )
         }
         BasicTextField(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxWidth(),
             value = value,
             onValueChange = onValueChange,
             keyboardOptions = textFieldModel.keyboardOptions,
@@ -107,7 +108,7 @@ internal fun defaultComposeTextFieldModel() = ComposeTextFieldModel(
     placeholder = "",
     textStyle = MaterialTheme.typography.body1,
     textColor = MaterialTheme.colors.onPrimary,
-    placeholderColor = MaterialTheme.colors.secondaryVariant,
+    placeholderColor = MaterialTheme.colors.secondary,
     cursorColor = MaterialTheme.colors.secondary,
 )
 

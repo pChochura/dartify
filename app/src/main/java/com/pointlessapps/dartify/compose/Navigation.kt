@@ -2,7 +2,8 @@ package com.pointlessapps.dartify.compose
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.runtime.Composable
-import com.pointlessapps.dartify.compose.home.HomeScreen
+import com.pointlessapps.dartify.compose.game.setup.x01.ui.GameSetupX01Screen
+import com.pointlessapps.dartify.compose.home.ui.HomeScreen
 import com.pointlessapps.dartify.compose.ui.theme.Route
 import dev.olshevski.navigation.reimagined.AnimatedNavHost
 import dev.olshevski.navigation.reimagined.NavBackHandler
@@ -13,13 +14,14 @@ import dev.olshevski.navigation.reimagined.rememberNavController
 @Composable
 internal fun NavHost(
     navController: NavController<Route> = rememberNavController(
-        startDestination = Route.Home,
+        startDestination = Route.GameSetup.X01,
     ),
 ) {
-    NavBackHandler(navController = navController)
+    NavBackHandler(controller = navController)
     AnimatedNavHost(controller = navController) {
         when (it) {
             Route.Home -> HomeScreen()
+            Route.GameSetup.X01 -> GameSetupX01Screen()
         }
     }
 }

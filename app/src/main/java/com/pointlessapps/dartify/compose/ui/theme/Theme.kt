@@ -1,11 +1,11 @@
 package com.pointlessapps.dartify.compose.ui.theme
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Shapes
-import androidx.compose.material.Typography
-import androidx.compose.material.lightColors
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.TextStyle
@@ -13,6 +13,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.pointlessapps.dartify.R
 
 private val fontFamily = FontFamily(
@@ -42,19 +43,19 @@ private val fontFamily = FontFamily(
 private fun typography() = Typography(
     defaultFontFamily = fontFamily,
     h1 = TextStyle(
-        fontWeight = FontWeight.SemiBold,
+        fontWeight = FontWeight.Normal,
         fontSize = 24.sp,
     ),
     h2 = TextStyle(
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 20.sp,
+        fontWeight = FontWeight.Bold,
+        fontSize = 16.sp,
     ),
     h3 = TextStyle(
-        fontWeight = FontWeight.Medium,
-        fontSize = 18.sp,
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp,
     ),
     button = TextStyle(
-        fontWeight = FontWeight.Medium,
+        fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
     ),
     body1 = TextStyle(
@@ -69,23 +70,43 @@ private fun typography() = Typography(
 
 @Composable
 private fun shapes() = Shapes(
-    small = RoundedCornerShape(dimensionResource(id = R.dimen.rounded_corners)),
-    medium = RoundedCornerShape(dimensionResource(id = R.dimen.rounded_corners)),
+    small = RoundedCornerShape(dimensionResource(id = R.dimen.small_rounded_corners)),
+    medium = RoundedCornerShape(dimensionResource(id = R.dimen.medium_rounded_corners)),
 )
 
 @Composable
 private fun lightColorPalette() = lightColors(
-    primary = colorResource(id = R.color.white),
-    onPrimary = colorResource(id = R.color.black),
-    secondary = colorResource(id = R.color.black),
-    onSecondary = colorResource(id = R.color.white),
-    background = colorResource(id = R.color.white),
-    onBackground = colorResource(id = R.color.black),
+    primary = colorResource(id = R.color.gray_3),
+    onPrimary = colorResource(id = R.color.gray_8),
+    secondary = colorResource(id = R.color.gray_4),
+    onSecondary = colorResource(id = R.color.gray_8),
+    background = colorResource(id = R.color.gray_2),
+    onBackground = colorResource(id = R.color.gray_8),
 )
 
 @Composable
-internal fun ProjectTheme(content: @Composable () -> Unit) {
-    val colors = lightColorPalette()
+private fun darkColorPalette() = darkColors(
+    primary = colorResource(id = R.color.gray_5),
+    onPrimary = colorResource(id = R.color.gray_1),
+    secondary = colorResource(id = R.color.gray_6),
+    onSecondary = colorResource(id = R.color.gray_1),
+    background = colorResource(id = R.color.gray_7),
+    onBackground = colorResource(id = R.color.gray_1),
+)
+
+@Composable
+internal fun ProjectTheme(
+    isDarkTheme: Boolean = isSystemInDarkTheme(),
+    content: @Composable () -> Unit,
+) {
+    val colors = if (isDarkTheme) darkColorPalette() else lightColorPalette()
+    val systemUiController = rememberSystemUiController()
+    LaunchedEffect(systemUiController, isDarkTheme) {
+        systemUiController.setSystemBarsColor(
+            color = Color.Transparent,
+            darkIcons = !isDarkTheme,
+        )
+    }
 
     MaterialTheme(
         colors = colors,

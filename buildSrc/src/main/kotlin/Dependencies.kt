@@ -41,6 +41,12 @@ object Compose {
     const val ViewModel = "androidx.lifecycle:lifecycle-viewmodel-compose:2.4.1"
 
     const val NavigationReimagined = "dev.olshevski.navigation:reimagined:1.2.0"
+
+    object Accompanist {
+        private const val version = "0.25.1"
+        const val SystemUIController =
+            "com.google.accompanist:accompanist-systemuicontroller:$version"
+    }
 }
 
 object Detekt {

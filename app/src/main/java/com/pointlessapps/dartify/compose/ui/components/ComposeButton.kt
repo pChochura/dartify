@@ -1,10 +1,11 @@
 package com.pointlessapps.dartify.compose.ui.components
 
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults.buttonColors
 import androidx.compose.material.Icon
@@ -13,92 +14,107 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import com.pointlessapps.dartify.R
 
 @Composable
 internal fun ComposeButton(
-    text: String,
+    label: String?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     buttonModel: ComposeButtonModel = defaultComposeButtonModel(),
 ) {
-    Button(
-        modifier = modifier,
-        elevation = null,
-        shape = buttonModel.shape,
-        colors = buttonColors(backgroundColor = buttonModel.backgroundColor),
-        border = buttonModel.border,
-        contentPadding = PaddingValues(
-            vertical = buttonModel.verticalPadding,
-            horizontal = buttonModel.horizontalPadding,
-        ),
-        onClick = onClick,
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(
-                dimensionResource(id = R.dimen.button_padding_horizontal),
-            ),
-        ) {
-            val iconComposable = @Composable {
-                if (buttonModel.iconModel != null) {
-                    Icon(
-                        painter = painterResource(id = buttonModel.iconModel.icon),
-                        tint = Color.White,
-                        contentDescription = null,
-                    )
-                }
-            }
+    @Suppress("MagicNumber")
+    val shapeWidthMultiplier = when (buttonModel.shape) {
+        ComposeButtonShape.Circle -> 1f
+        ComposeButtonShape.Pill -> 1.5f
+    }
 
-            if (buttonModel.iconModel?.position == ComposeButtonIconModel.Position.LEFT) {
-                iconComposable()
-            }
+    val sizeModifier = when (buttonModel.size) {
+        ComposeButtonSize.Big -> R.dimen.button_size_big
+        ComposeButtonSize.Medium -> R.dimen.button_size_medium
+        ComposeButtonSize.Small -> R.dimen.button_size_small
+    }.let { res ->
+        Modifier.size(
+            width = dimensionResource(id = res) * shapeWidthMultiplier,
+            height = dimensionResource(id = res),
+        )
+    }
+
+    val iconSizeModifier = when (buttonModel.size) {
+        ComposeButtonSize.Big -> R.dimen.button_icon_size_big
+        ComposeButtonSize.Medium -> R.dimen.button_icon_size_medium
+        ComposeButtonSize.Small -> R.dimen.button_icon_size_small
+    }.let { res ->
+        Modifier.size(
+            width = dimensionResource(id = res) * shapeWidthMultiplier,
+            height = dimensionResource(id = res),
+        )
+    }
+
+    Column(
+        verticalArrangement = Arrangement.spacedBy(
+            dimensionResource(id = R.dimen.margin_small),
+            Alignment.CenterVertically,
+        ),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Button(
+            modifier = modifier.then(sizeModifier),
+            contentPadding = PaddingValues(0.dp),
+            elevation = null,
+            shape = CircleShape,
+            colors = buttonColors(backgroundColor = buttonModel.backgroundColor),
+            onClick = onClick,
+            enabled = buttonModel.enabled,
+        ) {
+            Icon(
+                modifier = iconSizeModifier,
+                painter = painterResource(id = buttonModel.icon),
+                tint = buttonModel.textColor,
+                contentDescription = null,
+            )
+        }
+
+        label?.also {
             ComposeText(
-                text = text,
+                text = label,
                 textStyle = defaultComposeTextStyle().copy(
                     typography = MaterialTheme.typography.body1,
                     textColor = buttonModel.textColor,
+                    textAlign = TextAlign.Center,
                 ),
             )
-            if (buttonModel.iconModel?.position == ComposeButtonIconModel.Position.RIGHT) {
-                iconComposable()
-            }
         }
     }
 }
 
 @Composable
 internal fun defaultComposeButtonModel() = ComposeButtonModel(
-    border = null,
-    backgroundColor = MaterialTheme.colors.secondary,
-    textColor = MaterialTheme.colors.onSecondary,
-    shape = MaterialTheme.shapes.medium,
-    verticalPadding = dimensionResource(id = R.dimen.button_padding_vertical),
-    horizontalPadding = dimensionResource(id = R.dimen.button_padding_horizontal),
-    iconModel = null,
+    backgroundColor = MaterialTheme.colors.primary,
+    textColor = MaterialTheme.colors.onPrimary,
+    shape = ComposeButtonShape.Circle,
+    size = ComposeButtonSize.Big,
+    icon = R.drawable.ic_settings,
+    enabled = true,
 )
-
-internal data class ComposeButtonIconModel(
-    val position: Position = Position.LEFT,
-    @DrawableRes val icon: Int,
-) {
-
-    @Suppress("UNUSED")
-    enum class Position {
-        LEFT, RIGHT,
-    }
-}
 
 internal data class ComposeButtonModel(
-    val border: BorderStroke?,
     val backgroundColor: Color,
     val textColor: Color,
-    val shape: Shape,
-    val verticalPadding: Dp,
-    val horizontalPadding: Dp,
-    val iconModel: ComposeButtonIconModel?,
+    val shape: ComposeButtonShape,
+    val size: ComposeButtonSize,
+    @DrawableRes val icon: Int,
+    val enabled: Boolean,
 )
+
+internal enum class ComposeButtonSize {
+    Big, Medium, Small
+}
+
+internal enum class ComposeButtonShape {
+    Circle, Pill
+}

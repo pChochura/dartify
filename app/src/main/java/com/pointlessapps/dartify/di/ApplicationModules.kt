@@ -1,5 +1,7 @@
 package com.pointlessapps.dartify.di
 
-import org.koin.core.module.Module
+import com.pointlessapps.dartify.compose.home.di.homeModule
 
-val applicationModules = emptyList<Module>()
+val applicationModules = listOf(
+    homeModule,
+)

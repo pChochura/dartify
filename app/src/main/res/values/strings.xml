@@ -1,4 +1,21 @@
 <resources>
-	<!--	TODO-->
-	<string name="app_name">Dartify</string>
+	<string name="app_name">dartify</string>
+	<string name="training">training</string>
+	<string name="play">play</string>
+	<string name="stats">stats</string>
+	<string name="daily_challenge">daily challenge</string>
+	<string name="settings">settings</string>
+	<string name="x01">X01</string>
+	<string name="start_game">start game</string>
+	<string name="first_to">first to</string>
+	<string name="best_of">best of</string>
+	<string name="sets">sets</string>
+	<string name="legs">legs</string>
+	<string name="starting_score">starting score</string>
+	<string name="game_modes">game modes</string>
+	<string name="in_mode">in-mode</string>
+	<string name="out_mode">out-mode</string>
+	<string name="players">players</string>
+	<string name="add_a_player">add a player</string>
+	<string name="custom">custom</string>
 </resources>

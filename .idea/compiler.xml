@@ -2,10 +2,10 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel target="1.8">
-      <module name="dartify.app" target="11" />
-      <module name="Dartify.buildSrc" target="11" />
-      <module name="Dartify.buildSrc.main" target="11" />
-      <module name="Dartify.buildSrc.test" target="11" />
+      <module name="dartify.app" target="17" />
+      <module name="Dartify.buildSrc" target="17" />
+      <module name="Dartify.buildSrc.main" target="17" />
+      <module name="Dartify.buildSrc.test" target="17" />
       <module name="darting.app" target="11" />
       <module name="Darting.buildSrc" target="11" />
       <module name="Darting.buildSrc.main" target="11" />

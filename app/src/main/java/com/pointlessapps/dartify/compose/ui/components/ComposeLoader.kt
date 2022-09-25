@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.zIndex
 
-private const val SCRIM_ALPHA = 0.9f
+private const val SCRIM_ALPHA = 0.7f
 
 @Composable
 internal fun ComposeLoader(enabled: Boolean) {

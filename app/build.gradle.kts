@@ -106,5 +106,7 @@ dependencies {
 
     implementation(Compose.NavigationReimagined)
 
+    implementation(Compose.Accompanist.SystemUIController)
+
     implementation(project(":domain"))
 }
