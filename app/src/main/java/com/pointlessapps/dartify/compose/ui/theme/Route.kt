@@ -1,11 +1,15 @@
 package com.pointlessapps.dartify.compose.ui.theme
 
 import android.os.Parcelable
+import com.pointlessapps.dartify.compose.game.model.GameSettings
 import kotlinx.parcelize.Parcelize
 
 internal sealed interface Route : Parcelable {
     @Parcelize
     object Home : Route
+
+    @Parcelize
+    object Players : Route
 
     object GameSetup {
         @Parcelize
@@ -14,6 +18,6 @@ internal sealed interface Route : Parcelable {
 
     object GameActive {
         @Parcelize
-        object X01 : Route
+        data class X01(val gameSettings: GameSettings) : Route
     }
 }

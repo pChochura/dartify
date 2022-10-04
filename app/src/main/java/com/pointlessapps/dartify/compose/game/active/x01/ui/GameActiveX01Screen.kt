@@ -12,9 +12,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
@@ -25,18 +23,45 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.pointlessapps.dartify.R
+import com.pointlessapps.dartify.compose.game.active.x01.model.PlayerScore
+import com.pointlessapps.dartify.compose.game.model.Bot
+import com.pointlessapps.dartify.compose.game.model.GameSettings
+import com.pointlessapps.dartify.compose.game.model.Player
 import com.pointlessapps.dartify.compose.ui.components.ComposeExactGrid
 import com.pointlessapps.dartify.compose.ui.components.ComposeScaffoldLayout
 import com.pointlessapps.dartify.compose.ui.components.ComposeText
 import com.pointlessapps.dartify.compose.ui.components.defaultComposeTextStyle
 import com.pointlessapps.dartify.compose.ui.modifiers.rectBorder
+import com.pointlessapps.dartify.compose.ui.theme.Route
 import com.pointlessapps.dartify.compose.utils.conditional
 import com.pointlessapps.dartify.compose.utils.scaledSp
+import org.koin.androidx.compose.getViewModel
 
 @Composable
-internal fun GameActiveX01Screen() {
+internal fun GameActiveX01Screen(
+    viewModel: GameActiveX01ViewModel = getViewModel(),
+    gameSettings: GameSettings,
+    onNavigate: (Route) -> Unit,
+) {
+    LaunchedEffect(gameSettings) {
+        viewModel.setGameSettings(gameSettings)
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.events.collect {
+            when (it) {
+                is GameActiveX01Event.Navigate -> onNavigate(it.route)
+            }
+        }
+    }
+
     ComposeScaffoldLayout(
-        topBar = { Title() },
+        topBar = {
+            Title(
+                currentSet = viewModel.state.currentSet,
+                currentLeg = viewModel.state.currentLeg,
+            )
+        },
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -44,16 +69,32 @@ internal fun GameActiveX01Screen() {
                 .padding(innerPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Scores()
-            InputScore()
-            QuickScores()
-            Keyboard()
+            Scores(
+                startingScore = viewModel.state.startingScore,
+                playersScores = viewModel.state.playersScores,
+                currentPlayer = viewModel.state.currentPlayer,
+            )
+            InputScore(
+                currentInputScore = viewModel.state.currentInputScore,
+                onClearClicked = viewModel::onClearClicked,
+            )
+            QuickScores(
+                onQuickScoreClicked = viewModel::onQuickScoreClicked,
+            )
+            Keyboard(
+                onKeyClicked = viewModel::onKeyClicked,
+                onUndoClicked = viewModel::onUndoClicked,
+                onDoneClicked = viewModel::onDoneClicked,
+            )
         }
     }
 }
 
 @Composable
-private fun Title() {
+private fun Title(
+    currentSet: Int,
+    currentLeg: Int,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -67,7 +108,7 @@ private fun Title() {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         ComposeText(
-            text = stringResource(id = R.string.set_leg, 1, 3),
+            text = stringResource(id = R.string.set_leg, currentSet, currentLeg),
             textStyle = defaultComposeTextStyle().copy(
                 textColor = MaterialTheme.colors.onBackground,
                 typography = MaterialTheme.typography.h3.let {
@@ -90,7 +131,11 @@ private fun Title() {
 }
 
 @Composable
-private fun Scores() {
+private fun Scores(
+    startingScore: Int,
+    playersScores: List<PlayerScore>,
+    currentPlayer: Player,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -99,30 +144,23 @@ private fun Scores() {
                 color = MaterialTheme.colors.secondary,
             ),
     ) {
-        Score(
-            PlayerScoreData(
-                name = "You",
-                icon = R.drawable.ic_person,
-                scoreLeft = 321,
-                max = 75,
-                avg = 56.3f,
-                darts = 12,
-                doublePercentage = 0.37f,
-            ),
-            isActive = true,
-        )
-        Score(
-            PlayerScoreData(
-                name = "CPU (avg. 75)",
-                icon = R.drawable.ic_robot,
-                scoreLeft = 263,
-                max = 121,
-                avg = 78.4f,
-                darts = 15,
-                doublePercentage = 0.75f,
-            ),
-            isActive = false,
-        )
+        playersScores.forEach {
+            Score(
+                PlayerScoreData(
+                    name = it.player.name,
+                    icon = when (it.player) {
+                        is Bot -> R.drawable.ic_robot
+                        else -> R.drawable.ic_person
+                    },
+                    scoreLeft = startingScore - it.score,
+                    max = it.max,
+                    avg = it.average,
+                    darts = it.numberOfDarts,
+                    doublePercentage = it.doublePercentage,
+                ),
+                isActive = currentPlayer == it.player,
+            )
+        }
     }
 }
 
@@ -236,8 +274,10 @@ private fun ScoreStatisticEntry(@DrawableRes icon: Int, value: String) {
 }
 
 @Composable
-private fun InputScore() {
-    val score by remember { mutableStateOf(121) }
+private fun InputScore(
+    currentInputScore: Int,
+    onClearClicked: () -> Unit,
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -248,7 +288,7 @@ private fun InputScore() {
     ) {
         ComposeText(
             modifier = Modifier.align(Alignment.Center),
-            text = "$score",
+            text = currentInputScore.toString(),
             textStyle = defaultComposeTextStyle().copy(
                 textColor = MaterialTheme.colors.onSecondary,
                 typography = MaterialTheme.typography.h1.copy(
@@ -266,8 +306,8 @@ private fun InputScore() {
             elevation = null,
             shape = CircleShape,
             colors = ButtonDefaults.buttonColors(backgroundColor = colorResource(id = R.color.red)),
-            onClick = { /*TODO*/ },
-            enabled = score != 0,
+            onClick = onClearClicked,
+            enabled = currentInputScore != 0,
         ) {
             ComposeText(
                 text = stringResource(id = R.string.clear),
@@ -283,18 +323,26 @@ private fun InputScore() {
 }
 
 @Composable
-private fun QuickScores() {
-    val quickScores by remember { mutableStateOf(listOf("26", "41", "45", "60", "85", "100")) }
+private fun QuickScores(
+    onQuickScoreClicked: (Int) -> Unit,
+) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(3),
         userScrollEnabled = false,
     ) {
-        items(quickScores) { QuickScore(it) }
+        items(GameActiveX01ViewModel.QUICK_SCORES) {
+            QuickScore(
+                score = it,
+                onQuickScoreClicked = {
+                    onQuickScoreClicked(it)
+                },
+            )
+        }
     }
 }
 
 @Composable
-private fun QuickScore(label: String) {
+private fun QuickScore(score: Int, onQuickScoreClicked: () -> Unit) {
     Box(
         modifier = Modifier
             .rectBorder(
@@ -306,14 +354,14 @@ private fun QuickScore(label: String) {
             .background(MaterialTheme.colors.secondary)
             .clickable(
                 role = Role.Button,
-                onClickLabel = label,
-                onClick = { /*TODO*/ },
+                onClickLabel = score.toString(),
+                onClick = onQuickScoreClicked,
             )
             .padding(vertical = dimensionResource(id = R.dimen.margin_small)),
         contentAlignment = Alignment.Center,
     ) {
         ComposeText(
-            text = label,
+            text = score.toString(),
             textStyle = defaultComposeTextStyle().copy(
                 textAlign = TextAlign.Center,
                 textColor = MaterialTheme.colors.onSecondary,
@@ -329,7 +377,11 @@ private fun QuickScore(label: String) {
 }
 
 @Composable
-private fun Keyboard() {
+private fun Keyboard(
+    onKeyClicked: (Int) -> Unit,
+    onUndoClicked: () -> Unit,
+    onDoneClicked: () -> Unit,
+) {
     val rows = 4
     val columns = 3
     ComposeExactGrid(
@@ -338,12 +390,23 @@ private fun Keyboard() {
         modifier = Modifier.fillMaxSize(),
     ) { x, y ->
         when {
-            y < rows - 1 -> Key("${y * rows + x + 1}")
-            x == 0 -> IconKey(R.drawable.ic_undo, stringResource(id = R.string.undo))
-            x == columns / 2 -> Key("0")
+            y < rows - 1 -> Key(
+                label = "${y * columns + x + 1}",
+                onKeyClicked = { onKeyClicked(y * columns + x + 1) },
+            )
+            x == 0 -> IconKey(
+                icon = R.drawable.ic_undo,
+                label = stringResource(id = R.string.undo),
+                onKeyClicked = onUndoClicked,
+            )
+            x == columns / 2 -> Key(
+                label = "0",
+                onKeyClicked = { onKeyClicked(0) },
+            )
             x == columns - 1 -> IconKey(
-                R.drawable.ic_done,
-                stringResource(id = R.string.done),
+                icon = R.drawable.ic_done,
+                label = stringResource(id = R.string.done),
+                onKeyClicked = onDoneClicked,
                 hasAccent = true,
             )
         }
@@ -351,7 +414,7 @@ private fun Keyboard() {
 }
 
 @Composable
-private fun Key(label: String) {
+private fun Key(label: String, onKeyClicked: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -364,7 +427,7 @@ private fun Key(label: String) {
             .clickable(
                 role = Role.Button,
                 onClickLabel = label,
-                onClick = { /*TODO*/ },
+                onClick = onKeyClicked,
             )
             .padding(vertical = dimensionResource(id = R.dimen.margin_small)),
         contentAlignment = Alignment.Center,
@@ -384,7 +447,12 @@ private fun Key(label: String) {
 }
 
 @Composable
-private fun IconKey(@DrawableRes icon: Int, label: String, hasAccent: Boolean = false) {
+private fun IconKey(
+    @DrawableRes icon: Int,
+    label: String,
+    onKeyClicked: () -> Unit,
+    hasAccent: Boolean = false,
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -400,7 +468,7 @@ private fun IconKey(@DrawableRes icon: Int, label: String, hasAccent: Boolean = 
             .clickable(
                 role = Role.Button,
                 onClickLabel = label,
-                onClick = { /*TODO*/ },
+                onClick = onKeyClicked,
             )
             .padding(vertical = dimensionResource(id = R.dimen.margin_small)),
         horizontalAlignment = Alignment.CenterHorizontally,

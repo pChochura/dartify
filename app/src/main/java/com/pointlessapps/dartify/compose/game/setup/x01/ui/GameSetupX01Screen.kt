@@ -23,16 +23,32 @@ import androidx.compose.ui.unit.sp
 import com.pointlessapps.dartify.R
 import com.pointlessapps.dartify.compose.game.setup.ui.PlayerEntryCard
 import com.pointlessapps.dartify.compose.game.setup.ui.defaultPlayerEntryCardModel
+import com.pointlessapps.dartify.compose.game.setup.x01.ui.model.GameMode
+import com.pointlessapps.dartify.compose.game.setup.x01.ui.model.MatchResolutionStrategy
+import com.pointlessapps.dartify.compose.game.model.Player
 import com.pointlessapps.dartify.compose.ui.components.*
+import com.pointlessapps.dartify.compose.ui.theme.Route
+import org.koin.androidx.compose.getViewModel
 
 @Composable
-internal fun GameSetupX01Screen() {
+internal fun GameSetupX01Screen(
+    viewModel: GameSetupX01ViewModel = getViewModel(),
+    onNavigate: (Route) -> Unit,
+) {
     var startingScoreDialogModel by remember { mutableStateOf<StartingScoreDialogModel?>(null) }
     var gameModeDialogModel by remember { mutableStateOf<GameModeDialogModel?>(null) }
 
+    LaunchedEffect(Unit) {
+        viewModel.events.collect {
+            when (it) {
+                is GameSetupX01Event.Navigate -> onNavigate(it.route)
+            }
+        }
+    }
+
     ComposeScaffoldLayout(
         topBar = { Title() },
-        fab = { StartGameButton() },
+        fab = { StartGameButton(onStartGameClicked = viewModel::onStartGameClicked) },
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -45,9 +61,22 @@ internal fun GameSetupX01Screen() {
                 dimensionResource(id = R.dimen.margin_semi_big),
             ),
         ) {
-            MatchSettings(onShowStartingScoreDialog = { startingScoreDialogModel = it })
-            GameModes(onShowGameModeDialog = { gameModeDialogModel = it })
-            Players()
+            MatchSettings(
+                startingScore = viewModel.state.startingScore,
+                matchResolutionStrategy = viewModel.state.matchResolutionStrategy,
+                onShowStartingScoreDialog = { startingScoreDialogModel = it },
+            )
+            GameModes(
+                inMode = viewModel.state.inMode,
+                outMode = viewModel.state.outMode,
+                onInGameModeSelected = viewModel::onInGameModeSelected,
+                onOutGameModeSelected = viewModel::onOutGameModeSelected,
+                onShowGameModeDialog = { gameModeDialogModel = it },
+            )
+            Players(
+                players = viewModel.state.players,
+                onAddPlayerClicked = viewModel::onAddPlayerClicked,
+            )
         }
     }
 
@@ -60,17 +89,19 @@ internal fun GameSetupX01Screen() {
             ),
         ) {
             var customStartingScoreValue by remember { mutableStateOf("") }
-            val startingScoreValues = listOf("301", "501", "701")
             Column(
                 verticalArrangement = Arrangement.spacedBy(
                     dimensionResource(id = R.dimen.margin_small),
                 ),
             ) {
-                startingScoreValues.forEach { item ->
+                GameSetupX01ViewModel.STARTING_SCORES.forEach { item ->
                     TextListItem(
-                        title = item,
+                        title = item.toString(),
                         subtitle = null,
-                        onClick = { startingScoreDialogModel = null },
+                        onClick = {
+                            viewModel.setStartingScore(item)
+                            startingScoreDialogModel = null
+                        },
                     )
                 }
 
@@ -100,7 +131,12 @@ internal fun GameSetupX01Screen() {
                     )
                     ComposeButton(
                         label = null,
-                        onClick = { startingScoreDialogModel = null },
+                        onClick = {
+                            if (customStartingScoreValue.isNotBlank()) {
+                                viewModel.setStartingScore(customStartingScoreValue.toIntOrNull())
+                                startingScoreDialogModel = null
+                            }
+                        },
                         buttonModel = defaultComposeButtonModel().copy(
                             icon = R.drawable.ic_done,
                             size = ComposeButtonSize.Small,
@@ -120,21 +156,19 @@ internal fun GameSetupX01Screen() {
                 icon = R.drawable.ic_darts,
             ),
         ) {
-            val gameModesValues = listOf(
-                "straight" to "Any score counts",
-                "double" to "Only double scores count",
-                "master" to "Only double or treble scores count",
-            )
             Column(
                 verticalArrangement = Arrangement.spacedBy(
                     dimensionResource(id = R.dimen.margin_small),
                 ),
             ) {
-                gameModesValues.forEach { (title, subtitle) ->
+                GameMode.values().forEach { gameMode ->
                     TextListItem(
-                        title = title,
-                        subtitle = subtitle,
-                        onClick = { gameModeDialogModel = null },
+                        title = stringResource(id = gameMode.label),
+                        subtitle = stringResource(id = gameMode.description),
+                        onClick = {
+                            gameModeDialogModel?.callback?.invoke(gameMode)
+                            gameModeDialogModel = null
+                        },
                     )
                 }
             }
@@ -162,7 +196,9 @@ private fun Title() {
 }
 
 @Composable
-private fun StartGameButton() {
+private fun StartGameButton(
+    onStartGameClicked: () -> Unit,
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -185,32 +221,32 @@ private fun StartGameButton() {
                 shape = ComposeButtonShape.Pill,
                 backgroundColor = colorResource(id = R.color.red),
             ),
-            onClick = { /*TODO*/ },
+            onClick = onStartGameClicked,
         )
     }
 }
 
 @Composable
 private fun MatchSettings(
+    startingScore: Int,
+    matchResolutionStrategy: MatchResolutionStrategy,
     onShowStartingScoreDialog: (StartingScoreDialogModel) -> Unit,
 ) {
-    val firstTo = stringResource(id = R.string.first_to)
-    val bestOf = stringResource(id = R.string.best_of)
-    val switcherValues by remember {
+    val switcherValueFirstTo by remember { mutableStateOf(ComposeSwitcherValue(label = R.string.first_to)) }
+    val switcherValueBestOf by remember { mutableStateOf(ComposeSwitcherValue(label = R.string.best_of)) }
+    var selectedSwitcherValue by remember {
         mutableStateOf(
-            listOf(
-                ComposeSwitcherValue(label = firstTo),
-                ComposeSwitcherValue(label = bestOf),
-            ),
+            when (matchResolutionStrategy) {
+                is MatchResolutionStrategy.FirstTo -> switcherValueFirstTo
+                is MatchResolutionStrategy.BestOf -> switcherValueBestOf
+            },
         )
     }
-    var selectedSwitcherValue by remember { mutableStateOf(switcherValues.random()) }
-    var setsValue by remember { mutableStateOf(1) }
-    var legsValue by remember { mutableStateOf(3) }
-    val startingScore by remember { mutableStateOf("501") }
+    var setsValue by remember { mutableStateOf(matchResolutionStrategy.numberOfSets) }
+    var legsValue by remember { mutableStateOf(matchResolutionStrategy.numberOfLegs) }
 
     ComposeSwitcher(
-        values = switcherValues,
+        values = listOf(switcherValueFirstTo, switcherValueBestOf),
         selectedValue = selectedSwitcherValue,
         onSelect = { selectedSwitcherValue = it },
     )
@@ -222,8 +258,8 @@ private fun MatchSettings(
     ) {
         ComposeCounter(
             value = setsValue,
-            maxValue = 5,
-            minValue = 1,
+            maxValue = MatchResolutionStrategy.MAX_SETS,
+            minValue = MatchResolutionStrategy.MIN_SETS,
             label = stringResource(id = R.string.sets),
             onChange = { setsValue += it },
             counterModel = defaultComposeCounterModel().copy(
@@ -244,8 +280,8 @@ private fun MatchSettings(
         )
         ComposeCounter(
             value = legsValue,
-            maxValue = 5,
-            minValue = 1,
+            maxValue = MatchResolutionStrategy.MAX_LEGS,
+            minValue = MatchResolutionStrategy.MIN_LEGS,
             label = stringResource(id = R.string.legs),
             onChange = { legsValue += it },
             counterModel = defaultComposeCounterModel().copy(
@@ -256,7 +292,7 @@ private fun MatchSettings(
 
     ComposeInputButton(
         label = stringResource(id = R.string.starting_score),
-        value = startingScore,
+        value = "$startingScore",
         onClick = { onShowStartingScoreDialog(StartingScoreDialogModel(enabled = true)) },
         inputButtonModel = defaultComposeInputButtonModel().copy(
             icon = R.drawable.ic_score,
@@ -266,11 +302,12 @@ private fun MatchSettings(
 
 @Composable
 private fun GameModes(
+    inMode: GameMode,
+    outMode: GameMode,
+    onInGameModeSelected: (GameMode) -> Unit,
+    onOutGameModeSelected: (GameMode) -> Unit,
     onShowGameModeDialog: (GameModeDialogModel) -> Unit,
 ) {
-    val inMode by remember { mutableStateOf("straight") }
-    val outMode by remember { mutableStateOf("double") }
-
     Column(
         verticalArrangement = Arrangement.spacedBy(
             dimensionResource(id = R.dimen.margin_small),
@@ -286,12 +323,13 @@ private fun GameModes(
 
         ComposeInputButton(
             label = stringResource(id = R.string.in_mode),
-            value = inMode,
+            value = stringResource(id = inMode.label),
             onClick = {
                 onShowGameModeDialog(
                     GameModeDialogModel(
                         enabled = true,
                         label = R.string.in_mode,
+                        callback = onInGameModeSelected,
                     ),
                 )
             },
@@ -301,12 +339,13 @@ private fun GameModes(
         )
         ComposeInputButton(
             label = stringResource(id = R.string.out_mode),
-            value = outMode,
+            value = stringResource(id = outMode.label),
             onClick = {
                 onShowGameModeDialog(
                     GameModeDialogModel(
                         enabled = true,
                         label = R.string.out_mode,
+                        callback = onOutGameModeSelected,
                     ),
                 )
             },
@@ -318,8 +357,10 @@ private fun GameModes(
 }
 
 @Composable
-private fun Players() {
-    val items by remember { mutableStateOf(listOf("You" to null, "Paweł" to "D-OUT", "Dominik" to null)) }
+private fun Players(
+    players: List<Player>,
+    onAddPlayerClicked: () -> Unit,
+) {
     Column(
         verticalArrangement = Arrangement.spacedBy(
             dimensionResource(id = R.dimen.margin_small),
@@ -333,11 +374,11 @@ private fun Players() {
             ),
         )
 
-        items.forEach { (name, infoCard) ->
+        players.forEach { player ->
             PlayerEntryCard(
-                label = name,
+                label = player.name,
                 onClick = { /*TODO*/ },
-                infoCardText = infoCard,
+                infoCardText = player.outMode?.label?.let { stringResource(id = it) },
                 playerEntryCardModel = defaultPlayerEntryCardModel().copy(
                     mainIcon = R.drawable.ic_person,
                     additionalIcon = R.drawable.ic_move_handle,
@@ -354,7 +395,7 @@ private fun Players() {
                     color = MaterialTheme.colors.secondary,
                     shape = MaterialTheme.shapes.medium,
                 )
-                .clickable { /*TODO*/ }
+                .clickable(onClick = onAddPlayerClicked)
                 .padding(dimensionResource(id = R.dimen.margin_medium)),
             horizontalArrangement = Arrangement.spacedBy(
                 dimensionResource(id = R.dimen.margin_small),
@@ -384,6 +425,7 @@ private fun Players() {
 private data class GameModeDialogModel(
     val enabled: Boolean = false,
     @StringRes val label: Int = R.string.in_mode,
+    val callback: (GameMode) -> Unit,
 )
 
 private data class StartingScoreDialogModel(

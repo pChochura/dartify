@@ -2,6 +2,7 @@ package com.pointlessapps.dartify.compose.home.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
@@ -11,12 +12,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import com.pointlessapps.dartify.R
 import com.pointlessapps.dartify.compose.ui.components.*
+import com.pointlessapps.dartify.compose.ui.theme.Route
 import org.koin.androidx.compose.getViewModel
 
 @Composable
 internal fun HomeScreen(
     viewModel: HomeViewModel = getViewModel(),
+    onNavigate: (Route) -> Unit,
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.events.collect {
+            when (it) {
+                is HomeEvent.Navigate -> onNavigate(it.route)
+            }
+        }
+    }
+
     ComposeScaffoldLayout { innerPadding ->
         Column(
             modifier = Modifier
@@ -35,9 +46,18 @@ internal fun HomeScreen(
             ),
         ) {
             LogoText()
-            MainButtons()
-            FavouriteGames()
-            BottomButtons()
+            MainButtons(
+                onTrainingClicked = viewModel::onTrainingClicked,
+                onPlayClicked = viewModel::onPlayClicked,
+            )
+            FavouriteGames(
+                onPlayClicked = viewModel::onPlayClicked,
+            )
+            BottomButtons(
+                onStatsClicked = viewModel::onStatsClicked,
+                onDailyChallengeClicked = viewModel::onDailyChallengeClicked,
+                onSettingsClicked = viewModel::onSettingsClicked,
+            )
         }
     }
 }
@@ -64,7 +84,10 @@ private fun ColumnScope.LogoText() {
 }
 
 @Composable
-private fun MainButtons() {
+private fun MainButtons(
+    onTrainingClicked: () -> Unit,
+    onPlayClicked: () -> Unit,
+) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(
             dimensionResource(id = R.dimen.margin_huge),
@@ -77,7 +100,7 @@ private fun MainButtons() {
                 size = ComposeButtonSize.Big,
                 shape = ComposeButtonShape.Circle,
             ),
-            onClick = { /*TODO*/ },
+            onClick = onTrainingClicked,
         )
         ComposeButton(
             label = stringResource(id = R.string.play),
@@ -86,13 +109,33 @@ private fun MainButtons() {
                 size = ComposeButtonSize.Big,
                 shape = ComposeButtonShape.Circle,
             ),
-            onClick = { /*TODO*/ },
+            onClick = onPlayClicked,
         )
     }
 }
 
 @Composable
-private fun BottomButtons() {
+private fun FavouriteGames(
+    onPlayClicked: () -> Unit,
+) {
+    ComposeButton(
+        label = stringResource(id = R.string.play),
+        buttonModel = defaultComposeButtonModel().copy(
+            icon = R.drawable.ic_play,
+            size = ComposeButtonSize.Big,
+            shape = ComposeButtonShape.Pill,
+            backgroundColor = colorResource(id = R.color.red),
+        ),
+        onClick = onPlayClicked,
+    )
+}
+
+@Composable
+private fun BottomButtons(
+    onStatsClicked: () -> Unit,
+    onDailyChallengeClicked: () -> Unit,
+    onSettingsClicked: () -> Unit,
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -104,7 +147,7 @@ private fun BottomButtons() {
                 size = ComposeButtonSize.Medium,
                 shape = ComposeButtonShape.Circle,
             ),
-            onClick = { /*TODO*/ },
+            onClick = onStatsClicked,
         )
         ComposeButton(
             label = stringResource(id = R.string.daily_challenge),
@@ -114,7 +157,7 @@ private fun BottomButtons() {
                 shape = ComposeButtonShape.Pill,
                 backgroundColor = colorResource(id = R.color.red),
             ),
-            onClick = { /*TODO*/ },
+            onClick = onDailyChallengeClicked,
         )
         ComposeButton(
             label = stringResource(id = R.string.settings),
@@ -123,21 +166,7 @@ private fun BottomButtons() {
                 size = ComposeButtonSize.Medium,
                 shape = ComposeButtonShape.Circle,
             ),
-            onClick = { /*TODO*/ },
+            onClick = onSettingsClicked,
         )
     }
-}
-
-@Composable
-private fun FavouriteGames() {
-    ComposeButton(
-        label = stringResource(id = R.string.play),
-        buttonModel = defaultComposeButtonModel().copy(
-            icon = R.drawable.ic_play,
-            size = ComposeButtonSize.Big,
-            shape = ComposeButtonShape.Pill,
-            backgroundColor = colorResource(id = R.color.red),
-        ),
-        onClick = { /*TODO*/ },
-    )
 }

@@ -1,5 +1,6 @@
 package com.pointlessapps.dartify.compose.ui.components
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -14,6 +15,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import com.pointlessapps.dartify.R
 import com.pointlessapps.dartify.compose.utils.conditional
@@ -46,7 +48,7 @@ internal fun ComposeSwitcher(
                 contentAlignment = Alignment.Center,
             ) {
                 ComposeText(
-                    text = value.label,
+                    text = stringResource(id = value.label),
                     textStyle = defaultComposeTextStyle().copy(
                         typography = MaterialTheme.typography.h2,
                         textColor = switcherModel.textColor,
@@ -73,5 +75,5 @@ internal data class ComposeSwitcherModel(
 
 internal data class ComposeSwitcherValue(
     val id: Long = UUID.randomUUID().mostSignificantBits,
-    val label: String,
+    @StringRes val label: Int,
 )

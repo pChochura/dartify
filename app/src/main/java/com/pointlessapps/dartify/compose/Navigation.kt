@@ -6,24 +6,29 @@ import com.pointlessapps.dartify.compose.game.active.x01.ui.GameActiveX01Screen
 import com.pointlessapps.dartify.compose.game.setup.x01.ui.GameSetupX01Screen
 import com.pointlessapps.dartify.compose.home.ui.HomeScreen
 import com.pointlessapps.dartify.compose.ui.theme.Route
-import dev.olshevski.navigation.reimagined.AnimatedNavHost
-import dev.olshevski.navigation.reimagined.NavBackHandler
-import dev.olshevski.navigation.reimagined.NavController
-import dev.olshevski.navigation.reimagined.rememberNavController
+import dev.olshevski.navigation.reimagined.*
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 internal fun NavHost(
     navController: NavController<Route> = rememberNavController(
-        startDestination = Route.GameActive.X01,
+        startDestination = Route.Home,
     ),
 ) {
     NavBackHandler(controller = navController)
     AnimatedNavHost(controller = navController) {
         when (it) {
-            Route.Home -> HomeScreen()
-            Route.GameSetup.X01 -> GameSetupX01Screen()
-            Route.GameActive.X01 -> GameActiveX01Screen()
+            Route.Home -> HomeScreen(
+                onNavigate = navController::navigate,
+            )
+            Route.Players -> {}
+            Route.GameSetup.X01 -> GameSetupX01Screen(
+                onNavigate = navController::navigate,
+            )
+            is Route.GameActive.X01 -> GameActiveX01Screen(
+                gameSettings = it.gameSettings,
+                onNavigate = navController::navigate,
+            )
         }
     }
 }

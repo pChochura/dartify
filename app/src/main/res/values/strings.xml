@@ -26,4 +26,10 @@
 	<string name="clear">clear</string>
 	<string name="undo">undo</string>
 	<string name="done">done</string>
+	<string name="game_mode_straight">straight</string>
+	<string name="game_mode_straight_desc">Any score counts</string>
+	<string name="game_mode_double">double</string>
+	<string name="game_mode_double_desc">Only double scores count</string>
+	<string name="game_mode_master">master</string>
+	<string name="game_mode_master_desc">Only double or treble scores count</string>
 </resources>
