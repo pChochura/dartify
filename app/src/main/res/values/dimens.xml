@@ -13,10 +13,19 @@
 	<dimen name="input_button_border_width">2dp</dimen>
 	<dimen name="input_button_icon_size">32dp</dimen>
 
-	<dimen name="entry_card_icon_size">24dp</dimen>
+	<dimen name="player_entry_card_icon_size">24dp</dimen>
+	<dimen name="player_score_icon_size">12dp</dimen>
+	<dimen name="player_score_border_width">1dp</dimen>
+
+	<dimen name="score_button_border_width">2dp</dimen>
+
+	<dimen name="button_icon_size">24dp</dimen>
+
+	<dimen name="key_button_icon_size">32dp</dimen>
 
 	<dimen name="dialog_icon_size">32dp</dimen>
 
+	<dimen name="margin_nano">4dp</dimen>
 	<dimen name="margin_tiny">8dp</dimen>
 	<dimen name="margin_small">10dp</dimen>
 	<dimen name="margin_medium">16dp</dimen>

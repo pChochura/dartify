@@ -63,7 +63,7 @@ private fun typography() = Typography(
         fontSize = 14.sp,
     ),
     subtitle1 = TextStyle(
-        fontWeight = FontWeight.Light,
+        fontWeight = FontWeight.Normal,
         fontSize = 12.sp,
     ),
 )

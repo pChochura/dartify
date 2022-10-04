@@ -11,4 +11,9 @@ internal sealed interface Route : Parcelable {
         @Parcelize
         object X01 : Route
     }
+
+    object GameActive {
+        @Parcelize
+        object X01 : Route
+    }
 }

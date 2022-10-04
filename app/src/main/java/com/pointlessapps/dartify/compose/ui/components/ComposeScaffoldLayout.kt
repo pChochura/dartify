@@ -1,7 +1,7 @@
 package com.pointlessapps.dartify.compose.ui.components
 
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.SubcomposeLayout
@@ -12,7 +12,7 @@ internal fun ComposeScaffoldLayout(
     fab: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit,
 ) {
-    SubcomposeLayout(modifier = Modifier.imePadding()) { constraints ->
+    SubcomposeLayout(modifier = Modifier.navigationBarsPadding()) { constraints ->
         val layoutWidth = constraints.maxWidth
         val layoutHeight = constraints.maxHeight
 

@@ -21,6 +21,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import com.pointlessapps.dartify.R
+import com.pointlessapps.dartify.compose.game.setup.ui.PlayerEntryCard
+import com.pointlessapps.dartify.compose.game.setup.ui.defaultPlayerEntryCardModel
 import com.pointlessapps.dartify.compose.ui.components.*
 
 @Composable
@@ -317,7 +319,7 @@ private fun GameModes(
 
 @Composable
 private fun Players() {
-    val items by remember { mutableStateOf(listOf("You", "Paweł", "Dominik")) }
+    val items by remember { mutableStateOf(listOf("You" to null, "Paweł" to "D-OUT", "Dominik" to null)) }
     Column(
         verticalArrangement = Arrangement.spacedBy(
             dimensionResource(id = R.dimen.margin_small),
@@ -331,11 +333,12 @@ private fun Players() {
             ),
         )
 
-        items.forEach { item ->
-            ComposeEntryCard(
-                label = item,
+        items.forEach { (name, infoCard) ->
+            PlayerEntryCard(
+                label = name,
                 onClick = { /*TODO*/ },
-                entryCardModel = defaultComposeEntryCardModel().copy(
+                infoCardText = infoCard,
+                playerEntryCardModel = defaultPlayerEntryCardModel().copy(
                     mainIcon = R.drawable.ic_person,
                     additionalIcon = R.drawable.ic_move_handle,
                 ),
@@ -360,7 +363,7 @@ private fun Players() {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
-                modifier = Modifier.size(dimensionResource(id = R.dimen.entry_card_icon_size)),
+                modifier = Modifier.size(dimensionResource(id = R.dimen.player_entry_card_icon_size)),
                 painter = painterResource(id = R.drawable.ic_plus),
                 tint = MaterialTheme.colors.onSecondary,
                 contentDescription = null,

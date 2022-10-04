@@ -18,4 +18,12 @@
 	<string name="players">players</string>
 	<string name="add_a_player">add a player</string>
 	<string name="custom">custom</string>
+	<string name="set_leg">set %d | leg %d</string>
+	<string name="statistic_max">max: %d</string>
+	<string name="statistic_avg">avg: %.1f</string>
+	<string name="statistic_darts">darts: %d</string>
+	<string name="statistic_double">double: %d%%</string>
+	<string name="clear">clear</string>
+	<string name="undo">undo</string>
+	<string name="done">done</string>
 </resources>
