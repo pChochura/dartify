@@ -86,6 +86,32 @@ internal class GameSetupX01ViewModel : ViewModel() {
         }
     }
 
+    fun onMatchResolutionStrategyChanged(matchResolutionStrategy: MatchResolutionStrategy?) {
+        if (matchResolutionStrategy == null) {
+            return
+        }
+
+        state = state.copy(
+            matchResolutionStrategy = matchResolutionStrategy,
+        )
+    }
+
+    fun onNumberOfSetsChanged(change: Int) {
+        state = state.copy(
+            matchResolutionStrategy = state.matchResolutionStrategy.let {
+                it.copy(numberOfSets = it.numberOfSets + change)
+            },
+        )
+    }
+
+    fun onNumberOfLegsChanged(change: Int) {
+        state = state.copy(
+            matchResolutionStrategy = state.matchResolutionStrategy.let {
+                it.copy(numberOfLegs = it.numberOfLegs + change)
+            },
+        )
+    }
+
     // TODO accept only X01 values
     private fun validateStartingScore(score: Int) =
         score in MIN_STARTING_SCORE..MAX_STARTING_SCORE

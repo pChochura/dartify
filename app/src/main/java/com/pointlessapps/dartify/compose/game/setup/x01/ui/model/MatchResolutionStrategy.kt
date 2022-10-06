@@ -5,21 +5,36 @@ internal sealed class MatchResolutionStrategy(
     val numberOfLegs: Int,
 ) {
     abstract fun resolutionPredicate(): (Int, Int) -> Boolean
+    abstract fun copy(
+        numberOfSets: Int = this.numberOfSets,
+        numberOfLegs: Int = this.numberOfLegs,
+    ): MatchResolutionStrategy
+
+    fun toFirstTo() = FirstTo(numberOfSets, numberOfLegs)
+    fun toBestOf() = BestOf(numberOfSets, numberOfLegs)
 
     class FirstTo(numberOfSets: Int, numberOfLegs: Int) :
         MatchResolutionStrategy(numberOfSets, numberOfLegs) {
 
         override fun resolutionPredicate() = { sets: Int, legs: Int ->
-            sets == numberOfSets && legs == numberOfLegs
+            sets >= numberOfSets && legs >= numberOfLegs
         }
+
+        override fun copy(numberOfSets: Int, numberOfLegs: Int) = FirstTo(
+            numberOfSets, numberOfLegs,
+        )
     }
 
     class BestOf(numberOfSets: Int, numberOfLegs: Int) :
         MatchResolutionStrategy(numberOfSets, numberOfLegs) {
 
         override fun resolutionPredicate() = { sets: Int, legs: Int ->
-            sets == numberOfSets && legs > numberOfLegs / 2
+            sets >= numberOfSets / 2 && legs >= numberOfLegs / 2
         }
+
+        override fun copy(numberOfSets: Int, numberOfLegs: Int) = BestOf(
+            numberOfSets, numberOfLegs,
+        )
     }
 
     companion object {

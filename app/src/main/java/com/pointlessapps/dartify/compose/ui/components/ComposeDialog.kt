@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.pointlessapps.dartify.R
 
 @Composable
@@ -23,7 +24,13 @@ internal fun ComposeDialog(
     dialogModel: ComposeDialogModel = defaultComposeDialogModel(),
     content: @Composable () -> Unit,
 ) {
-    Dialog(onDismissRequest = onDismissRequest) {
+    Dialog(
+        onDismissRequest = onDismissRequest,
+        properties = DialogProperties(
+            dismissOnBackPress = dialogModel.dismissible,
+            dismissOnClickOutside = dialogModel.dismissible,
+        ),
+    ) {
         Column(
             modifier = modifier
                 .fillMaxWidth()
@@ -36,7 +43,7 @@ internal fun ComposeDialog(
                 .padding(dimensionResource(id = R.dimen.margin_big)),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(
-                dimensionResource(id = R.dimen.margin_big),
+                dimensionResource(id = R.dimen.margin_semi_big),
             ),
         ) {
             Row(
@@ -72,6 +79,7 @@ internal fun defaultComposeDialogModel() = ComposeDialogModel(
     textColor = MaterialTheme.colors.onBackground,
     label = "",
     icon = R.drawable.ic_settings,
+    dismissible = true,
 )
 
 internal data class ComposeDialogModel(
@@ -79,4 +87,5 @@ internal data class ComposeDialogModel(
     val textColor: Color,
     val label: String,
     @DrawableRes val icon: Int,
+    val dismissible: Boolean,
 )

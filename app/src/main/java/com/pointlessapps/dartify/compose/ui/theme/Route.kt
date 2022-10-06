@@ -5,6 +5,7 @@ import com.pointlessapps.dartify.compose.game.model.GameSettings
 import kotlinx.parcelize.Parcelize
 
 internal sealed interface Route : Parcelable {
+
     @Parcelize
     object Home : Route
 

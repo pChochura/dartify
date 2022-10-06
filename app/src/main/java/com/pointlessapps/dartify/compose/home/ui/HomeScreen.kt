@@ -18,7 +18,7 @@ import org.koin.androidx.compose.getViewModel
 @Composable
 internal fun HomeScreen(
     viewModel: HomeViewModel = getViewModel(),
-    onNavigate: (Route) -> Unit,
+    onNavigate: (Route?) -> Unit,
 ) {
     LaunchedEffect(Unit) {
         viewModel.events.collect {

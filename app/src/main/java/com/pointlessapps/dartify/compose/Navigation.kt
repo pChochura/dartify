@@ -19,16 +19,24 @@ internal fun NavHost(
     AnimatedNavHost(controller = navController) {
         when (it) {
             Route.Home -> HomeScreen(
-                onNavigate = navController::navigate,
+                onNavigate = { route -> navigate(navController, route) },
             )
             Route.Players -> {}
             Route.GameSetup.X01 -> GameSetupX01Screen(
-                onNavigate = navController::navigate,
+                onNavigate = { route -> navigate(navController, route) },
             )
             is Route.GameActive.X01 -> GameActiveX01Screen(
                 gameSettings = it.gameSettings,
-                onNavigate = navController::navigate,
+                onNavigate = { route -> navigate(navController, route) },
             )
         }
+    }
+}
+
+private fun navigate(navController: NavController<Route>, route: Route?) {
+    if (route == null) {
+        navController.pop()
+    } else if (!navController.popUpTo { it == route }) {
+        navController.navigate(route)
     }
 }

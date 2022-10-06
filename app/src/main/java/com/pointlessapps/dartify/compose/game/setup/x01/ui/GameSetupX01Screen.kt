@@ -17,15 +17,16 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import com.pointlessapps.dartify.R
+import com.pointlessapps.dartify.compose.game.model.Player
 import com.pointlessapps.dartify.compose.game.setup.ui.PlayerEntryCard
 import com.pointlessapps.dartify.compose.game.setup.ui.defaultPlayerEntryCardModel
 import com.pointlessapps.dartify.compose.game.setup.x01.ui.model.GameMode
 import com.pointlessapps.dartify.compose.game.setup.x01.ui.model.MatchResolutionStrategy
-import com.pointlessapps.dartify.compose.game.model.Player
 import com.pointlessapps.dartify.compose.ui.components.*
 import com.pointlessapps.dartify.compose.ui.theme.Route
 import org.koin.androidx.compose.getViewModel
@@ -33,7 +34,7 @@ import org.koin.androidx.compose.getViewModel
 @Composable
 internal fun GameSetupX01Screen(
     viewModel: GameSetupX01ViewModel = getViewModel(),
-    onNavigate: (Route) -> Unit,
+    onNavigate: (Route?) -> Unit,
 ) {
     var startingScoreDialogModel by remember { mutableStateOf<StartingScoreDialogModel?>(null) }
     var gameModeDialogModel by remember { mutableStateOf<GameModeDialogModel?>(null) }
@@ -65,6 +66,9 @@ internal fun GameSetupX01Screen(
                 startingScore = viewModel.state.startingScore,
                 matchResolutionStrategy = viewModel.state.matchResolutionStrategy,
                 onShowStartingScoreDialog = { startingScoreDialogModel = it },
+                onMatchResolutionStrategyChanged = viewModel::onMatchResolutionStrategyChanged,
+                onNumberOfSetsChanged = viewModel::onNumberOfSetsChanged,
+                onNumberOfLegsChanged = viewModel::onNumberOfLegsChanged,
             )
             GameModes(
                 inMode = viewModel.state.inMode,
@@ -122,10 +126,17 @@ internal fun GameSetupX01Screen(
                             .padding(dimensionResource(id = R.dimen.margin_small)),
                         value = customStartingScoreValue,
                         onValueChange = { customStartingScoreValue = it },
+                        onImeAction = {
+                            if (customStartingScoreValue.isNotBlank()) {
+                                viewModel.setStartingScore(customStartingScoreValue.toIntOrNull())
+                                startingScoreDialogModel = null
+                            }
+                        },
                         textFieldModel = defaultComposeTextFieldModel().copy(
                             placeholder = stringResource(id = R.string.custom),
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Number,
+                                imeAction = ImeAction.Done,
                             ),
                         ),
                     )
@@ -231,6 +242,9 @@ private fun MatchSettings(
     startingScore: Int,
     matchResolutionStrategy: MatchResolutionStrategy,
     onShowStartingScoreDialog: (StartingScoreDialogModel) -> Unit,
+    onMatchResolutionStrategyChanged: (MatchResolutionStrategy?) -> Unit,
+    onNumberOfSetsChanged: (Int) -> Unit,
+    onNumberOfLegsChanged: (Int) -> Unit,
 ) {
     val switcherValueFirstTo by remember { mutableStateOf(ComposeSwitcherValue(label = R.string.first_to)) }
     val switcherValueBestOf by remember { mutableStateOf(ComposeSwitcherValue(label = R.string.best_of)) }
@@ -248,7 +262,16 @@ private fun MatchSettings(
     ComposeSwitcher(
         values = listOf(switcherValueFirstTo, switcherValueBestOf),
         selectedValue = selectedSwitcherValue,
-        onSelect = { selectedSwitcherValue = it },
+        onSelect = {
+            selectedSwitcherValue = it
+            onMatchResolutionStrategyChanged(
+                when (it) {
+                    switcherValueFirstTo -> matchResolutionStrategy.toFirstTo()
+                    switcherValueBestOf -> matchResolutionStrategy.toBestOf()
+                    else -> null
+                },
+            )
+        },
     )
 
     Row(
@@ -261,7 +284,10 @@ private fun MatchSettings(
             maxValue = MatchResolutionStrategy.MAX_SETS,
             minValue = MatchResolutionStrategy.MIN_SETS,
             label = stringResource(id = R.string.sets),
-            onChange = { setsValue += it },
+            onChange = {
+                setsValue += it
+                onNumberOfSetsChanged(it)
+            },
             counterModel = defaultComposeCounterModel().copy(
                 counterColor = MaterialTheme.colors.primary,
             ),
@@ -283,7 +309,10 @@ private fun MatchSettings(
             maxValue = MatchResolutionStrategy.MAX_LEGS,
             minValue = MatchResolutionStrategy.MIN_LEGS,
             label = stringResource(id = R.string.legs),
-            onChange = { legsValue += it },
+            onChange = {
+                legsValue += it
+                onNumberOfLegsChanged(it)
+            },
             counterModel = defaultComposeCounterModel().copy(
                 counterColor = colorResource(id = R.color.red),
             ),

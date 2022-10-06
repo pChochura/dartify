@@ -31,3 +31,5 @@ internal fun Float.scaledSp() = with(LocalDensity.current) {
     val textSize = this@scaledSp / fontScale
     return@with textSize.sp
 }
+
+internal fun Float.toPercentage() = (this * 100).toInt()
