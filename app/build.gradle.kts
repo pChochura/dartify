@@ -47,7 +47,6 @@ android {
     }
 
     buildTypes {
-
         getByName("release") {
             isMinifyEnabled = true
             proguardFiles("proguard-rules.pro")
@@ -80,14 +79,17 @@ android {
         outputs.all {
             val nameBuilder = StringBuilder()
             nameBuilder.append(applicationId)
-            if (!name.toLowerCase().contains("release")) {
-                nameBuilder.append("_$name")
-            }
+            nameBuilder.append("_$name")
             nameBuilder.append("_$versionName")
             nameBuilder.append("_$versionCode")
             nameBuilder.append(".apk")
 
-            (this as BaseVariantOutputImpl).outputFileName = nameBuilder.toString()
+            (this as BaseVariantOutputImpl).outputFileName =
+                if (name.toLowerCase().contains("release")) {
+                    "dartify.apk"
+                } else {
+                    nameBuilder.toString()
+                }
         }
     }
 }
