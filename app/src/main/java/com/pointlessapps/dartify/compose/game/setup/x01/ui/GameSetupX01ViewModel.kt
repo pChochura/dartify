@@ -8,8 +8,11 @@ import androidx.lifecycle.viewModelScope
 import com.pointlessapps.dartify.compose.game.model.Bot
 import com.pointlessapps.dartify.compose.game.model.GameSettings
 import com.pointlessapps.dartify.compose.game.model.Player
-import com.pointlessapps.dartify.compose.game.setup.x01.ui.model.GameMode
-import com.pointlessapps.dartify.compose.game.setup.x01.ui.model.MatchResolutionStrategy
+import com.pointlessapps.dartify.compose.game.setup.x01.model.GameMode
+import com.pointlessapps.dartify.compose.game.setup.x01.model.MatchResolutionStrategy
+import com.pointlessapps.dartify.compose.game.setup.x01.model.MatchResolutionStrategy.Companion.DEFAULT_NUMBER_OF_LEGS
+import com.pointlessapps.dartify.compose.game.setup.x01.model.MatchResolutionStrategy.Companion.DEFAULT_NUMBER_OF_SETS
+import com.pointlessapps.dartify.compose.game.setup.x01.ui.GameSetupX01ViewModel.Companion.DEFAULT_STARTING_SCORE
 import com.pointlessapps.dartify.compose.ui.theme.Route
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -21,8 +24,11 @@ internal sealed interface GameSetupX01Event {
 }
 
 internal data class GameSetupX01State(
-    val matchResolutionStrategy: MatchResolutionStrategy = MatchResolutionStrategy.FirstTo(1, 3),
-    val startingScore: Int = 501,
+    val matchResolutionStrategy: MatchResolutionStrategy = MatchResolutionStrategy.FirstTo(
+        numberOfSets = DEFAULT_NUMBER_OF_SETS,
+        numberOfLegs = DEFAULT_NUMBER_OF_LEGS,
+    ),
+    val startingScore: Int = DEFAULT_STARTING_SCORE,
     val inMode: GameMode = GameMode.Straight,
     val outMode: GameMode = GameMode.Double,
     val players: List<Player> = listOf(
@@ -86,35 +92,41 @@ internal class GameSetupX01ViewModel : ViewModel() {
         }
     }
 
-    fun onMatchResolutionStrategyChanged(matchResolutionStrategy: MatchResolutionStrategy?) {
-        if (matchResolutionStrategy == null) {
+    fun onMatchResolutionStrategyChanged(matchResolutionStrategyType: MatchResolutionStrategy.Type?) {
+        if (matchResolutionStrategyType == null) {
             return
         }
 
         state = state.copy(
-            matchResolutionStrategy = matchResolutionStrategy,
+            matchResolutionStrategy = when (matchResolutionStrategyType) {
+                MatchResolutionStrategy.Type.FirstTo -> MatchResolutionStrategy.FirstTo(
+                    numberOfSets = DEFAULT_NUMBER_OF_SETS,
+                    numberOfLegs = DEFAULT_NUMBER_OF_LEGS,
+                )
+                MatchResolutionStrategy.Type.BestOf -> MatchResolutionStrategy.BestOf(
+                    numberOfSets = DEFAULT_NUMBER_OF_SETS,
+                    numberOfLegs = DEFAULT_NUMBER_OF_LEGS,
+                )
+            },
         )
     }
 
     fun onNumberOfSetsChanged(change: Int) {
         state = state.copy(
-            matchResolutionStrategy = state.matchResolutionStrategy.let {
-                it.copy(numberOfSets = it.numberOfSets + change)
-            },
+            matchResolutionStrategy = state.matchResolutionStrategy.withNumberOfSetsChanged(change),
         )
     }
 
     fun onNumberOfLegsChanged(change: Int) {
         state = state.copy(
-            matchResolutionStrategy = state.matchResolutionStrategy.let {
-                it.copy(numberOfLegs = it.numberOfLegs + change)
-            },
+            matchResolutionStrategy = state.matchResolutionStrategy.withNumberOfLegsChanged(change),
         )
     }
 
-    // TODO accept only X01 values
+    @Suppress("MagicNumber")
     private fun validateStartingScore(score: Int) =
-        score in MIN_STARTING_SCORE..MAX_STARTING_SCORE
+        score in MIN_STARTING_SCORE..MAX_STARTING_SCORE &&
+                (score - 1) % 100 == 0
 
     companion object {
         // TODO probably move to settings
@@ -122,5 +134,7 @@ internal class GameSetupX01ViewModel : ViewModel() {
 
         const val MIN_STARTING_SCORE = 101
         const val MAX_STARTING_SCORE = 901
+
+        const val DEFAULT_STARTING_SCORE = 501
     }
 }
