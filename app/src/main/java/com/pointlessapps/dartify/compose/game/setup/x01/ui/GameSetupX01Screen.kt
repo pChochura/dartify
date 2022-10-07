@@ -3,7 +3,6 @@ package com.pointlessapps.dartify.compose.game.setup.x01.ui
 import androidx.annotation.StringRes
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.*
@@ -17,16 +16,14 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import com.pointlessapps.dartify.R
 import com.pointlessapps.dartify.compose.game.model.Player
 import com.pointlessapps.dartify.compose.game.setup.ui.PlayerEntryCard
 import com.pointlessapps.dartify.compose.game.setup.ui.defaultPlayerEntryCardModel
-import com.pointlessapps.dartify.compose.game.setup.x01.ui.model.GameMode
-import com.pointlessapps.dartify.compose.game.setup.x01.ui.model.MatchResolutionStrategy
+import com.pointlessapps.dartify.compose.game.setup.x01.model.GameMode
+import com.pointlessapps.dartify.compose.game.setup.x01.model.MatchResolutionStrategy
 import com.pointlessapps.dartify.compose.ui.components.*
 import com.pointlessapps.dartify.compose.ui.theme.Route
 import org.koin.androidx.compose.getViewModel
@@ -85,105 +82,24 @@ internal fun GameSetupX01Screen(
     }
 
     startingScoreDialogModel?.let {
-        ComposeDialog(
+        StartingScoreDialog(
+            onButtonClicked = {
+                viewModel.setStartingScore(it)
+                startingScoreDialogModel = null
+            },
             onDismissRequest = { startingScoreDialogModel = null },
-            dialogModel = defaultComposeDialogModel().copy(
-                label = stringResource(id = R.string.starting_score),
-                icon = R.drawable.ic_score,
-            ),
-        ) {
-            var customStartingScoreValue by remember { mutableStateOf("") }
-            Column(
-                verticalArrangement = Arrangement.spacedBy(
-                    dimensionResource(id = R.dimen.margin_small),
-                ),
-            ) {
-                GameSetupX01ViewModel.STARTING_SCORES.forEach { item ->
-                    TextListItem(
-                        title = item.toString(),
-                        subtitle = null,
-                        onClick = {
-                            viewModel.setStartingScore(item)
-                            startingScoreDialogModel = null
-                        },
-                    )
-                }
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(
-                        dimensionResource(id = R.dimen.margin_small),
-                    ),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    ComposeTextField(
-                        modifier = Modifier
-                            .weight(1f)
-                            .border(
-                                width = dimensionResource(id = R.dimen.input_button_border_width),
-                                color = MaterialTheme.colors.secondary,
-                                shape = MaterialTheme.shapes.small,
-                            )
-                            .padding(dimensionResource(id = R.dimen.margin_small)),
-                        value = customStartingScoreValue,
-                        onValueChange = { customStartingScoreValue = it },
-                        onImeAction = {
-                            if (customStartingScoreValue.isNotBlank()) {
-                                viewModel.setStartingScore(customStartingScoreValue.toIntOrNull())
-                                startingScoreDialogModel = null
-                            }
-                        },
-                        textFieldModel = defaultComposeTextFieldModel().copy(
-                            placeholder = stringResource(id = R.string.custom),
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Number,
-                                imeAction = ImeAction.Done,
-                            ),
-                        ),
-                    )
-                    ComposeButton(
-                        label = null,
-                        onClick = {
-                            if (customStartingScoreValue.isNotBlank()) {
-                                viewModel.setStartingScore(customStartingScoreValue.toIntOrNull())
-                                startingScoreDialogModel = null
-                            }
-                        },
-                        buttonModel = defaultComposeButtonModel().copy(
-                            icon = R.drawable.ic_done,
-                            size = ComposeButtonSize.Small,
-                            backgroundColor = colorResource(id = R.color.red),
-                        ),
-                    )
-                }
-            }
-        }
+        )
     }
 
     gameModeDialogModel?.let { model ->
-        ComposeDialog(
+        GameModeDialog(
+            label = model.label,
+            onButtonClicked = {
+                gameModeDialogModel?.callback?.invoke(it)
+                gameModeDialogModel = null
+            },
             onDismissRequest = { gameModeDialogModel = null },
-            dialogModel = defaultComposeDialogModel().copy(
-                label = stringResource(id = model.label),
-                icon = R.drawable.ic_darts,
-            ),
-        ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(
-                    dimensionResource(id = R.dimen.margin_small),
-                ),
-            ) {
-                GameMode.values().forEach { gameMode ->
-                    TextListItem(
-                        title = stringResource(id = gameMode.label),
-                        subtitle = stringResource(id = gameMode.description),
-                        onClick = {
-                            gameModeDialogModel?.callback?.invoke(gameMode)
-                            gameModeDialogModel = null
-                        },
-                    )
-                }
-            }
-        }
+        )
     }
 }
 
@@ -242,7 +158,7 @@ private fun MatchSettings(
     startingScore: Int,
     matchResolutionStrategy: MatchResolutionStrategy,
     onShowStartingScoreDialog: (StartingScoreDialogModel) -> Unit,
-    onMatchResolutionStrategyChanged: (MatchResolutionStrategy?) -> Unit,
+    onMatchResolutionStrategyChanged: (MatchResolutionStrategy.Type?) -> Unit,
     onNumberOfSetsChanged: (Int) -> Unit,
     onNumberOfLegsChanged: (Int) -> Unit,
 ) {
@@ -256,8 +172,6 @@ private fun MatchSettings(
             },
         )
     }
-    var setsValue by remember { mutableStateOf(matchResolutionStrategy.numberOfSets) }
-    var legsValue by remember { mutableStateOf(matchResolutionStrategy.numberOfLegs) }
 
     ComposeSwitcher(
         values = listOf(switcherValueFirstTo, switcherValueBestOf),
@@ -266,8 +180,8 @@ private fun MatchSettings(
             selectedSwitcherValue = it
             onMatchResolutionStrategyChanged(
                 when (it) {
-                    switcherValueFirstTo -> matchResolutionStrategy.toFirstTo()
-                    switcherValueBestOf -> matchResolutionStrategy.toBestOf()
+                    switcherValueFirstTo -> MatchResolutionStrategy.Type.FirstTo
+                    switcherValueBestOf -> MatchResolutionStrategy.Type.BestOf
                     else -> null
                 },
             )
@@ -280,14 +194,11 @@ private fun MatchSettings(
         ),
     ) {
         ComposeCounter(
-            value = setsValue,
+            value = matchResolutionStrategy.numberOfSets,
             maxValue = MatchResolutionStrategy.MAX_SETS,
             minValue = MatchResolutionStrategy.MIN_SETS,
             label = stringResource(id = R.string.sets),
-            onChange = {
-                setsValue += it
-                onNumberOfSetsChanged(it)
-            },
+            onChange = { onNumberOfSetsChanged(it) },
             counterModel = defaultComposeCounterModel().copy(
                 counterColor = MaterialTheme.colors.primary,
             ),
@@ -305,14 +216,11 @@ private fun MatchSettings(
             },
         )
         ComposeCounter(
-            value = legsValue,
+            value = matchResolutionStrategy.numberOfLegs,
             maxValue = MatchResolutionStrategy.MAX_LEGS,
             minValue = MatchResolutionStrategy.MIN_LEGS,
             label = stringResource(id = R.string.legs),
-            onChange = {
-                legsValue += it
-                onNumberOfLegsChanged(it)
-            },
+            onChange = { onNumberOfLegsChanged(it) },
             counterModel = defaultComposeCounterModel().copy(
                 counterColor = colorResource(id = R.color.red),
             ),

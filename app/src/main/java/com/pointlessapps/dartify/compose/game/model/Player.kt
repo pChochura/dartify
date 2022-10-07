@@ -1,7 +1,7 @@
 package com.pointlessapps.dartify.compose.game.model
 
 import android.os.Parcelable
-import com.pointlessapps.dartify.compose.game.setup.x01.ui.model.GameMode
+import com.pointlessapps.dartify.compose.game.setup.x01.model.GameMode
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
