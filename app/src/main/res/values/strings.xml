@@ -40,4 +40,5 @@
 	<string name="show_game_stats">show game stats</string>
 	<string name="save_and_close">save and close</string>
 	<string name="sets_legs">sets: %d | legs: %d</string>
+	<string name="last_score">last: %d</string>
 </resources>

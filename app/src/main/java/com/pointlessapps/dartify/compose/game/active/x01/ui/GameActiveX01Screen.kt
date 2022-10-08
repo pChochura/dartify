@@ -206,6 +206,7 @@ private fun Scores(
                         else -> R.drawable.ic_person
                     },
                     scoreLeft = onScoreLeftRequested(it.player),
+                    lastScore = it.lastScore,
                     max = it.max,
                     average = it.average,
                     numberOfDarts = it.numberOfDarts,
@@ -248,6 +249,7 @@ private fun RowScope.Score(
     name: String,
     @DrawableRes icon: Int,
     scoreLeft: Int,
+    lastScore: Int?,
     max: Int,
     average: Float,
     numberOfDarts: Int,
@@ -273,16 +275,31 @@ private fun RowScope.Score(
         verticalArrangement = Arrangement.SpaceAround,
     ) {
         ScoreStatisticEntry(icon, name)
-        ComposeText(
-            text = "$scoreLeft",
-            textStyle = defaultComposeTextStyle().copy(
-                textColor = MaterialTheme.colors.onSecondary,
-                typography = MaterialTheme.typography.h1.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 48.scaledSp(),
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            ComposeText(
+                text = "$scoreLeft",
+                textStyle = defaultComposeTextStyle().copy(
+                    textColor = MaterialTheme.colors.onSecondary,
+                    typography = MaterialTheme.typography.h1.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 48.scaledSp(),
+                    ),
                 ),
-            ),
-        )
+            )
+            AnimatedVisibility(visible = lastScore != null) {
+                ComposeText(
+                    text = stringResource(id = R.string.last_score, lastScore ?: 0),
+                    textStyle = defaultComposeTextStyle().copy(
+                        textColor = MaterialTheme.colors.onSecondary,
+                        typography = MaterialTheme.typography.subtitle1.copy(
+                            fontWeight = FontWeight.Bold,
+                        ),
+                    ),
+                )
+            }
+        }
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(

@@ -43,6 +43,9 @@ internal data class PlayerScore(val player: Player, private val startingScore: I
     val scoreLeft: Int
         get() = startingScore - pastInputs.sumOf(Input::score)
 
+    val lastScore: Int?
+        get() = pastInputs.lastOrNull()?.score
+
     fun addInput(score: Int, @FloatRange(from = 1.0, to = 3.0) weight: Int = 3) {
         pastInputs.add(Input(score, weight))
     }
@@ -71,9 +74,6 @@ internal data class PlayerScore(val player: Player, private val startingScore: I
         previousInputs.add(ArrayList(pastInputs))
         pastInputs.clear()
     }
-
-    //@Suppress("MagicNumber")
-    //private fun Float.isDouble() = this in (1..20).map { it * 2 } || this == 50
 
     private data class Input(val score: Int, @FloatRange(from = 1.0, to = 3.0) val weight: Int)
 }
