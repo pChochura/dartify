@@ -1,6 +1,8 @@
 package com.pointlessapps.dartify.compose.game.active.x01.ui
 
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -12,7 +14,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
@@ -84,9 +88,9 @@ internal fun GameActiveX01Screen(
                 playersScores = viewModel.state.playersScores,
                 currentPlayer = viewModel.state.currentPlayer,
                 onScoreLeftRequested = viewModel::onScoreLeftRequested,
-                onFinishSuggestionRequested = viewModel::onFinishSuggestionRequested,
             )
             InputScore(
+                finishSuggestion = viewModel.getCurrentFinishSuggestion(),
                 currentInputScore = viewModel.state.currentInputScore,
                 onClearClicked = viewModel::onClearClicked,
             )
@@ -184,7 +188,6 @@ private fun Scores(
     playersScores: List<PlayerScore>,
     currentPlayer: Player,
     onScoreLeftRequested: (Player) -> Int,
-    onFinishSuggestionRequested: (Player) -> String?,
 ) {
     Column {
         Row(
@@ -207,7 +210,6 @@ private fun Scores(
                     average = it.average,
                     numberOfDarts = it.numberOfDarts,
                     doublePercentage = it.doublePercentage,
-                    finishSuggestion = onFinishSuggestionRequested(it.player),
                     isActive = currentPlayer == it.player,
                 )
             }
@@ -250,7 +252,6 @@ private fun RowScope.Score(
     average: Float,
     numberOfDarts: Int,
     doublePercentage: Float,
-    finishSuggestion: String?,
     isActive: Boolean,
 ) {
     Column(
@@ -282,18 +283,6 @@ private fun RowScope.Score(
                 ),
             ),
         )
-        if (finishSuggestion != null) {
-            ComposeText(
-                text = finishSuggestion,
-                textStyle = defaultComposeTextStyle().copy(
-                    textColor = MaterialTheme.colors.onSecondary,
-                    typography = MaterialTheme.typography.h1.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 10.scaledSp(),
-                    ),
-                ),
-            )
-        }
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(
@@ -338,9 +327,19 @@ private fun RowScope.Score(
 
 @Composable
 private fun InputScore(
+    finishSuggestion: String?,
     currentInputScore: Int,
     onClearClicked: () -> Unit,
 ) {
+    val suggestionTextFontSize by animateFloatAsState(if (currentInputScore == 0) 40f else 16f)
+    val suggestionTextAlignment by animateFloatAsState(if (currentInputScore == 0) 0f else -1f)
+    val currentInputScoreOpacity by animateFloatAsState(
+        if (finishSuggestion == null || currentInputScore != 0) {
+            1f
+        } else {
+            0f
+        },
+    )
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -349,8 +348,25 @@ private fun InputScore(
                 vertical = dimensionResource(id = R.dimen.margin_small),
             ),
     ) {
+        AnimatedVisibility(
+            modifier = Modifier.align(BiasAlignment(suggestionTextAlignment, 0f)),
+            visible = finishSuggestion != null,
+        ) {
+            ComposeText(
+                text = finishSuggestion.toString(),
+                textStyle = defaultComposeTextStyle().copy(
+                    textColor = MaterialTheme.colors.onSecondary,
+                    typography = MaterialTheme.typography.h1.copy(
+                        fontSize = suggestionTextFontSize.scaledSp(),
+                        fontWeight = FontWeight.Bold,
+                    ),
+                ),
+            )
+        }
         ComposeText(
-            modifier = Modifier.align(Alignment.Center),
+            modifier = Modifier
+                .align(Alignment.Center)
+                .alpha(currentInputScoreOpacity),
             text = currentInputScore.toString(),
             textStyle = defaultComposeTextStyle().copy(
                 textColor = MaterialTheme.colors.onSecondary,

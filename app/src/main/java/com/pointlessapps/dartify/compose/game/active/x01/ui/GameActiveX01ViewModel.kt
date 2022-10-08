@@ -176,9 +176,9 @@ internal class GameActiveX01ViewModel : ViewModel() {
         }
     }
 
-    fun onFinishSuggestionRequested(player: Player): String? {
+    fun getCurrentFinishSuggestion(): String? {
         val playerScore = state.playersScores.find {
-            it.player == player
+            it.player == state.currentPlayer
         } ?: return null
 
         // TODO add actual implementation of this
