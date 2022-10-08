@@ -21,8 +21,8 @@ internal fun NumberOfThrowsAndDoublesDialog(
     onDoneClicked: (throws: Int, doubles: Int) -> Unit,
     onDismissRequest: () -> Unit,
 ) {
-    var throwsInTotal by remember { mutableStateOf(0) }
-    var throwsOnDoubles by remember { mutableStateOf(-1) }
+    var throwsInTotal by remember { mutableStateOf(minNumberOfThrows) }
+    var throwsOnDoubles by remember { mutableStateOf(1) }
 
     ComposeDialog(
         onDismissRequest = onDismissRequest,
@@ -121,7 +121,7 @@ internal fun NumberOfThrowsAndDoublesDialog(
                                     fontSize = 32.sp,
                                 ),
                             ),
-                            enabled = it <= throwsInTotal,
+                            enabled = it in 1..throwsInTotal,
                         ),
                     )
                 }
