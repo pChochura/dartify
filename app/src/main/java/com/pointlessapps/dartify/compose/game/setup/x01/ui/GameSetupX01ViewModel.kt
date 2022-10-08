@@ -98,20 +98,18 @@ internal class GameSetupX01ViewModel : ViewModel() {
 
         state = state.copy(
             matchResolutionStrategy = matchResolutionStrategy,
-            numberOfSets = DEFAULT_NUMBER_OF_SETS,
-            numberOfLegs = DEFAULT_NUMBER_OF_LEGS,
         )
     }
 
     fun onNumberOfSetsChanged(change: Int) {
         state = state.copy(
-            numberOfSets = state.numberOfSets + change, // TODO account for bestOf/firstTo differences
+            numberOfSets = state.numberOfSets + change,
         )
     }
 
     fun onNumberOfLegsChanged(change: Int) {
         state = state.copy(
-            numberOfLegs = state.numberOfLegs + change, // TODO account for bestOf/firstTo differences
+            numberOfLegs = state.numberOfLegs + change,
         )
     }
 
