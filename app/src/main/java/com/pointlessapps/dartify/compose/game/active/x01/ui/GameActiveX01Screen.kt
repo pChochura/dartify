@@ -300,8 +300,11 @@ private fun RowScope.Score(
                     backgroundColor = MaterialTheme.colors.primary,
                 )
                 ScoreStatisticEntry(
-                    R.drawable.ic_score,
-                    stringResource(id = R.string.statistic_max, max),
+                    R.drawable.ic_darts,
+                    stringResource(
+                        id = R.string.statistic_double,
+                        doublePercentage.toPercentage(),
+                    ),
                 )
             }
             Row(
@@ -314,11 +317,8 @@ private fun RowScope.Score(
                     stringResource(id = R.string.statistic_avg, average),
                 )
                 ScoreStatisticEntry(
-                    R.drawable.ic_darts,
-                    stringResource(
-                        id = R.string.statistic_double,
-                        doublePercentage.toPercentage(),
-                    ),
+                    R.drawable.ic_score,
+                    stringResource(id = R.string.statistic_max, max),
                 )
             }
         }
