@@ -135,7 +135,8 @@ internal class GameActiveX01ViewModel : ViewModel() {
             return
         }
 
-        performFinishTurn(currentPlayerScore)
+        currentPlayerScore.addInput(state.currentInputScore)
+        setNextTurn()
     }
 
     fun onClearClicked() {
@@ -151,7 +152,8 @@ internal class GameActiveX01ViewModel : ViewModel() {
         } ?: return
 
         currentPlayerScore.addDoubleThrowTries(numberOfDoubles)
-        performFinishTurn(currentPlayerScore)
+        currentPlayerScore.addInput(state.currentInputScore)
+        setNextTurn()
     }
 
     fun onNumberOfThrowsClicked(numberOfThrows: Int, numberOfDoubles: Int) {
@@ -159,9 +161,7 @@ internal class GameActiveX01ViewModel : ViewModel() {
             it.player == state.currentPlayer
         } ?: return
 
-        if (!performLegFinished(numberOfThrows, numberOfDoubles, currentPlayerScore)) {
-            performFinishTurn(currentPlayerScore)
-        }
+        performLegFinished(numberOfThrows, numberOfDoubles, currentPlayerScore)
     }
 
     fun onScoreLeftRequested(player: Player): Int {
@@ -199,16 +199,27 @@ internal class GameActiveX01ViewModel : ViewModel() {
         }
     }
 
-    private fun performFinishTurn(playerScore: PlayerScore) {
-        playerScore.addInput(state.currentInputScore)
-        val currentPlayerScoreIndex = state.playersScores.indexOf(playerScore)
+    private fun setNextTurn(
+        isLegFinished: Boolean = false,
+        isSetFinished: Boolean = false,
+        nextPlayer: Player? = null,
+    ) {
+        val currentPlayerScore = state.playersScores.find {
+            it.player == state.currentPlayer
+        } ?: return
+
+        val currentPlayerScoreIndex = state.playersScores.indexOf(currentPlayerScore)
         val nextPlayerScoreIndex = (currentPlayerScoreIndex + 1) % state.playersScores.size
-        val nextPlayer = state.playersScores[nextPlayerScoreIndex].player
+
+        val setIncrement = if (isSetFinished) 1 else 0
+        val legIncrement = if (isLegFinished) 1 else 0
 
         quickScoreProvided = false
         state = state.copy(
+            currentPlayer = nextPlayer ?: state.playersScores[nextPlayerScoreIndex].player,
+            currentSet = state.currentSet + if (isSetFinished) setIncrement else 0,
+            currentLeg = if (isSetFinished) 1 else state.currentLeg + legIncrement,
             currentInputScore = 0,
-            currentPlayer = nextPlayer,
         )
     }
 
@@ -263,11 +274,9 @@ internal class GameActiveX01ViewModel : ViewModel() {
 
         startingPlayerIndex = (startingPlayerIndex + 1) % gameSettings.players.size
 
-        state = state.copy(
-            currentInputScore = 0,
-            currentSet = if (isSetFinished) state.currentSet + 1 else state.currentSet,
-            currentLeg = if (isSetFinished) 1 else state.currentLeg + 1,
-            currentPlayer = state.playersScores[startingPlayerIndex].player,
+        setNextTurn(
+            isSetFinished = isSetFinished,
+            nextPlayer = state.playersScores[startingPlayerIndex].player,
         )
 
         return false
