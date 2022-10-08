@@ -32,4 +32,5 @@ internal fun Float.scaledSp() = with(LocalDensity.current) {
     return@with textSize.sp
 }
 
+@Suppress("MagicNumber")
 internal fun Float.toPercentage() = (this * 100).toInt()

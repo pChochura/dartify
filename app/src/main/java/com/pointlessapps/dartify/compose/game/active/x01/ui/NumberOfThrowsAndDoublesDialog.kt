@@ -27,7 +27,7 @@ internal fun NumberOfThrowsAndDoublesDialog(
     ComposeDialog(
         onDismissRequest = onDismissRequest,
         dialogModel = defaultComposeDialogModel().copy(
-            label = stringResource(id = R.string.how_many_throws_on_double),
+            label = stringResource(id = R.string.how_many_throws),
             icon = R.drawable.ic_darts,
             dismissible = false,
         ),
