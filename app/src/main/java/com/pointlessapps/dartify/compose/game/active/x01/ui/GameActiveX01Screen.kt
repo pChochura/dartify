@@ -286,12 +286,12 @@ private fun RowScope.Score(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(
-                dimensionResource(id = R.dimen.margin_tiny),
+                dimensionResource(id = R.dimen.margin_nano),
             ),
         ) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(
-                    dimensionResource(id = R.dimen.margin_tiny),
+                    dimensionResource(id = R.dimen.margin_nano),
                 ),
             ) {
                 ScoreStatisticEntry(
@@ -300,13 +300,16 @@ private fun RowScope.Score(
                     backgroundColor = MaterialTheme.colors.primary,
                 )
                 ScoreStatisticEntry(
-                    R.drawable.ic_score,
-                    stringResource(id = R.string.statistic_max, max),
+                    R.drawable.ic_darts,
+                    stringResource(
+                        id = R.string.statistic_double,
+                        doublePercentage.toPercentage(),
+                    ),
                 )
             }
             Row(
                 horizontalArrangement = Arrangement.spacedBy(
-                    dimensionResource(id = R.dimen.margin_tiny),
+                    dimensionResource(id = R.dimen.margin_nano),
                 ),
             ) {
                 ScoreStatisticEntry(
@@ -314,11 +317,8 @@ private fun RowScope.Score(
                     stringResource(id = R.string.statistic_avg, average),
                 )
                 ScoreStatisticEntry(
-                    R.drawable.ic_darts,
-                    stringResource(
-                        id = R.string.statistic_double,
-                        doublePercentage.toPercentage(),
-                    ),
+                    R.drawable.ic_score,
+                    stringResource(id = R.string.statistic_max, max),
                 )
             }
         }
