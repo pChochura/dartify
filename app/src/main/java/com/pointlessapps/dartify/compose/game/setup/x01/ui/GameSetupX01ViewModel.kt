@@ -17,6 +17,7 @@ import com.pointlessapps.dartify.compose.ui.theme.Route
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import java.lang.Integer.min
 
 internal sealed interface GameSetupX01Event {
     @JvmInline
@@ -98,18 +99,42 @@ internal class GameSetupX01ViewModel : ViewModel() {
 
         state = state.copy(
             matchResolutionStrategy = matchResolutionStrategy,
+            numberOfSets = min(
+                matchResolutionStrategy.convertValueFrom(
+                    state.matchResolutionStrategy,
+                    state.numberOfSets,
+                ),
+                MAX_NUMBER_OF_SETS,
+            ),
+            numberOfLegs = min(
+                matchResolutionStrategy.convertValueFrom(
+                    state.matchResolutionStrategy,
+                    state.numberOfLegs,
+                ),
+                MAX_NUMBER_OF_LEGS,
+            ),
         )
     }
 
     fun onNumberOfSetsChanged(change: Int) {
+        val realChange = when (state.matchResolutionStrategy) {
+            MatchResolutionStrategy.FirstTo -> change
+            MatchResolutionStrategy.BestOf -> change * 2
+        }
+
         state = state.copy(
-            numberOfSets = state.numberOfSets + change,
+            numberOfSets = state.numberOfSets + realChange,
         )
     }
 
     fun onNumberOfLegsChanged(change: Int) {
+        val realChange = when (state.matchResolutionStrategy) {
+            MatchResolutionStrategy.FirstTo -> change
+            MatchResolutionStrategy.BestOf -> change * 2
+        }
+
         state = state.copy(
-            numberOfLegs = state.numberOfLegs + change,
+            numberOfLegs = state.numberOfLegs + realChange,
         )
     }
 
