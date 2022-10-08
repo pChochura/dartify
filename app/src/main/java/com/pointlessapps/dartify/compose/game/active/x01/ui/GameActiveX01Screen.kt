@@ -51,7 +51,7 @@ internal fun GameActiveX01Screen(
     }
     var numberOfDoublesDialogModel by remember { mutableStateOf<NumberOfDoublesDialogModel?>(null) }
     var winnerDialogModel by remember { mutableStateOf<WinnerDialogModel?>(null) }
-    LaunchedEffect(Unit) {
+    LaunchedEffect(gameSettings) {
         viewModel.setGameSettings(gameSettings)
     }
 

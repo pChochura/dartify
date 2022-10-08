@@ -7,11 +7,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pointlessapps.dartify.compose.game.model.Bot
 import com.pointlessapps.dartify.compose.game.model.GameSettings
+import com.pointlessapps.dartify.compose.game.model.MatchResolutionStrategy
 import com.pointlessapps.dartify.compose.game.model.Player
 import com.pointlessapps.dartify.compose.game.setup.x01.model.GameMode
-import com.pointlessapps.dartify.compose.game.setup.x01.model.MatchResolutionStrategy
-import com.pointlessapps.dartify.compose.game.setup.x01.model.MatchResolutionStrategy.Companion.DEFAULT_NUMBER_OF_LEGS
-import com.pointlessapps.dartify.compose.game.setup.x01.model.MatchResolutionStrategy.Companion.DEFAULT_NUMBER_OF_SETS
+import com.pointlessapps.dartify.compose.game.setup.x01.ui.GameSetupX01ViewModel.Companion.DEFAULT_NUMBER_OF_LEGS
+import com.pointlessapps.dartify.compose.game.setup.x01.ui.GameSetupX01ViewModel.Companion.DEFAULT_NUMBER_OF_SETS
 import com.pointlessapps.dartify.compose.game.setup.x01.ui.GameSetupX01ViewModel.Companion.DEFAULT_STARTING_SCORE
 import com.pointlessapps.dartify.compose.ui.theme.Route
 import kotlinx.coroutines.channels.Channel
@@ -24,10 +24,9 @@ internal sealed interface GameSetupX01Event {
 }
 
 internal data class GameSetupX01State(
-    val matchResolutionStrategy: MatchResolutionStrategy = MatchResolutionStrategy.FirstTo(
-        numberOfSets = DEFAULT_NUMBER_OF_SETS,
-        numberOfLegs = DEFAULT_NUMBER_OF_LEGS,
-    ),
+    val matchResolutionStrategy: MatchResolutionStrategy = MatchResolutionStrategy.FirstTo,
+    val numberOfSets: Int = DEFAULT_NUMBER_OF_SETS,
+    val numberOfLegs: Int = DEFAULT_NUMBER_OF_LEGS,
     val startingScore: Int = DEFAULT_STARTING_SCORE,
     val inMode: GameMode = GameMode.Straight,
     val outMode: GameMode = GameMode.Double,
@@ -52,9 +51,9 @@ internal class GameSetupX01ViewModel : ViewModel() {
                     Route.GameActive.X01(
                         GameSettings(
                             startingScore = state.startingScore,
-                            numberOfSets = state.matchResolutionStrategy.numberOfSets,
-                            numberOfLegs = state.matchResolutionStrategy.numberOfLegs,
-                            resolutionPredicate = state.matchResolutionStrategy.resolutionPredicate(),
+                            numberOfSets = state.numberOfSets,
+                            numberOfLegs = state.numberOfLegs,
+                            matchResolutionStrategy = state.matchResolutionStrategy,
                             players = state.players,
                         ),
                     ),
@@ -92,34 +91,27 @@ internal class GameSetupX01ViewModel : ViewModel() {
         }
     }
 
-    fun onMatchResolutionStrategyChanged(matchResolutionStrategyType: MatchResolutionStrategy.Type?) {
-        if (matchResolutionStrategyType == null) {
+    fun onMatchResolutionStrategyChanged(matchResolutionStrategy: MatchResolutionStrategy?) {
+        if (matchResolutionStrategy == null) {
             return
         }
 
         state = state.copy(
-            matchResolutionStrategy = when (matchResolutionStrategyType) {
-                MatchResolutionStrategy.Type.FirstTo -> MatchResolutionStrategy.FirstTo(
-                    numberOfSets = DEFAULT_NUMBER_OF_SETS,
-                    numberOfLegs = DEFAULT_NUMBER_OF_LEGS,
-                )
-                MatchResolutionStrategy.Type.BestOf -> MatchResolutionStrategy.BestOf(
-                    numberOfSets = DEFAULT_NUMBER_OF_SETS,
-                    numberOfLegs = DEFAULT_NUMBER_OF_LEGS,
-                )
-            },
+            matchResolutionStrategy = matchResolutionStrategy,
+            numberOfSets = DEFAULT_NUMBER_OF_SETS,
+            numberOfLegs = DEFAULT_NUMBER_OF_LEGS,
         )
     }
 
     fun onNumberOfSetsChanged(change: Int) {
         state = state.copy(
-            matchResolutionStrategy = state.matchResolutionStrategy.withNumberOfSetsChanged(change),
+            numberOfSets = state.numberOfSets + change, // TODO account for bestOf/firstTo differences
         )
     }
 
     fun onNumberOfLegsChanged(change: Int) {
         state = state.copy(
-            matchResolutionStrategy = state.matchResolutionStrategy.withNumberOfLegsChanged(change),
+            numberOfLegs = state.numberOfLegs + change, // TODO account for bestOf/firstTo differences
         )
     }
 
@@ -136,5 +128,12 @@ internal class GameSetupX01ViewModel : ViewModel() {
         const val MAX_STARTING_SCORE = 901
 
         const val DEFAULT_STARTING_SCORE = 501
+
+        const val MIN_NUMBER_OF_SETS = 1
+        const val MAX_NUMBER_OF_SETS = 5
+        const val MIN_NUMBER_OF_LEGS = 1
+        const val MAX_NUMBER_OF_LEGS = 9
+        const val DEFAULT_NUMBER_OF_SETS = 1
+        const val DEFAULT_NUMBER_OF_LEGS = 3
     }
 }

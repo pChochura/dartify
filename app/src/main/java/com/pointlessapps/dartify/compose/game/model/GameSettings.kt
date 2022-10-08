@@ -8,6 +8,6 @@ internal data class GameSettings(
     val startingScore: Int,
     val numberOfSets: Int,
     val numberOfLegs: Int,
-    val resolutionPredicate: (sets: Int, legs: Int) -> Boolean,
+    val matchResolutionStrategy: MatchResolutionStrategy,
     val players: List<Player>,
 ) : Parcelable

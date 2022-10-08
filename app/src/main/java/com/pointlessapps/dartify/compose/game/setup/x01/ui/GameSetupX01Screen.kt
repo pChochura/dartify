@@ -23,7 +23,7 @@ import com.pointlessapps.dartify.compose.game.model.Player
 import com.pointlessapps.dartify.compose.game.setup.ui.PlayerEntryCard
 import com.pointlessapps.dartify.compose.game.setup.ui.defaultPlayerEntryCardModel
 import com.pointlessapps.dartify.compose.game.setup.x01.model.GameMode
-import com.pointlessapps.dartify.compose.game.setup.x01.model.MatchResolutionStrategy
+import com.pointlessapps.dartify.compose.game.model.MatchResolutionStrategy
 import com.pointlessapps.dartify.compose.ui.components.*
 import com.pointlessapps.dartify.compose.ui.theme.Route
 import org.koin.androidx.compose.getViewModel
@@ -61,6 +61,8 @@ internal fun GameSetupX01Screen(
         ) {
             MatchSettings(
                 startingScore = viewModel.state.startingScore,
+                numberOfSets = viewModel.state.numberOfSets,
+                numberOfLegs = viewModel.state.numberOfLegs,
                 matchResolutionStrategy = viewModel.state.matchResolutionStrategy,
                 onShowStartingScoreDialog = { startingScoreDialogModel = it },
                 onMatchResolutionStrategyChanged = viewModel::onMatchResolutionStrategyChanged,
@@ -156,9 +158,11 @@ private fun StartGameButton(
 @Composable
 private fun MatchSettings(
     startingScore: Int,
+    numberOfSets: Int,
+    numberOfLegs: Int,
     matchResolutionStrategy: MatchResolutionStrategy,
     onShowStartingScoreDialog: (StartingScoreDialogModel) -> Unit,
-    onMatchResolutionStrategyChanged: (MatchResolutionStrategy.Type?) -> Unit,
+    onMatchResolutionStrategyChanged: (MatchResolutionStrategy?) -> Unit,
     onNumberOfSetsChanged: (Int) -> Unit,
     onNumberOfLegsChanged: (Int) -> Unit,
 ) {
@@ -167,8 +171,8 @@ private fun MatchSettings(
     var selectedSwitcherValue by remember {
         mutableStateOf(
             when (matchResolutionStrategy) {
-                is MatchResolutionStrategy.FirstTo -> switcherValueFirstTo
-                is MatchResolutionStrategy.BestOf -> switcherValueBestOf
+                MatchResolutionStrategy.FirstTo -> switcherValueFirstTo
+                MatchResolutionStrategy.BestOf -> switcherValueBestOf
             },
         )
     }
@@ -180,8 +184,8 @@ private fun MatchSettings(
             selectedSwitcherValue = it
             onMatchResolutionStrategyChanged(
                 when (it) {
-                    switcherValueFirstTo -> MatchResolutionStrategy.Type.FirstTo
-                    switcherValueBestOf -> MatchResolutionStrategy.Type.BestOf
+                    switcherValueFirstTo -> MatchResolutionStrategy.FirstTo
+                    switcherValueBestOf -> MatchResolutionStrategy.BestOf
                     else -> null
                 },
             )
@@ -194,9 +198,9 @@ private fun MatchSettings(
         ),
     ) {
         ComposeCounter(
-            value = matchResolutionStrategy.numberOfSets,
-            maxValue = MatchResolutionStrategy.MAX_SETS,
-            minValue = MatchResolutionStrategy.MIN_SETS,
+            value = numberOfSets,
+            maxValue = GameSetupX01ViewModel.MAX_NUMBER_OF_SETS,
+            minValue = GameSetupX01ViewModel.MIN_NUMBER_OF_SETS,
             label = stringResource(id = R.string.sets),
             onChange = { onNumberOfSetsChanged(it) },
             counterModel = defaultComposeCounterModel().copy(
@@ -216,9 +220,9 @@ private fun MatchSettings(
             },
         )
         ComposeCounter(
-            value = matchResolutionStrategy.numberOfLegs,
-            maxValue = MatchResolutionStrategy.MAX_LEGS,
-            minValue = MatchResolutionStrategy.MIN_LEGS,
+            value = numberOfLegs,
+            maxValue = GameSetupX01ViewModel.MAX_NUMBER_OF_LEGS,
+            minValue = GameSetupX01ViewModel.MIN_NUMBER_OF_LEGS,
             label = stringResource(id = R.string.legs),
             onChange = { onNumberOfLegsChanged(it) },
             counterModel = defaultComposeCounterModel().copy(

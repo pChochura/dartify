@@ -159,7 +159,7 @@ internal class GameActiveX01ViewModel : ViewModel() {
             it.player == state.currentPlayer
         } ?: return
 
-        if (!performWin(numberOfThrows, numberOfDoubles, currentPlayerScore)) {
+        if (!performLegFinished(numberOfThrows, numberOfDoubles, currentPlayerScore)) {
             performFinishTurn(currentPlayerScore)
         }
     }
@@ -228,29 +228,32 @@ internal class GameActiveX01ViewModel : ViewModel() {
 
     private fun calculateAvailableMaxNumberOfDoubles() = 3
 
-    private fun performWin(numberOfThrows: Int, numberOfDoubles: Int, playerScore: PlayerScore): Boolean {
+    private fun performLegFinished(
+        numberOfThrows: Int,
+        numberOfDoubles: Int,
+        playerScore: PlayerScore,
+    ): Boolean {
         // TODO save stats
-        val isNextSet = gameSettings.resolutionPredicate(
-            gameSettings.numberOfSets,
-            state.currentLeg,
-        )
-        val isFinished = isNextSet && gameSettings.resolutionPredicate(
-            playerScore.wonSets + 1,
-            playerScore.wonLegs + 1,
-        )
+        val isSetFinished = gameSettings.matchResolutionStrategy
+            .resolutionPredicate(gameSettings.numberOfLegs)
+            .invoke(playerScore.wonLegs + 1)
+
+        val isMatchFinished = isSetFinished && gameSettings.matchResolutionStrategy
+            .resolutionPredicate(gameSettings.numberOfSets)
+            .invoke(playerScore.wonSets + 1)
 
         playerScore.addInput(state.currentInputScore, weight = numberOfThrows)
         playerScore.addDoubleThrowTries(numberOfDoubles)
 
         state.playersScores.forEach {
-            if (isNextSet) {
+            if (isSetFinished) {
                 it.markSetAsFinished(it == playerScore)
             } else {
                 it.markLegAsFinished(it == playerScore)
             }
         }
 
-        if (isFinished) {
+        if (isMatchFinished) {
             viewModelScope.launch {
                 eventChannel.send(GameActiveX01Event.ShowWinnerDialog(playerScore))
             }
@@ -262,8 +265,8 @@ internal class GameActiveX01ViewModel : ViewModel() {
 
         state = state.copy(
             currentInputScore = 0,
-            currentSet = if (isNextSet) state.currentSet + 1 else state.currentSet,
-            currentLeg = if (isNextSet) 1 else state.currentLeg + 1,
+            currentSet = if (isSetFinished) state.currentSet + 1 else state.currentSet,
+            currentLeg = if (isSetFinished) 1 else state.currentLeg + 1,
             currentPlayer = state.playersScores[startingPlayerIndex].player,
         )
 
