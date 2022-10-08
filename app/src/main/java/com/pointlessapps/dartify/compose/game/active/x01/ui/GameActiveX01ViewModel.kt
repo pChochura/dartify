@@ -89,23 +89,55 @@ internal class GameActiveX01ViewModel : ViewModel() {
     }
 
     fun onUndoClicked() {
+        if (state.currentInputScore != 0) {
+            quickScoreProvided = false
+            state = state.copy(
+                currentInputScore = 0,
+            )
+
+            return
+        }
+
         val currentPlayerScoreIndex = state.playersScores.indexOfFirst {
             it.player == state.currentPlayer
         }
 
-        val prevPlayerScoreIndex =
-            (currentPlayerScoreIndex + state.playersScores.size - 1) % state.playersScores.size
-        val prevPlayerScore = state.playersScores[prevPlayerScoreIndex]
+        val prevPlayerScoreIndex = currentPlayerScoreIndex.prevPlayerIndex()
+        var prevPlayerScore = state.playersScores[prevPlayerScoreIndex]
 
-        if (prevPlayerScore.numberOfDarts == 0) {
+        if (prevPlayerScore.hasNoInputs()) {
+            quickScoreProvided = false
+            state = state.copy(
+                currentInputScore = 0,
+            )
+
             return
+        }
+
+        // Set or leg was reverted
+        if (prevPlayerScore.numberOfDarts == 0) {
+            if (startingPlayerIndex == currentPlayerScoreIndex) {
+                prevPlayerScore = state.playersScores[startingPlayerIndex]
+            }
+            startingPlayerIndex = startingPlayerIndex.prevPlayerIndex()
+
+            state.playersScores.forEach {
+                if (it != prevPlayerScore) {
+                    it.markLegAsReverted()
+                }
+            }
         }
 
         val prevPlayerInputScore = prevPlayerScore.popInput()
 
+        val currentSet = state.playersScores.sumOf { it.wonSets } + 1
+        val currentLeg = state.playersScores.sumOf { it.wonLegs } + 1
+
         quickScoreProvided = false
         state = state.copy(
             currentInputScore = prevPlayerInputScore,
+            currentSet = currentSet,
+            currentLeg = currentLeg,
             currentPlayer = prevPlayerScore.player,
         )
     }
@@ -151,8 +183,7 @@ internal class GameActiveX01ViewModel : ViewModel() {
             it.player == state.currentPlayer
         } ?: return
 
-        currentPlayerScore.addDoubleThrowTries(numberOfDoubles)
-        currentPlayerScore.addInput(state.currentInputScore)
+        currentPlayerScore.addInput(state.currentInputScore, doubleThrowTries = numberOfDoubles)
         setNextTurn()
     }
 
@@ -209,7 +240,7 @@ internal class GameActiveX01ViewModel : ViewModel() {
         } ?: return
 
         val currentPlayerScoreIndex = state.playersScores.indexOf(currentPlayerScore)
-        val nextPlayerScoreIndex = (currentPlayerScoreIndex + 1) % state.playersScores.size
+        val nextPlayerScoreIndex = currentPlayerScoreIndex.nextPlayerIndex()
 
         val setIncrement = if (isSetFinished) 1 else 0
         val legIncrement = if (isLegFinished) 1 else 0
@@ -253,8 +284,11 @@ internal class GameActiveX01ViewModel : ViewModel() {
             .resolutionPredicate(gameSettings.numberOfSets)
             .invoke(playerScore.wonSets + 1)
 
-        playerScore.addInput(state.currentInputScore, weight = numberOfThrows)
-        playerScore.addDoubleThrowTries(numberOfDoubles)
+        playerScore.addInput(
+            state.currentInputScore,
+            weight = numberOfThrows,
+            doubleThrowTries = numberOfDoubles,
+        )
 
         state.playersScores.forEach {
             if (isSetFinished) {
@@ -272,15 +306,20 @@ internal class GameActiveX01ViewModel : ViewModel() {
             return true
         }
 
-        startingPlayerIndex = (startingPlayerIndex + 1) % gameSettings.players.size
+        startingPlayerIndex = startingPlayerIndex.nextPlayerIndex()
 
         setNextTurn(
             isSetFinished = isSetFinished,
+            isLegFinished = true,
             nextPlayer = state.playersScores[startingPlayerIndex].player,
         )
 
         return false
     }
+
+    private fun Int.nextPlayerIndex() = (this + 1) % gameSettings.players.size
+    private fun Int.prevPlayerIndex() =
+        (this + gameSettings.players.size - 1) % gameSettings.players.size
 
     companion object {
         const val MAX_SCORE = 180

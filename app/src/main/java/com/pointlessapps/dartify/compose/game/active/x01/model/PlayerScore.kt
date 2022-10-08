@@ -5,75 +5,102 @@ import com.pointlessapps.dartify.compose.game.model.Player
 
 internal data class PlayerScore(val player: Player, private val startingScore: Int) {
 
-    private val previousInputs = mutableListOf<List<Input>>()
-    var wonSets: Int = 0
-        private set
-    var wonLegs: Int = 0
-        private set
-
-    private val pastInputs: MutableList<Input> = mutableListOf()
+    private val previousInputs = mutableListOf<InputHistoryEvent>()
+    private val inputs: MutableList<Input> = mutableListOf()
 
     private val allInputs: List<Input>
-        get() = previousInputs.flatten() + pastInputs
+        get() = previousInputs.filterIsInstance<InputHistoryEvent.LegFinished>()
+            .flatMap { it.inputs } + inputs
 
-    private var doubleThrowTries: Int = 0
-    private var doubleThrowTriesSucceeded: Int = 0
+    private val doubleThrowTries: Int
+        get() = allInputs.sumOf(Input::doubleThrowTries)
+    private val doubleThrowTriesSucceeded: Int
+        get() = previousInputs
+            .filterIsInstance<InputHistoryEvent.LegFinished>()
+            .count { it.won }
+
+    val wonSets: Int
+        get() = previousInputs.filterIsInstance<InputHistoryEvent.SetFinished>().count { it.won }
+    val wonLegs: Int
+        get() = previousInputs
+            .takeLastWhile { it !is InputHistoryEvent.SetFinished }
+            .filterIsInstance<InputHistoryEvent.LegFinished>()
+            .count { it.won }
+
     val doublePercentage: Float
-        get() = if (doubleThrowTries != 0) {
-            doubleThrowTriesSucceeded.toFloat() / doubleThrowTries
-        } else {
-            0f
-        }
+        get() = doubleThrowTries.takeIf { it != 0 }?.let {
+            doubleThrowTriesSucceeded.toFloat() / it
+        } ?: 0f
 
     val max: Int
         get() = allInputs.maxOfOrNull(Input::score) ?: 0
 
     val average: Float
-        get() = allInputs.let {
-            if (it.isEmpty()) {
-                0f
-            } else {
-                it.sumOf(Input::score).toFloat() / it.sumOf(Input::weight)
-            }
-        }
+        get() = allInputs.takeIf { it.isNotEmpty() }?.let {
+            it.sumOf(Input::score).toFloat() / it.size
+        } ?: 0f
 
     val numberOfDarts: Int
-        get() = pastInputs.sumOf(Input::weight)
+        get() = inputs.sumOf(Input::weight)
 
     val scoreLeft: Int
-        get() = startingScore - pastInputs.sumOf(Input::score)
+        get() = startingScore - inputs.sumOf(Input::score)
 
     val lastScore: Int?
-        get() = pastInputs.lastOrNull()?.score
+        get() = inputs.lastOrNull()?.score
 
-    fun addInput(score: Int, @FloatRange(from = 1.0, to = 3.0) weight: Int = 3) {
-        pastInputs.add(Input(score, weight))
+    fun hasNoInputs() = allInputs.isEmpty()
+
+    fun addInput(
+        score: Int,
+        @FloatRange(from = 1.0, to = 3.0) weight: Int = 3,
+        doubleThrowTries: Int = 0,
+    ) {
+        inputs.add(Input(score, weight, doubleThrowTries))
     }
 
-    fun addDoubleThrowTries(amount: Int) {
-        doubleThrowTries += amount
+    fun popInput(): Int {
+        val input = inputs.removeLastOrNull()?.score
+        if (input == null) {
+            val previousInputs = previousInputs.removeLastOrNull() ?: return 0
+            inputs.addAll(
+                when (previousInputs) {
+                    is InputHistoryEvent.SetFinished ->
+                        (this.previousInputs.removeLast() as InputHistoryEvent.LegFinished).inputs
+                    is InputHistoryEvent.LegFinished -> previousInputs.inputs
+                },
+            )
+            return inputs.removeLastOrNull()?.score ?: 0
+        }
+
+        return input
     }
 
-    fun popInput() = pastInputs.removeLastOrNull()?.score ?: 0
+    fun markLegAsReverted() {
+        val previousInputs = previousInputs.removeLastOrNull()
+                as? InputHistoryEvent.LegFinished ?: return
+        inputs.addAll(previousInputs.inputs)
+    }
 
     fun markLegAsFinished(won: Boolean) {
-        if (won) {
-            wonLegs++
-            doubleThrowTriesSucceeded++
-        }
-        previousInputs.add(ArrayList(pastInputs))
-        pastInputs.clear()
+        previousInputs.add(InputHistoryEvent.LegFinished(ArrayList(inputs), won))
+        inputs.clear()
     }
 
     fun markSetAsFinished(won: Boolean) {
-        if (won) {
-            wonSets++
-            doubleThrowTriesSucceeded++
-        }
-        wonLegs = 0
-        previousInputs.add(ArrayList(pastInputs))
-        pastInputs.clear()
+        previousInputs.add(InputHistoryEvent.LegFinished(ArrayList(inputs), won))
+        previousInputs.add(InputHistoryEvent.SetFinished(wonLegs, won))
+        inputs.clear()
     }
 
-    private data class Input(val score: Int, @FloatRange(from = 1.0, to = 3.0) val weight: Int)
+    private data class Input(
+        val score: Int,
+        @FloatRange(from = 1.0, to = 3.0) val weight: Int,
+        val doubleThrowTries: Int,
+    )
+
+    private sealed interface InputHistoryEvent {
+        data class LegFinished(val inputs: List<Input>, val won: Boolean) : InputHistoryEvent
+        data class SetFinished(val legs: Int, val won: Boolean) : InputHistoryEvent
+    }
 }
