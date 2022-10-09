@@ -24,6 +24,7 @@ import com.pointlessapps.dartify.compose.utils.toPercentage
 @Composable
 internal fun WinnerDialog(
     playerScore: PlayerScore,
+    onUndoLastMoveClicked: () -> Unit,
     onShowGameStatsClicked: () -> Unit,
     onSaveAndCloseClicked: () -> Unit,
     onDismissRequest: () -> Unit,
@@ -102,16 +103,39 @@ internal fun WinnerDialog(
                 dimensionResource(id = R.dimen.margin_small),
             ),
         ) {
-            ComposeSimpleButton(
-                modifier = Modifier.fillMaxWidth(),
-                label = stringResource(id = R.string.show_game_stats),
-                onClick = onShowGameStatsClicked,
-                simpleButtonModel = defaultComposeSimpleButtonModel().copy(
-                    backgroundColor = MaterialTheme.colors.secondary,
-                    icon = R.drawable.ic_stats,
-                    orientation = ComposeSimpleButtonOrientation.Horizontal,
+            Row(
+                modifier = Modifier.height(IntrinsicSize.Max),
+                horizontalArrangement = Arrangement.spacedBy(
+                    dimensionResource(id = R.dimen.margin_small),
                 ),
-            )
+            ) {
+                ComposeSimpleButton(
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    label = stringResource(id = R.string.undo_last_move),
+                    onClick = onUndoLastMoveClicked,
+                    simpleButtonModel = defaultComposeSimpleButtonModel().copy(
+                        backgroundColor = MaterialTheme.colors.secondary,
+                        icon = R.drawable.ic_undo,
+                        orientation = ComposeSimpleButtonOrientation.Vertical,
+                        textStyle = defaultComposeSimpleButtonTextStyle().copy(
+                            textAlign = TextAlign.Center,
+                        ),
+                    ),
+                )
+                ComposeSimpleButton(
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    label = stringResource(id = R.string.show_game_stats),
+                    onClick = onShowGameStatsClicked,
+                    simpleButtonModel = defaultComposeSimpleButtonModel().copy(
+                        backgroundColor = MaterialTheme.colors.secondary,
+                        icon = R.drawable.ic_stats,
+                        orientation = ComposeSimpleButtonOrientation.Vertical,
+                        textStyle = defaultComposeSimpleButtonTextStyle().copy(
+                            textAlign = TextAlign.Center,
+                        ),
+                    ),
+                )
+            }
             ComposeSimpleButton(
                 modifier = Modifier.fillMaxWidth(),
                 label = stringResource(id = R.string.save_and_close),

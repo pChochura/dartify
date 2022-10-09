@@ -80,13 +80,16 @@ internal fun defaultComposeSimpleButtonModel() = ComposeSimpleButtonModel(
     backgroundColor = MaterialTheme.colors.primary,
     icon = R.drawable.ic_settings,
     orientation = ComposeSimpleButtonOrientation.Horizontal,
-    textStyle = defaultComposeTextStyle().copy(
-        textColor = MaterialTheme.colors.onPrimary,
-        typography = MaterialTheme.typography.h3.copy(
-            fontWeight = FontWeight.Bold,
-        ),
-    ),
+    textStyle = defaultComposeSimpleButtonTextStyle(),
     enabled = true,
+)
+
+@Composable
+internal fun defaultComposeSimpleButtonTextStyle() = defaultComposeTextStyle().copy(
+    textColor = MaterialTheme.colors.onPrimary,
+    typography = MaterialTheme.typography.h3.copy(
+        fontWeight = FontWeight.Bold,
+    ),
 )
 
 internal data class ComposeSimpleButtonModel(

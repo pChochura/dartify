@@ -130,6 +130,10 @@ internal fun GameActiveX01Screen(
     winnerDialogModel?.let { model ->
         WinnerDialog(
             playerScore = model.playerScore,
+            onUndoLastMoveClicked = {
+                winnerDialogModel = null
+                viewModel.onUndoClicked()
+            },
             onShowGameStatsClicked = {
                 winnerDialogModel = null
                 viewModel.onShowGameStatsClicked()
