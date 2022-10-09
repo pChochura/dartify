@@ -51,6 +51,10 @@ internal data class PlayerScore(val player: Player, private val startingScore: I
 
     fun hasNoInputs() = allInputs.isEmpty()
 
+    fun hasWonPreviousLeg() = previousInputs.lastOrNull()?.let {
+        it is InputHistoryEvent.LegFinished && it.won
+    } ?: false
+
     fun addInput(
         score: Int,
         @FloatRange(from = 1.0, to = 3.0) weight: Int = 3,
@@ -70,6 +74,7 @@ internal data class PlayerScore(val player: Player, private val startingScore: I
                     is InputHistoryEvent.LegFinished -> previousInputs.inputs
                 },
             )
+
             return inputs.removeLastOrNull()?.score ?: 0
         }
 

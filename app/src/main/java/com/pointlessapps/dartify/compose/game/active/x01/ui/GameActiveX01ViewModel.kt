@@ -101,6 +101,7 @@ internal class GameActiveX01ViewModel : ViewModel() {
         val currentPlayerScoreIndex = state.playersScores.indexOfFirst {
             it.player == state.currentPlayer
         }
+        val currentPlayerScore = state.playersScores[currentPlayerScoreIndex]
 
         val prevPlayerScoreIndex = currentPlayerScoreIndex.prevPlayerIndex()
         var prevPlayerScore = state.playersScores[prevPlayerScoreIndex]
@@ -116,8 +117,8 @@ internal class GameActiveX01ViewModel : ViewModel() {
 
         // Set or leg was reverted
         if (prevPlayerScore.numberOfDarts == 0) {
-            if (startingPlayerIndex == currentPlayerScoreIndex) {
-                prevPlayerScore = state.playersScores[startingPlayerIndex]
+            if (currentPlayerScore.hasWonPreviousLeg()) {
+                prevPlayerScore = state.playersScores[currentPlayerScoreIndex]
             }
             startingPlayerIndex = startingPlayerIndex.prevPlayerIndex()
 
@@ -275,7 +276,6 @@ internal class GameActiveX01ViewModel : ViewModel() {
         numberOfDoubles: Int,
         playerScore: PlayerScore,
     ): Boolean {
-        // TODO save stats
         val isSetFinished = gameSettings.matchResolutionStrategy
             .resolutionPredicate(gameSettings.numberOfLegs)
             .invoke(playerScore.wonLegs + 1)
