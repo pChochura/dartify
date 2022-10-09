@@ -14,10 +14,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import com.pointlessapps.dartify.R
 import com.pointlessapps.dartify.compose.ui.components.*
+import kotlin.math.min
 
 @Composable
 internal fun NumberOfThrowsAndDoublesDialog(
     minNumberOfThrows: Int,
+    maxNumberOfDoubles: Int,
     onDoneClicked: (throws: Int, doubles: Int) -> Unit,
     onDismissRequest: () -> Unit,
 ) {
@@ -121,7 +123,7 @@ internal fun NumberOfThrowsAndDoublesDialog(
                                     fontSize = 32.sp,
                                 ),
                             ),
-                            enabled = it in 1..throwsInTotal,
+                            enabled = it in 1..min(throwsInTotal, maxNumberOfDoubles),
                         ),
                     )
                 }

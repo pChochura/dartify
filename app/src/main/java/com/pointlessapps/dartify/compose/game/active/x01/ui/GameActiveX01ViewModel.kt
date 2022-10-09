@@ -19,8 +19,10 @@ internal sealed interface GameActiveX01Event {
     value class Navigate(val route: Route) : GameActiveX01Event
     object NavigateBack : GameActiveX01Event
 
-    @JvmInline
-    value class AskForNumberOfThrows(val availableMin: Int) : GameActiveX01Event
+    data class AskForNumberOfThrows(
+        val availableThrowMin: Int,
+        val availableDoubleMax: Int,
+    ) : GameActiveX01Event
 
     @JvmInline
     value class AskForNumberOfDoubles(val availableMax: Int) : GameActiveX01Event
@@ -61,7 +63,7 @@ internal class GameActiveX01ViewModel : ViewModel() {
     }
 
     fun onQuickScoreClicked(quickScore: Int) {
-        if (!isScoreInRange(quickScore)) {
+        if (!isScoreInRange(quickScore) || !validateScore(quickScore)) {
             return
         }
 
@@ -151,10 +153,18 @@ internal class GameActiveX01ViewModel : ViewModel() {
         if (currentPlayerScore.scoreLeft == state.currentInputScore) {
             viewModelScope.launch {
                 eventChannel.send(
-                    GameActiveX01Event.AskForNumberOfThrows(calculateAvailableMinNumberOfThrows()),
+                    GameActiveX01Event.AskForNumberOfThrows(
+                        availableThrowMin = calculateAvailableMinNumberOfThrows(),
+                        availableDoubleMax = calculateAvailableMaxNumberOfDoubles(),
+                    ),
                 )
             }
 
+            return
+        }
+
+        if (!validateScore(state.currentInputScore)) {
+            // TODO show error snackbar
             return
         }
 
@@ -192,6 +202,11 @@ internal class GameActiveX01ViewModel : ViewModel() {
         val currentPlayerScore = state.playersScores.find {
             it.player == state.currentPlayer
         } ?: return
+
+        if (!validateScore(state.currentInputScore, numberOfThrows)) {
+            // TODO show error snackbar
+            return
+        }
 
         performLegFinished(numberOfThrows, numberOfDoubles, currentPlayerScore)
     }
@@ -253,6 +268,29 @@ internal class GameActiveX01ViewModel : ViewModel() {
             currentLeg = if (isSetFinished) 1 else state.currentLeg + legIncrement,
             currentInputScore = 0,
         )
+    }
+
+    private fun validateScore(score: Int, numberOfThrows: Int = 3): Boolean {
+        val oneThrowRange = (0..20).toSet()
+        val oneThrowScores = oneThrowRange +
+                oneThrowRange.map { it * 2 } +
+                oneThrowRange.map { it * 3 } +
+                setOf(25, 50)
+
+        val twoTrowsScores = oneThrowScores.flatMap { firstThrowScore ->
+            oneThrowScores.map { secondThrowScore -> firstThrowScore + secondThrowScore }
+        }.toSet()
+
+        val threeTrowsScores = twoTrowsScores.flatMap { firstAndSecondThrowsScore ->
+            oneThrowScores.map { thirdThrowScore -> firstAndSecondThrowsScore + thirdThrowScore }
+        }.toSet()
+
+        return when (numberOfThrows) {
+            1 -> score in oneThrowScores
+            2 -> score in twoTrowsScores
+            3 -> score in threeTrowsScores
+            else -> false
+        }
     }
 
     private fun validateKey(key: Int) =

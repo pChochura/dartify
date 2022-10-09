@@ -63,7 +63,10 @@ internal fun GameActiveX01Screen(
                 is GameActiveX01Event.AskForNumberOfDoubles ->
                     numberOfDoublesDialogModel = NumberOfDoublesDialogModel(it.availableMax)
                 is GameActiveX01Event.AskForNumberOfThrows ->
-                    numberOfThrowsAndDoublesDialogModel = NumberOfThrowsDialogModel(it.availableMin)
+                    numberOfThrowsAndDoublesDialogModel = NumberOfThrowsDialogModel(
+                        it.availableThrowMin,
+                        it.availableDoubleMax,
+                    )
                 is GameActiveX01Event.ShowWinnerDialog ->
                     winnerDialogModel = WinnerDialogModel(it.playerScore)
             }
@@ -108,6 +111,7 @@ internal fun GameActiveX01Screen(
     numberOfThrowsAndDoublesDialogModel?.let { model ->
         NumberOfThrowsAndDoublesDialog(
             minNumberOfThrows = model.minNumberOfThrows,
+            maxNumberOfDoubles = model.maxNumberOfDouble,
             onDoneClicked = { throwsInTotal, throwsOnDouble ->
                 viewModel.onNumberOfThrowsClicked(throwsInTotal, throwsOnDouble)
                 numberOfThrowsAndDoublesDialogModel = null
@@ -600,6 +604,7 @@ private fun IconKey(
 
 private data class NumberOfThrowsDialogModel(
     val minNumberOfThrows: Int,
+    val maxNumberOfDouble: Int,
 )
 
 private data class NumberOfDoublesDialogModel(
