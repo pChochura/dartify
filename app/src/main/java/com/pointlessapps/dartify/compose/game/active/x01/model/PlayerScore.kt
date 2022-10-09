@@ -52,7 +52,8 @@ internal data class PlayerScore(val player: Player, private val startingScore: I
     fun hasNoInputs() = allInputs.isEmpty()
 
     fun hasWonPreviousLeg() = previousInputs.lastOrNull()?.let {
-        it is InputHistoryEvent.LegFinished && it.won
+        it is InputHistoryEvent.LegFinished && it.won ||
+                it is InputHistoryEvent.SetFinished && it.won
     } ?: false
 
     fun addInput(
@@ -82,6 +83,10 @@ internal data class PlayerScore(val player: Player, private val startingScore: I
     }
 
     fun markLegAsReverted() {
+        if (previousInputs.lastOrNull() is InputHistoryEvent.SetFinished) {
+            previousInputs.removeLastOrNull()
+        }
+
         val previousInputs = previousInputs.removeLastOrNull()
                 as? InputHistoryEvent.LegFinished ?: return
         inputs.addAll(previousInputs.inputs)
