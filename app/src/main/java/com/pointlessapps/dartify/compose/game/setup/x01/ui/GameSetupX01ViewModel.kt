@@ -9,7 +9,7 @@ import com.pointlessapps.dartify.compose.game.model.Bot
 import com.pointlessapps.dartify.compose.game.model.GameSettings
 import com.pointlessapps.dartify.compose.game.model.MatchResolutionStrategy
 import com.pointlessapps.dartify.compose.game.model.Player
-import com.pointlessapps.dartify.compose.game.setup.x01.model.GameMode
+import com.pointlessapps.dartify.compose.game.model.GameMode
 import com.pointlessapps.dartify.compose.game.setup.x01.ui.GameSetupX01ViewModel.Companion.DEFAULT_NUMBER_OF_LEGS
 import com.pointlessapps.dartify.compose.game.setup.x01.ui.GameSetupX01ViewModel.Companion.DEFAULT_NUMBER_OF_SETS
 import com.pointlessapps.dartify.compose.game.setup.x01.ui.GameSetupX01ViewModel.Companion.DEFAULT_STARTING_SCORE

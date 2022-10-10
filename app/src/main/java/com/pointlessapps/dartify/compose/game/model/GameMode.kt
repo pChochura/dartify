@@ -1,4 +1,4 @@
-package com.pointlessapps.dartify.compose.game.setup.x01.model
+package com.pointlessapps.dartify.compose.game.model
 
 import androidx.annotation.StringRes
 import com.pointlessapps.dartify.R

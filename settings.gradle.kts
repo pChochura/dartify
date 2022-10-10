@@ -23,4 +23,5 @@ include(
     ":app",
     ":domain",
     ":datasource",
+    ":local_datasource",
 )

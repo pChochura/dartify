@@ -3,6 +3,7 @@ package com.pointlessapps.dartify
 import android.app.Application
 import com.pointlessapps.dartify.di.applicationModules
 import com.pointlessapps.dartify.domain.di.domainModules
+import com.pointlessapps.dartify.local.datasource.di.localDataSourceModules
 import org.koin.android.BuildConfig
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -18,7 +19,8 @@ class App : Application() {
             androidContext(this@App)
             modules(
                 applicationModules +
-                        domainModules,
+                        domainModules +
+                        localDataSourceModules,
             )
         }
     }

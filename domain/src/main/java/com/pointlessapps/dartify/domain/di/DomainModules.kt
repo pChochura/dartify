@@ -1,5 +1,7 @@
 package com.pointlessapps.dartify.domain.di
 
-import org.koin.core.module.Module
+import com.pointlessapps.dartify.domain.game.x01.di.gameX01Module
 
-val domainModules = emptyList<Module>()
+val domainModules = listOf(
+    gameX01Module,
+)

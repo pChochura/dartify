@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import com.pointlessapps.dartify.R
-import com.pointlessapps.dartify.compose.game.setup.x01.model.GameMode
+import com.pointlessapps.dartify.compose.game.model.GameMode
 import com.pointlessapps.dartify.compose.ui.components.ComposeDialog
 import com.pointlessapps.dartify.compose.ui.components.defaultComposeDialogModel
 

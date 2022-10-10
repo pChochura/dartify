@@ -22,7 +22,7 @@ import com.pointlessapps.dartify.R
 import com.pointlessapps.dartify.compose.game.model.Player
 import com.pointlessapps.dartify.compose.game.setup.ui.PlayerEntryCard
 import com.pointlessapps.dartify.compose.game.setup.ui.defaultPlayerEntryCardModel
-import com.pointlessapps.dartify.compose.game.setup.x01.model.GameMode
+import com.pointlessapps.dartify.compose.game.model.GameMode
 import com.pointlessapps.dartify.compose.game.model.MatchResolutionStrategy
 import com.pointlessapps.dartify.compose.ui.components.*
 import com.pointlessapps.dartify.compose.ui.theme.Route

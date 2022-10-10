@@ -6,6 +6,11 @@ import org.koin.dsl.module
 
 internal val gameActiveX01Module = module {
     viewModel {
-        GameActiveX01ViewModel()
+        GameActiveX01ViewModel(
+            validateScoreUseCase = get(),
+            shouldAsForNumberOfDoublesUseCase = get(),
+            calculateMaxNumberOfDoublesUseCase = get(),
+            calculateMinNumberOfThrowsUseCase = get(),
+        )
     }
 }

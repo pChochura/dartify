@@ -7,9 +7,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pointlessapps.dartify.compose.game.active.x01.model.PlayerScore
 import com.pointlessapps.dartify.compose.game.active.x01.ui.GameActiveX01ViewModel.Companion.EMPTY_PLAYER
+import com.pointlessapps.dartify.compose.game.mappers.toOutMode
 import com.pointlessapps.dartify.compose.game.model.GameSettings
 import com.pointlessapps.dartify.compose.game.model.Player
 import com.pointlessapps.dartify.compose.ui.theme.Route
+import com.pointlessapps.dartify.domain.game.x01.usecase.CalculateMaxNumberOfDoublesUseCase
+import com.pointlessapps.dartify.domain.game.x01.usecase.CalculateMinNumberOfThrowsUseCase
+import com.pointlessapps.dartify.domain.game.x01.usecase.ShouldAsForNumberOfDoublesUseCase
+import com.pointlessapps.dartify.domain.game.x01.usecase.ValidateScoreUseCase
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -19,10 +24,13 @@ internal sealed interface GameActiveX01Event {
     value class Navigate(val route: Route) : GameActiveX01Event
     object NavigateBack : GameActiveX01Event
 
-    data class AskForNumberOfThrows(
+    data class AskForNumberOfThrowsAndDoubles(
         val availableThrowMin: Int,
         val availableDoubleMax: Int,
     ) : GameActiveX01Event
+
+    @JvmInline
+    value class AskForNumberOfThrows(val availableThrowMin: Int) : GameActiveX01Event
 
     @JvmInline
     value class AskForNumberOfDoubles(val availableMax: Int) : GameActiveX01Event
@@ -38,11 +46,15 @@ internal data class GameActiveX01State(
     val currentInputScore: Int = 0,
 )
 
-internal class GameActiveX01ViewModel : ViewModel() {
+internal class GameActiveX01ViewModel(
+    private val validateScoreUseCase: ValidateScoreUseCase,
+    private val shouldAsForNumberOfDoublesUseCase: ShouldAsForNumberOfDoublesUseCase,
+    private val calculateMinNumberOfThrowsUseCase: CalculateMinNumberOfThrowsUseCase,
+    private val calculateMaxNumberOfDoublesUseCase: CalculateMaxNumberOfDoublesUseCase,
+) : ViewModel() {
 
     private lateinit var gameSettings: GameSettings
     private var startingPlayerIndex = 0
-    private var quickScoreProvided = false
 
     var state by mutableStateOf(GameActiveX01State())
         private set
@@ -63,11 +75,10 @@ internal class GameActiveX01ViewModel : ViewModel() {
     }
 
     fun onQuickScoreClicked(quickScore: Int) {
-        if (!isScoreInRange(quickScore) || !validateScore(quickScore)) {
+        if (!validateScoreUseCase(quickScore)) {
             return
         }
 
-        quickScoreProvided = true
         state = state.copy(
             currentInputScore = quickScore,
         )
@@ -81,18 +92,12 @@ internal class GameActiveX01ViewModel : ViewModel() {
         }
 
         state = state.copy(
-            currentInputScore = if (quickScoreProvided) {
-                key
-            } else {
-                state.currentInputScore * 10 + key
-            },
+            currentInputScore = state.currentInputScore * 10 + key,
         )
-        quickScoreProvided = false
     }
 
     fun onUndoClicked() {
         if (state.currentInputScore != 0) {
-            quickScoreProvided = false
             state = state.copy(
                 currentInputScore = 0,
             )
@@ -109,7 +114,6 @@ internal class GameActiveX01ViewModel : ViewModel() {
         var prevPlayerScore = state.playersScores[prevPlayerScoreIndex]
 
         if (prevPlayerScore.hasNoInputs()) {
-            quickScoreProvided = false
             state = state.copy(
                 currentInputScore = 0,
             )
@@ -136,7 +140,6 @@ internal class GameActiveX01ViewModel : ViewModel() {
         val currentSet = state.playersScores.sumOf { it.wonSets } + 1
         val currentLeg = state.playersScores.sumOf { it.wonLegs } + 1
 
-        quickScoreProvided = false
         state = state.copy(
             currentInputScore = prevPlayerInputScore,
             currentSet = currentSet,
@@ -150,28 +153,49 @@ internal class GameActiveX01ViewModel : ViewModel() {
             it.player == state.currentPlayer
         } ?: return
 
+        if (!validateScoreUseCase(state.currentInputScore)) {
+            // TODO show error snackbar
+            return
+        }
+
+        val shouldAsForNumberOfDoubles = shouldAsForNumberOfDoublesUseCase(
+            currentPlayerScore.scoreLeft,
+            currentPlayerScore.scoreLeft - state.currentInputScore,
+            outMode = currentPlayerScore.player.outMode.toOutMode(),
+        )
         if (currentPlayerScore.scoreLeft == state.currentInputScore) {
             viewModelScope.launch {
                 eventChannel.send(
-                    GameActiveX01Event.AskForNumberOfThrows(
-                        availableThrowMin = calculateAvailableMinNumberOfThrows(),
-                        availableDoubleMax = calculateAvailableMaxNumberOfDoubles(),
-                    ),
+                    if (shouldAsForNumberOfDoubles) {
+                        GameActiveX01Event.AskForNumberOfThrowsAndDoubles(
+                            availableThrowMin = calculateMinNumberOfThrowsUseCase(
+                                currentPlayerScore.scoreLeft,
+                                currentPlayerScore.player.outMode.toOutMode(),
+                            ),
+                            availableDoubleMax = calculateMaxNumberOfDoublesUseCase(
+                                currentPlayerScore.scoreLeft,
+                            ),
+                        )
+                    } else {
+                        GameActiveX01Event.AskForNumberOfThrows(
+                            availableThrowMin = calculateMinNumberOfThrowsUseCase(
+                                currentPlayerScore.scoreLeft,
+                                currentPlayerScore.player.outMode.toOutMode(),
+                            ),
+                        )
+                    },
                 )
             }
 
             return
         }
 
-        if (!validateScore(state.currentInputScore)) {
-            // TODO show error snackbar
-            return
-        }
-
-        if (currentPlayerScore.scoreLeft - state.currentInputScore <= SCORE_TO_ASK_FOR_DOUBLES) {
+        if (shouldAsForNumberOfDoubles) {
             viewModelScope.launch {
                 eventChannel.send(
-                    GameActiveX01Event.AskForNumberOfDoubles(calculateAvailableMaxNumberOfDoubles()),
+                    GameActiveX01Event.AskForNumberOfDoubles(
+                        calculateMaxNumberOfDoublesUseCase(currentPlayerScore.scoreLeft),
+                    ),
                 )
             }
 
@@ -183,7 +207,6 @@ internal class GameActiveX01ViewModel : ViewModel() {
     }
 
     fun onClearClicked() {
-        quickScoreProvided = false
         state = state.copy(
             currentInputScore = 0,
         )
@@ -198,12 +221,12 @@ internal class GameActiveX01ViewModel : ViewModel() {
         setNextTurn()
     }
 
-    fun onNumberOfThrowsClicked(numberOfThrows: Int, numberOfDoubles: Int) {
+    fun onNumberOfThrowsClicked(numberOfThrows: Int, numberOfDoubles: Int = 0) {
         val currentPlayerScore = state.playersScores.find {
             it.player == state.currentPlayer
         } ?: return
 
-        if (!validateScore(state.currentInputScore, numberOfThrows)) {
+        if (!validateScoreUseCase(state.currentInputScore, numberOfThrows)) {
             // TODO show error snackbar
             return
         }
@@ -261,7 +284,6 @@ internal class GameActiveX01ViewModel : ViewModel() {
         val setIncrement = if (isSetFinished) 1 else 0
         val legIncrement = if (isLegFinished) 1 else 0
 
-        quickScoreProvided = false
         state = state.copy(
             currentPlayer = nextPlayer ?: state.playersScores[nextPlayerScoreIndex].player,
             currentSet = state.currentSet + if (isSetFinished) setIncrement else 0,
@@ -270,44 +292,15 @@ internal class GameActiveX01ViewModel : ViewModel() {
         )
     }
 
-    private fun validateScore(score: Int, numberOfThrows: Int = 3): Boolean {
-        val oneThrowRange = (0..20).toSet()
-        val oneThrowScores = oneThrowRange +
-                oneThrowRange.map { it * 2 } +
-                oneThrowRange.map { it * 3 } +
-                setOf(25, 50)
-
-        val twoTrowsScores = oneThrowScores.flatMap { firstThrowScore ->
-            oneThrowScores.map { secondThrowScore -> firstThrowScore + secondThrowScore }
-        }.toSet()
-
-        val threeTrowsScores = twoTrowsScores.flatMap { firstAndSecondThrowsScore ->
-            oneThrowScores.map { thirdThrowScore -> firstAndSecondThrowsScore + thirdThrowScore }
-        }.toSet()
-
-        return when (numberOfThrows) {
-            1 -> score in oneThrowScores
-            2 -> score in twoTrowsScores
-            3 -> score in threeTrowsScores
-            else -> false
-        }
-    }
-
-    private fun validateKey(key: Int) =
-        quickScoreProvided || isScoreInRange(state.currentInputScore * 10 + key)
-
-    private fun isScoreInRange(score: Int): Boolean {
+    private fun validateKey(key: Int): Boolean {
         val currentPlayerScore = state.playersScores.find {
             it.player == state.currentPlayer
         } ?: return false
 
-        return score <= minOf(currentPlayerScore.scoreLeft, MAX_SCORE) &&
-                currentPlayerScore.scoreLeft - score != 1
+        val score = state.currentInputScore * 10 + key
+
+        return validateScoreUseCase(score) && score <= currentPlayerScore.scoreLeft
     }
-
-    private fun calculateAvailableMinNumberOfThrows() = 1
-
-    private fun calculateAvailableMaxNumberOfDoubles() = 3
 
     private fun performLegFinished(
         numberOfThrows: Int,
@@ -360,9 +353,6 @@ internal class GameActiveX01ViewModel : ViewModel() {
         (this + gameSettings.players.size - 1) % gameSettings.players.size
 
     companion object {
-        const val MAX_SCORE = 180
-        const val SCORE_TO_ASK_FOR_DOUBLES = 50
-
         val EMPTY_PLAYER = Player("")
 
         val QUICK_SCORES = listOf(

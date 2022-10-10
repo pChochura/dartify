@@ -60,9 +60,13 @@ internal fun GameActiveX01Screen(
             when (it) {
                 GameActiveX01Event.NavigateBack -> onNavigate(null)
                 is GameActiveX01Event.Navigate -> onNavigate(it.route)
+                is GameActiveX01Event.AskForNumberOfThrows ->
+                    numberOfThrowsAndDoublesDialogModel = NumberOfThrowsDialogModel(
+                        it.availableThrowMin,
+                    )
                 is GameActiveX01Event.AskForNumberOfDoubles ->
                     numberOfDoublesDialogModel = NumberOfDoublesDialogModel(it.availableMax)
-                is GameActiveX01Event.AskForNumberOfThrows ->
+                is GameActiveX01Event.AskForNumberOfThrowsAndDoubles ->
                     numberOfThrowsAndDoublesDialogModel = NumberOfThrowsDialogModel(
                         it.availableThrowMin,
                         it.availableDoubleMax,
@@ -109,15 +113,26 @@ internal fun GameActiveX01Screen(
     }
 
     numberOfThrowsAndDoublesDialogModel?.let { model ->
-        NumberOfThrowsAndDoublesDialog(
-            minNumberOfThrows = model.minNumberOfThrows,
-            maxNumberOfDoubles = model.maxNumberOfDouble,
-            onDoneClicked = { throwsInTotal, throwsOnDouble ->
-                viewModel.onNumberOfThrowsClicked(throwsInTotal, throwsOnDouble)
-                numberOfThrowsAndDoublesDialogModel = null
-            },
-            onDismissRequest = { numberOfThrowsAndDoublesDialogModel = null },
-        )
+        if (model.maxNumberOfDouble != null) {
+            NumberOfThrowsAndDoublesDialog(
+                minNumberOfThrows = model.minNumberOfThrows,
+                maxNumberOfDoubles = model.maxNumberOfDouble,
+                onDoneClicked = { throwsInTotal, throwsOnDouble ->
+                    viewModel.onNumberOfThrowsClicked(throwsInTotal, throwsOnDouble)
+                    numberOfThrowsAndDoublesDialogModel = null
+                },
+                onDismissRequest = { numberOfThrowsAndDoublesDialogModel = null },
+            )
+        } else {
+            NumberOfThrowsDialog(
+                minNumberOfThrows = model.minNumberOfThrows,
+                onButtonClicked = { throwsInTotal ->
+                    viewModel.onNumberOfThrowsClicked(throwsInTotal)
+                    numberOfThrowsAndDoublesDialogModel = null
+                },
+                onDismissRequest = { numberOfThrowsAndDoublesDialogModel = null },
+            )
+        }
     }
 
     numberOfDoublesDialogModel?.let { model ->
@@ -604,7 +619,7 @@ private fun IconKey(
 
 private data class NumberOfThrowsDialogModel(
     val minNumberOfThrows: Int,
-    val maxNumberOfDouble: Int,
+    val maxNumberOfDouble: Int? = null,
 )
 
 private data class NumberOfDoublesDialogModel(
