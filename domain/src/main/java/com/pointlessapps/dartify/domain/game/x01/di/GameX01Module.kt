@@ -2,10 +2,7 @@ package com.pointlessapps.dartify.domain.game.x01.di
 
 import com.pointlessapps.dartify.domain.game.x01.ScoreRepository
 import com.pointlessapps.dartify.domain.game.x01.ScoreRepositoryImpl
-import com.pointlessapps.dartify.domain.game.x01.usecase.CalculateMaxNumberOfDoublesUseCase
-import com.pointlessapps.dartify.domain.game.x01.usecase.CalculateMinNumberOfThrowsUseCase
-import com.pointlessapps.dartify.domain.game.x01.usecase.ShouldAsForNumberOfDoublesUseCase
-import com.pointlessapps.dartify.domain.game.x01.usecase.ValidateScoreUseCase
+import com.pointlessapps.dartify.domain.game.x01.usecase.*
 import org.koin.dsl.module
 
 internal val gameX01Module = module {
@@ -32,6 +29,11 @@ internal val gameX01Module = module {
     }
     factory {
         CalculateMinNumberOfThrowsUseCase(
+            scoreRepository = get(),
+        )
+    }
+    factory {
+        IsCheckoutPossibleUseCase(
             scoreRepository = get(),
         )
     }

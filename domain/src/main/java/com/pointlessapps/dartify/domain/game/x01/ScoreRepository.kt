@@ -20,6 +20,12 @@ interface ScoreRepository {
 
     fun calculateMaxNumberOfDoubles(score: Int): Int
     fun calculateMinNumberOfThrows(score: Int, outMode: OutMode): Int
+
+    fun isCheckoutPossible(
+        score: Int,
+        numberOfThrows: Int,
+        outMode: OutMode,
+    ): Boolean
 }
 
 internal class ScoreRepositoryImpl(
@@ -56,4 +62,14 @@ internal class ScoreRepositoryImpl(
             score in scoreDataSource.getPossibleMasterOutScoresFor(it)
         }
     } ?: 3
+
+    override fun isCheckoutPossible(
+        score: Int,
+        numberOfThrows: Int,
+        outMode: OutMode,
+    ) = score in when (outMode) {
+        OutMode.Straight -> scoreDataSource.getPossibleOutScoresFor(numberOfThrows)
+        OutMode.Double -> scoreDataSource.getPossibleDoubleOutScoresFor(numberOfThrows)
+        OutMode.Master -> scoreDataSource.getPossibleMasterOutScoresFor(numberOfThrows)
+    }
 }

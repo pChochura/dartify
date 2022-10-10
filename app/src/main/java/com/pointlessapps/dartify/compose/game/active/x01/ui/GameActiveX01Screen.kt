@@ -9,7 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -102,6 +102,7 @@ internal fun GameActiveX01Screen(
                 onClearClicked = viewModel::onClearClicked,
             )
             QuickScores(
+                onPossibleCheckoutRequested = viewModel::onPossibleCheckoutRequested,
                 onQuickScoreClicked = viewModel::onQuickScoreClicked,
             )
             Keyboard(
@@ -417,7 +418,9 @@ private fun InputScore(
             ),
         )
         Button(
-            modifier = Modifier.align(Alignment.CenterEnd),
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .alpha(currentInputScoreOpacity),
             contentPadding = PaddingValues(
                 horizontal = dimensionResource(id = R.dimen.margin_tiny),
                 vertical = dimensionResource(id = R.dimen.margin_nano),
@@ -443,25 +446,41 @@ private fun InputScore(
 
 @Composable
 private fun QuickScores(
+    onPossibleCheckoutRequested: () -> Int? = { null },
     onQuickScoreClicked: (Int) -> Unit,
 ) {
+    val possibleCheckout = onPossibleCheckoutRequested()
+
     LazyVerticalGrid(
         columns = GridCells.Fixed(3),
         userScrollEnabled = false,
     ) {
-        items(GameActiveX01ViewModel.QUICK_SCORES) {
-            QuickScore(
-                score = it,
-                onQuickScoreClicked = {
-                    onQuickScoreClicked(it)
-                },
-            )
+        itemsIndexed(GameActiveX01ViewModel.QUICK_SCORES) { index, item ->
+            if (
+                possibleCheckout != null &&
+                index == GameActiveX01ViewModel.QUICK_SCORES.lastIndex
+            ) {
+                QuickScore(
+                    score = possibleCheckout,
+                    onQuickScoreClicked = {
+                        onQuickScoreClicked(possibleCheckout)
+                    },
+                    hasAccent = true,
+                )
+            } else {
+                QuickScore(
+                    score = item,
+                    onQuickScoreClicked = {
+                        onQuickScoreClicked(item)
+                    },
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun QuickScore(score: Int, onQuickScoreClicked: () -> Unit) {
+private fun QuickScore(score: Int, onQuickScoreClicked: () -> Unit, hasAccent: Boolean = false) {
     Box(
         modifier = Modifier
             .rectBorder(
@@ -470,7 +489,13 @@ private fun QuickScore(score: Int, onQuickScoreClicked: () -> Unit) {
                 right = dimensionResource(id = R.dimen.score_button_border_width),
                 color = MaterialTheme.colors.primary,
             )
-            .background(MaterialTheme.colors.secondary)
+            .background(
+                if (hasAccent) {
+                    colorResource(id = R.color.red)
+                } else {
+                    MaterialTheme.colors.secondary
+                },
+            )
             .clickable(
                 role = Role.Button,
                 onClickLabel = score.toString(),

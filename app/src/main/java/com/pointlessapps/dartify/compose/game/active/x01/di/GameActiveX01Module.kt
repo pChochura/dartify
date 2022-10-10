@@ -8,6 +8,7 @@ internal val gameActiveX01Module = module {
     viewModel {
         GameActiveX01ViewModel(
             validateScoreUseCase = get(),
+            isCheckoutPossibleUseCase = get(),
             shouldAsForNumberOfDoublesUseCase = get(),
             calculateMaxNumberOfDoublesUseCase = get(),
             calculateMinNumberOfThrowsUseCase = get(),

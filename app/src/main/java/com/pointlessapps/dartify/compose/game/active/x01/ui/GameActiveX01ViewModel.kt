@@ -11,10 +11,7 @@ import com.pointlessapps.dartify.compose.game.mappers.toOutMode
 import com.pointlessapps.dartify.compose.game.model.GameSettings
 import com.pointlessapps.dartify.compose.game.model.Player
 import com.pointlessapps.dartify.compose.ui.theme.Route
-import com.pointlessapps.dartify.domain.game.x01.usecase.CalculateMaxNumberOfDoublesUseCase
-import com.pointlessapps.dartify.domain.game.x01.usecase.CalculateMinNumberOfThrowsUseCase
-import com.pointlessapps.dartify.domain.game.x01.usecase.ShouldAsForNumberOfDoublesUseCase
-import com.pointlessapps.dartify.domain.game.x01.usecase.ValidateScoreUseCase
+import com.pointlessapps.dartify.domain.game.x01.usecase.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -48,6 +45,7 @@ internal data class GameActiveX01State(
 
 internal class GameActiveX01ViewModel(
     private val validateScoreUseCase: ValidateScoreUseCase,
+    private val isCheckoutPossibleUseCase: IsCheckoutPossibleUseCase,
     private val shouldAsForNumberOfDoublesUseCase: ShouldAsForNumberOfDoublesUseCase,
     private val calculateMinNumberOfThrowsUseCase: CalculateMinNumberOfThrowsUseCase,
     private val calculateMaxNumberOfDoublesUseCase: CalculateMaxNumberOfDoublesUseCase,
@@ -72,6 +70,23 @@ internal class GameActiveX01ViewModel(
             playersScores = players,
             currentPlayer = players[startingPlayerIndex].player,
         )
+    }
+
+    fun onPossibleCheckoutRequested(): Int? {
+        val currentPlayerScore = state.playersScores.find {
+            it.player == state.currentPlayer
+        } ?: return null
+
+        if (
+            isCheckoutPossibleUseCase(
+                currentPlayerScore.scoreLeft,
+                outMode = currentPlayerScore.player.outMode.toOutMode(),
+            )
+        ) {
+            return currentPlayerScore.scoreLeft
+        }
+
+        return null
     }
 
     fun onQuickScoreClicked(quickScore: Int) {
