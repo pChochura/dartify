@@ -4,7 +4,13 @@ import com.pointlessapps.dartify.datasource.game.x01.ScoreDataSource
 import com.pointlessapps.dartify.domain.game.x01.model.OutMode
 
 interface ScoreRepository {
-    fun validateScore(score: Int, numberOfThrows: Int): Boolean
+    fun validateScore(
+        score: Int,
+        scoreLeft: Int,
+        numberOfThrows: Int,
+        outMode: OutMode,
+    ): Boolean
+
     fun shouldAsForNumberOfDoubles(
         score: Int,
         scoreLeft: Int,
@@ -20,8 +26,9 @@ internal class ScoreRepositoryImpl(
     private val scoreDataSource: ScoreDataSource,
 ) : ScoreRepository {
 
-    override fun validateScore(score: Int, numberOfThrows: Int) =
-        score in scoreDataSource.getPossibleScoresFor(numberOfThrows)
+    override fun validateScore(score: Int, scoreLeft: Int, numberOfThrows: Int, outMode: OutMode) =
+        (outMode != OutMode.Double || scoreLeft > 1 || scoreLeft == 0) &&
+                score in scoreDataSource.getPossibleScoresFor(numberOfThrows)
 
     override fun shouldAsForNumberOfDoubles(
         score: Int,

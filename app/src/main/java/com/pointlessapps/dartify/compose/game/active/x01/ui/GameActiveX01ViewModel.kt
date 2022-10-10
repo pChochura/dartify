@@ -75,7 +75,17 @@ internal class GameActiveX01ViewModel(
     }
 
     fun onQuickScoreClicked(quickScore: Int) {
-        if (!validateScoreUseCase(quickScore)) {
+        val currentPlayerScore = state.playersScores.find {
+            it.player == state.currentPlayer
+        } ?: return
+
+        if (
+            !validateScoreUseCase(
+                quickScore,
+                currentPlayerScore.scoreLeft - quickScore,
+                currentPlayerScore.player.outMode.toOutMode(),
+            )
+        ) {
             return
         }
 
@@ -153,7 +163,13 @@ internal class GameActiveX01ViewModel(
             it.player == state.currentPlayer
         } ?: return
 
-        if (!validateScoreUseCase(state.currentInputScore)) {
+        if (
+            !validateScoreUseCase(
+                state.currentInputScore,
+                currentPlayerScore.scoreLeft - state.currentInputScore,
+                currentPlayerScore.player.outMode.toOutMode(),
+            )
+        ) {
             // TODO show error snackbar
             return
         }
@@ -226,11 +242,6 @@ internal class GameActiveX01ViewModel(
             it.player == state.currentPlayer
         } ?: return
 
-        if (!validateScoreUseCase(state.currentInputScore, numberOfThrows)) {
-            // TODO show error snackbar
-            return
-        }
-
         performLegFinished(numberOfThrows, numberOfDoubles, currentPlayerScore)
     }
 
@@ -299,7 +310,11 @@ internal class GameActiveX01ViewModel(
 
         val score = state.currentInputScore * 10 + key
 
-        return validateScoreUseCase(score) && score <= currentPlayerScore.scoreLeft
+        return validateScoreUseCase(
+            score,
+            currentPlayerScore.scoreLeft - score,
+            currentPlayerScore.player.outMode.toOutMode(),
+        )
     }
 
     private fun performLegFinished(
