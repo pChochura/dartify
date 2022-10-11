@@ -3,115 +3,57 @@ package com.pointlessapps.dartify.local.datasource.game.x01
 import com.pointlessapps.dartify.datasource.game.x01.ScoreDataSource
 
 @Suppress("MagicNumber")
-internal class LocalScoreDataSource : ScoreDataSource {
-
-    private val oneThrowRange = (1..20).toSet()
-
-    private val oneThrowPossibleDoubleOutScores by lazy {
-        (oneThrowRange.map { it * 2 } + 50).toSet()
-    }
-    private val oneThrowPossibleMasterOutScores by lazy {
-        oneThrowPossibleDoubleOutScores + oneThrowRange.map { it * 3 }
-    }
-    private val oneThrowPossibleOutScores by lazy {
-        oneThrowRange + oneThrowPossibleMasterOutScores
-    }
-    private val oneThrowPossibleScores by lazy {
-        oneThrowPossibleOutScores + 0
-    }
-
-    private val twoThrowsPossibleScores by lazy {
-        oneThrowPossibleScores.flatMap { first ->
-            oneThrowPossibleScores.map { second -> first + second }
-        }.toSet()
-    }
-    private val twoThrowsPossibleOutScores by lazy {
-        twoThrowsPossibleScores - 0
-    }
-    private val twoThrowsPossibleDoubleOutScores by lazy {
-        oneThrowPossibleScores.flatMap { first ->
-            oneThrowPossibleDoubleOutScores.map { second -> first + second }
-        }.toSet()
-    }
-    private val twoThrowsPossibleMasterOutScores by lazy {
-        oneThrowPossibleScores.flatMap { first ->
-            oneThrowPossibleMasterOutScores.map { second -> first + second }
-        }.toSet()
-    }
-
-    private val threeThrowsPossibleScores by lazy {
-        twoThrowsPossibleScores.flatMap { firstAndSecond ->
-            oneThrowPossibleScores.map { third -> firstAndSecond + third }
-        }.toSet()
-    }
-    private val threeThrowsPossibleOutScores by lazy {
-        threeThrowsPossibleScores - 0
-    }
-    private val threeThrowsPossibleDoubleOutScores by lazy {
-        twoThrowsPossibleScores.flatMap { firstAndSecond ->
-            oneThrowPossibleDoubleOutScores.map { third -> firstAndSecond + third }
-        }.toSet()
-    }
-    private val threeThrowsPossibleMasterOutScores by lazy {
-        twoThrowsPossibleScores.flatMap { firstAndSecond ->
-            oneThrowPossibleMasterOutScores.map { third -> firstAndSecond + third }
-        }.toSet()
-    }
-
-    private val twoThrowsTwoDoublesPossibleScores by lazy {
-        oneThrowPossibleDoubleOutScores.flatMap { first ->
-            oneThrowPossibleDoubleOutScores.map { second -> first + second }
-        }.toSet()
-    }
-
-    private val threeThrowsOneDoublePossibleScores by lazy {
-        oneThrowPossibleDoubleOutScores.flatMap { firstAndSecond ->
-            oneThrowPossibleScores.map { third -> firstAndSecond + third }
-        }.toSet()
-    }
-    private val threeThrowsTwoDoublesPossibleScores by lazy {
-        twoThrowsTwoDoublesPossibleScores.flatMap { firstAndSecond ->
-            oneThrowPossibleScores.map { third -> firstAndSecond + third }
-        }.toSet()
-    }
-    private val threeThrowsThreeDoublesPossibleScores by lazy {
-        twoThrowsTwoDoublesPossibleScores.flatMap { firstAndSecond ->
-            oneThrowPossibleDoubleOutScores.map { third -> firstAndSecond + third }
-        }.toSet()
-    }
+internal class LocalScoreDataSource(
+    private val oneThrowPossibleScoresCalculator: OneThrowPossibleScoresCalculator,
+    private val twoThrowsPossibleScoresCalculator: TwoThrowsPossibleScoresCalculator,
+    private val threeThrowsPossibleScoresCalculator: ThreeThrowsPossibleScoresCalculator,
+) : ScoreDataSource {
 
     override fun getPossibleScoresFor(numberOfThrows: Int) = when (numberOfThrows) {
-        1 -> oneThrowPossibleScores
-        2 -> twoThrowsPossibleScores
-        3 -> threeThrowsPossibleScores
+        1 -> oneThrowPossibleScoresCalculator.oneThrowPossibleScores
+        2 -> twoThrowsPossibleScoresCalculator.twoThrowsPossibleScores
+        3 -> threeThrowsPossibleScoresCalculator.threeThrowsPossibleScores
         else -> emptySet()
     }
 
     override fun getPossibleOutScoresFor(numberOfThrows: Int) = when (numberOfThrows) {
-        1 -> oneThrowPossibleOutScores
-        2 -> twoThrowsPossibleOutScores
-        3 -> threeThrowsPossibleOutScores
+        1 -> oneThrowPossibleScoresCalculator.oneThrowPossibleOutScores
+        2 -> twoThrowsPossibleScoresCalculator.twoThrowsPossibleOutScores
+        3 -> threeThrowsPossibleScoresCalculator.threeThrowsPossibleOutScores
         else -> emptySet()
     }
 
     override fun getPossibleDoubleOutScoresFor(numberOfThrows: Int) = when (numberOfThrows) {
-        1 -> oneThrowPossibleDoubleOutScores
-        2 -> twoThrowsPossibleDoubleOutScores
-        3 -> threeThrowsPossibleDoubleOutScores
+        1 -> oneThrowPossibleScoresCalculator.oneThrowPossibleDoubleOutScores
+        2 -> twoThrowsPossibleScoresCalculator.twoThrowsPossibleDoubleOutScores
+        3 -> threeThrowsPossibleScoresCalculator.threeThrowsPossibleDoubleOutScores
         else -> emptySet()
     }
 
     override fun getPossibleMasterOutScoresFor(numberOfThrows: Int) = when (numberOfThrows) {
-        1 -> oneThrowPossibleMasterOutScores
-        2 -> twoThrowsPossibleMasterOutScores
-        3 -> threeThrowsPossibleMasterOutScores
+        1 -> oneThrowPossibleScoresCalculator.oneThrowPossibleMasterOutScores
+        2 -> twoThrowsPossibleScoresCalculator.twoThrowsPossibleMasterOutScores
+        3 -> threeThrowsPossibleScoresCalculator.threeThrowsPossibleMasterOutScores
         else -> emptySet()
     }
 
-    override fun getPossibleDoubleScoresFor(numberOfDoubles: Int) = when (numberOfDoubles) {
-        1 -> threeThrowsOneDoublePossibleScores
-        2 -> threeThrowsTwoDoublesPossibleScores
-        3 -> threeThrowsThreeDoublesPossibleScores
-        else -> emptySet()
-    }
+    override fun getPossibleDoubleScoresFor(numberOfThrows: Int, numberOfDoubles: Int) =
+        when (numberOfThrows) {
+            1 -> when (numberOfDoubles) {
+                1 -> oneThrowPossibleScoresCalculator.oneThrowOneDoublePossibleScores
+                else -> emptySet()
+            }
+            2 -> when (numberOfDoubles) {
+                1 -> twoThrowsPossibleScoresCalculator.twoThrowsOneDoublePossibleScores
+                2 -> twoThrowsPossibleScoresCalculator.twoThrowsTwoDoublesPossibleScores
+                else -> emptySet()
+            }
+            3 -> when (numberOfDoubles) {
+                1 -> threeThrowsPossibleScoresCalculator.threeThrowsOneDoublePossibleScores
+                2 -> threeThrowsPossibleScoresCalculator.threeThrowsTwoDoublesPossibleScores
+                3 -> threeThrowsPossibleScoresCalculator.threeThrowsThreeDoublesPossibleScores
+                else -> emptySet()
+            }
+            else -> emptySet()
+        }
 }

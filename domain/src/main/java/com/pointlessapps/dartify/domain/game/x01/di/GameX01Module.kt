@@ -28,6 +28,11 @@ internal val gameX01Module = module {
         )
     }
     factory {
+        CalculateMaxNumberOfDoublesForThreeThrowsUseCase(
+            scoreRepository = get(),
+        )
+    }
+    factory {
         CalculateMinNumberOfThrowsUseCase(
             scoreRepository = get(),
         )

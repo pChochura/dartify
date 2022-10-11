@@ -23,7 +23,7 @@ internal sealed interface GameActiveX01Event {
 
     data class AskForNumberOfThrowsAndDoubles(
         val availableThrowMin: Int,
-        val availableDoubleMax: Int,
+        val availableDoubleMax: Map<Int, Int>,
     ) : GameActiveX01Event
 
     @JvmInline
@@ -49,6 +49,7 @@ internal class GameActiveX01ViewModel(
     private val shouldAsForNumberOfDoublesUseCase: ShouldAsForNumberOfDoublesUseCase,
     private val calculateMinNumberOfThrowsUseCase: CalculateMinNumberOfThrowsUseCase,
     private val calculateMaxNumberOfDoublesUseCase: CalculateMaxNumberOfDoublesUseCase,
+    private val calculateMaxNumberOfDoublesForThreeThrowsUseCase: CalculateMaxNumberOfDoublesForThreeThrowsUseCase,
 ) : ViewModel() {
 
     private lateinit var gameSettings: GameSettings
@@ -225,7 +226,7 @@ internal class GameActiveX01ViewModel(
             viewModelScope.launch {
                 eventChannel.send(
                     GameActiveX01Event.AskForNumberOfDoubles(
-                        calculateMaxNumberOfDoublesUseCase(currentPlayerScore.scoreLeft),
+                        calculateMaxNumberOfDoublesForThreeThrowsUseCase(currentPlayerScore.scoreLeft),
                     ),
                 )
             }

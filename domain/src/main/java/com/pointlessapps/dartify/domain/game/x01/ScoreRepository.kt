@@ -4,6 +4,10 @@ import com.pointlessapps.dartify.datasource.game.x01.ScoreDataSource
 import com.pointlessapps.dartify.domain.game.x01.model.OutMode
 
 interface ScoreRepository {
+    /**
+     * Validates if the score is possible to be thrown after [numberOfThrows]
+     * and if the [scoreLeft] is possible to be checked out with selected [outMode]
+     */
     fun validateScore(
         score: Int,
         scoreLeft: Int,
@@ -11,6 +15,11 @@ interface ScoreRepository {
         outMode: OutMode,
     ): Boolean
 
+    /**
+     * Checks if the [outMode] is equal to [OutMode.Double] and if so, performs a check
+     * for the [scoreLeft] to ensure it is possible to be checked out on a double throw,
+     * and finally checks if the [score] is possible to be checked out with selected [OutMode.Double]
+     */
     fun shouldAsForNumberOfDoubles(
         score: Int,
         scoreLeft: Int,
@@ -18,9 +27,22 @@ interface ScoreRepository {
         outMode: OutMode,
     ): Boolean
 
-    fun calculateMaxNumberOfDoubles(score: Int): Int
+    /**
+     * Returns a map of [Int] -> [Int] that represents association of number of throws to the
+     * number of possible double throws
+     */
+    fun calculateMaxNumberOfDoubles(score: Int): Map<Int, Int>
+
+    /**
+     * Returns minimal number of throws that is required for the [score] to be checked out
+     * with selected [outMode]
+     */
     fun calculateMinNumberOfThrows(score: Int, outMode: OutMode): Int
 
+    /**
+     * Returns true if the current [score] can be checked out after [numberOfThrows] throws
+     * with selected [outMode]
+     */
     fun isCheckoutPossible(
         score: Int,
         numberOfThrows: Int,
@@ -47,8 +69,11 @@ internal class ScoreRepositoryImpl(
     }
 
     @Suppress("MagicNumber")
-    override fun calculateMaxNumberOfDoubles(score: Int) = (3 downTo 1)
-        .find { score in scoreDataSource.getPossibleDoubleScoresFor(it) } ?: 1
+    override fun calculateMaxNumberOfDoubles(score: Int) = (1..3).associateWith { throws ->
+        (throws downTo 1).find { doubles ->
+            score in scoreDataSource.getPossibleDoubleScoresFor(throws, doubles)
+        } ?: 1
+    }
 
     @Suppress("MagicNumber")
     override fun calculateMinNumberOfThrows(score: Int, outMode: OutMode) = when (outMode) {

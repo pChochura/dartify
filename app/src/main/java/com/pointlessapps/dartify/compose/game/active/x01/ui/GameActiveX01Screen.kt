@@ -644,7 +644,7 @@ private fun IconKey(
 
 private data class NumberOfThrowsDialogModel(
     val minNumberOfThrows: Int,
-    val maxNumberOfDouble: Int? = null,
+    val maxNumberOfDouble: Map<Int, Int>? = null,
 )
 
 private data class NumberOfDoublesDialogModel(

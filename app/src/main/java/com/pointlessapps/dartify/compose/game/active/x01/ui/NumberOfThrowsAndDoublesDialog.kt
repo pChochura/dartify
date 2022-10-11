@@ -19,7 +19,7 @@ import kotlin.math.min
 @Composable
 internal fun NumberOfThrowsAndDoublesDialog(
     minNumberOfThrows: Int,
-    maxNumberOfDoubles: Int,
+    maxNumberOfDoubles: Map<Int, Int>,
     onDoneClicked: (throws: Int, doubles: Int) -> Unit,
     onDismissRequest: () -> Unit,
 ) {
@@ -123,7 +123,10 @@ internal fun NumberOfThrowsAndDoublesDialog(
                                     fontSize = 32.sp,
                                 ),
                             ),
-                            enabled = it in 1..min(throwsInTotal, maxNumberOfDoubles),
+                            enabled = it in 1..min(
+                                throwsInTotal,
+                                maxNumberOfDoubles[throwsInTotal] ?: 1,
+                            ),
                         ),
                     )
                 }
