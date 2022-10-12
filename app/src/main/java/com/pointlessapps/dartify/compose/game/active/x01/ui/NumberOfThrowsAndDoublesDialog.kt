@@ -23,8 +23,8 @@ internal fun NumberOfThrowsAndDoublesDialog(
     onDoneClicked: (throws: Int, doubles: Int) -> Unit,
     onDismissRequest: () -> Unit,
 ) {
-    var throwsInTotal by remember { mutableStateOf(minNumberOfThrows) }
-    var throwsOnDoubles by remember { mutableStateOf(1) }
+    var numberOfThrows by remember { mutableStateOf(minNumberOfThrows) }
+    var numberOfThrowsOnDouble by remember { mutableStateOf(1) }
 
     ComposeDialog(
         onDismissRequest = onDismissRequest,
@@ -58,9 +58,18 @@ internal fun NumberOfThrowsAndDoublesDialog(
                     ComposeSimpleButton(
                         modifier = Modifier.weight(1f),
                         label = "${it + 1}",
-                        onClick = { throwsInTotal = it + 1 },
+                        onClick = {
+                            numberOfThrows = it + 1
+                            selectMaxNumberOfThrowsOnDoubleIfNecessary(
+                                maxNumberOfDoubles,
+                                numberOfThrows,
+                                numberOfThrowsOnDouble,
+                            )?.let { newNumberOfThrowsOnDouble ->
+                                numberOfThrowsOnDouble = newNumberOfThrowsOnDouble
+                            }
+                        },
                         simpleButtonModel = defaultComposeSimpleButtonModel().copy(
-                            backgroundColor = if (throwsInTotal == it + 1) {
+                            backgroundColor = if (numberOfThrows == it + 1) {
                                 colorResource(id = R.color.red)
                             } else {
                                 MaterialTheme.colors.secondary
@@ -75,7 +84,7 @@ internal fun NumberOfThrowsAndDoublesDialog(
                                     fontSize = 32.sp,
                                 ),
                             ),
-                            enabled = it + 1 >= minNumberOfThrows,
+                            enabled = validateNumberOfThrows(minNumberOfThrows, it + 1),
                         ),
                     )
                 }
@@ -106,9 +115,9 @@ internal fun NumberOfThrowsAndDoublesDialog(
                     ComposeSimpleButton(
                         modifier = Modifier.weight(1f),
                         label = "$it",
-                        onClick = { throwsOnDoubles = it },
+                        onClick = { numberOfThrowsOnDouble = it },
                         simpleButtonModel = defaultComposeSimpleButtonModel().copy(
-                            backgroundColor = if (throwsOnDoubles == it) {
+                            backgroundColor = if (numberOfThrowsOnDouble == it) {
                                 colorResource(id = R.color.red)
                             } else {
                                 MaterialTheme.colors.secondary
@@ -123,9 +132,8 @@ internal fun NumberOfThrowsAndDoublesDialog(
                                     fontSize = 32.sp,
                                 ),
                             ),
-                            enabled = it in 1..min(
-                                throwsInTotal,
-                                maxNumberOfDoubles[throwsInTotal] ?: 1,
+                            enabled = validateNumberOfDoubles(
+                                maxNumberOfDoubles, numberOfThrows, it,
                             ),
                         ),
                     )
@@ -159,8 +167,15 @@ internal fun NumberOfThrowsAndDoublesDialog(
             modifier = Modifier.fillMaxWidth(),
             label = stringResource(id = R.string.done),
             onClick = {
-                if (validate(throwsInTotal, throwsOnDoubles)) {
-                    onDoneClicked(throwsInTotal, throwsOnDoubles)
+                if (
+                    validate(
+                        minNumberOfThrows,
+                        maxNumberOfDoubles,
+                        numberOfThrows,
+                        numberOfThrowsOnDouble,
+                    )
+                ) {
+                    onDoneClicked(numberOfThrows, numberOfThrowsOnDouble)
                 }
             },
             simpleButtonModel = defaultComposeSimpleButtonModel().copy(
@@ -172,5 +187,38 @@ internal fun NumberOfThrowsAndDoublesDialog(
     }
 }
 
-private fun validate(throwsInTotal: Int, throwsOnDoubles: Int): Boolean =
-    throwsInTotal in 1..3 && throwsOnDoubles in 0..throwsInTotal
+private fun selectMaxNumberOfThrowsOnDoubleIfNecessary(
+    maxNumberOfDoubles: Map<Int, Int>,
+    numberOfThrows: Int,
+    numberOfThrowsOnDouble: Int,
+): Int? {
+    if (!validateNumberOfDoubles(maxNumberOfDoubles, numberOfThrows, numberOfThrowsOnDouble)) {
+        (numberOfThrowsOnDouble - 1 downTo 1).forEach {
+            if (validateNumberOfDoubles(maxNumberOfDoubles, numberOfThrows, it)) {
+                return it
+            }
+        }
+    }
+
+    return null
+}
+
+private fun validate(
+    minNumberOfThrows: Int,
+    maxNumberOfDoubles: Map<Int, Int>,
+    numberOfThrows: Int,
+    numberOfThrowsOnDouble: Int,
+): Boolean = validateNumberOfThrows(minNumberOfThrows, numberOfThrows) &&
+        validateNumberOfDoubles(maxNumberOfDoubles, numberOfThrows, numberOfThrowsOnDouble)
+
+private fun validateNumberOfThrows(minNumberOfThrows: Int, numberOfThrows: Int) =
+    numberOfThrows >= minNumberOfThrows
+
+private fun validateNumberOfDoubles(
+    maxNumberOfDoubles: Map<Int, Int>,
+    numberOfThrows: Int,
+    numberOfThrowsOnDouble: Int,
+) = numberOfThrowsOnDouble in 1..min(
+    numberOfThrows,
+    maxNumberOfDoubles[numberOfThrows] ?: 1,
+)
