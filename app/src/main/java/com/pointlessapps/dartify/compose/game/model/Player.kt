@@ -7,7 +7,13 @@ import kotlinx.parcelize.Parcelize
 internal open class Player(
     open val name: String,
     open val outMode: GameMode? = null,
-) : Parcelable
+) : Parcelable {
+
+    fun copy(name: String = this.name, outMode: GameMode? = this.outMode) = Player(
+        name = name,
+        outMode = outMode,
+    )
+}
 
 @Parcelize
 internal data class Bot(

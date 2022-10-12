@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pointlessapps.dartify.compose.game.active.x01.model.PlayerScore
 import com.pointlessapps.dartify.compose.game.active.x01.ui.GameActiveX01ViewModel.Companion.EMPTY_PLAYER
+import com.pointlessapps.dartify.compose.game.mappers.toInMode
 import com.pointlessapps.dartify.compose.game.mappers.toOutMode
 import com.pointlessapps.dartify.compose.game.model.GameSettings
 import com.pointlessapps.dartify.compose.game.model.Player
@@ -90,6 +91,18 @@ internal class GameActiveX01ViewModel(
         return null
     }
 
+    fun onScoreLeftRequested(player: Player): Int {
+        val playerScore = state.playersScores.find {
+            it.player == player
+        } ?: return 0
+
+        return playerScore.scoreLeft - if (player == state.currentPlayer) {
+            state.currentInputScore
+        } else {
+            0
+        }
+    }
+
     fun onQuickScoreClicked(quickScore: Int) {
         val currentPlayerScore = state.playersScores.find {
             it.player == state.currentPlayer
@@ -99,6 +112,8 @@ internal class GameActiveX01ViewModel(
             !validateScoreUseCase(
                 quickScore,
                 currentPlayerScore.scoreLeft - quickScore,
+                gameSettings.startingScore,
+                gameSettings.inMode.toInMode(),
                 currentPlayerScore.player.outMode.toOutMode(),
             )
         ) {
@@ -183,6 +198,8 @@ internal class GameActiveX01ViewModel(
             !validateScoreUseCase(
                 state.currentInputScore,
                 currentPlayerScore.scoreLeft - state.currentInputScore,
+                gameSettings.startingScore,
+                gameSettings.inMode.toInMode(),
                 currentPlayerScore.player.outMode.toOutMode(),
             )
         ) {
@@ -190,7 +207,7 @@ internal class GameActiveX01ViewModel(
             return
         }
 
-        val shouldAsForNumberOfDoubles = shouldAsForNumberOfDoublesUseCase(
+        val shouldAskForNumberOfDoubles = shouldAsForNumberOfDoublesUseCase(
             currentPlayerScore.scoreLeft,
             currentPlayerScore.scoreLeft - state.currentInputScore,
             outMode = currentPlayerScore.player.outMode.toOutMode(),
@@ -198,7 +215,7 @@ internal class GameActiveX01ViewModel(
         if (currentPlayerScore.scoreLeft == state.currentInputScore) {
             viewModelScope.launch {
                 eventChannel.send(
-                    if (shouldAsForNumberOfDoubles) {
+                    if (shouldAskForNumberOfDoubles) {
                         GameActiveX01Event.AskForNumberOfThrowsAndDoubles(
                             availableThrowMin = calculateMinNumberOfThrowsUseCase(
                                 currentPlayerScore.scoreLeft,
@@ -222,7 +239,7 @@ internal class GameActiveX01ViewModel(
             return
         }
 
-        if (shouldAsForNumberOfDoubles) {
+        if (shouldAskForNumberOfDoubles) {
             viewModelScope.launch {
                 eventChannel.send(
                     GameActiveX01Event.AskForNumberOfDoubles(
@@ -259,18 +276,6 @@ internal class GameActiveX01ViewModel(
         } ?: return
 
         performLegFinished(numberOfThrows, numberOfDoubles, currentPlayerScore)
-    }
-
-    fun onScoreLeftRequested(player: Player): Int {
-        val playerScore = state.playersScores.find {
-            it.player == player
-        } ?: return 0
-
-        return playerScore.scoreLeft - if (player == state.currentPlayer) {
-            state.currentInputScore
-        } else {
-            0
-        }
     }
 
     fun getCurrentFinishSuggestion(): String? {
@@ -324,13 +329,7 @@ internal class GameActiveX01ViewModel(
             it.player == state.currentPlayer
         } ?: return false
 
-        val score = state.currentInputScore * 10 + key
-
-        return validateScoreUseCase(
-            score,
-            currentPlayerScore.scoreLeft - score,
-            currentPlayerScore.player.outMode.toOutMode(),
-        )
+        return state.currentInputScore * 10 + key <= currentPlayerScore.scoreLeft
     }
 
     private fun performLegFinished(

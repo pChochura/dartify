@@ -55,7 +55,14 @@ internal class GameSetupX01ViewModel : ViewModel() {
                             numberOfSets = state.numberOfSets,
                             numberOfLegs = state.numberOfLegs,
                             matchResolutionStrategy = state.matchResolutionStrategy,
-                            players = state.players,
+                            players = state.players.map {
+                                if (it.outMode == null) {
+                                    it.copy(outMode = state.outMode)
+                                } else {
+                                    it
+                                }
+                            },
+                            inMode = state.inMode,
                         ),
                     ),
                 ),

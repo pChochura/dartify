@@ -10,4 +10,5 @@ internal data class GameSettings(
     val numberOfLegs: Int,
     val matchResolutionStrategy: MatchResolutionStrategy,
     val players: List<Player>,
+    val inMode: GameMode,
 ) : Parcelable

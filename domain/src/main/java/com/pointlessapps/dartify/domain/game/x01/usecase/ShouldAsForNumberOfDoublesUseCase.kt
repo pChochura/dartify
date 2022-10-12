@@ -2,7 +2,7 @@ package com.pointlessapps.dartify.domain.game.x01.usecase
 
 import com.pointlessapps.dartify.domain.game.x01.DEFAULT_NUMBER_OF_THROWS
 import com.pointlessapps.dartify.domain.game.x01.ScoreRepository
-import com.pointlessapps.dartify.domain.game.x01.model.OutMode
+import com.pointlessapps.dartify.domain.game.x01.model.GameMode
 
 class ShouldAsForNumberOfDoublesUseCase(
     private val scoreRepository: ScoreRepository,
@@ -11,7 +11,7 @@ class ShouldAsForNumberOfDoublesUseCase(
     operator fun invoke(
         score: Int,
         scoreLeft: Int,
-        outMode: OutMode,
+        outMode: GameMode,
         numberOfThrows: Int = DEFAULT_NUMBER_OF_THROWS,
     ) = scoreRepository.shouldAsForNumberOfDoubles(
         score,

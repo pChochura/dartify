@@ -1,30 +1,33 @@
 package com.pointlessapps.dartify.domain.game.x01
 
 import com.pointlessapps.dartify.datasource.game.x01.ScoreDataSource
-import com.pointlessapps.dartify.domain.game.x01.model.OutMode
+import com.pointlessapps.dartify.domain.game.x01.model.GameMode
 
 interface ScoreRepository {
     /**
      * Validates if the score is possible to be thrown after [numberOfThrows]
-     * and if the [scoreLeft] is possible to be checked out with selected [outMode]
+     * and if the [scoreLeft] is possible to be checked out with selected [outMode],
+     * and if the score is correct for the check in with the selected [inMode]
      */
     fun validateScore(
         score: Int,
         scoreLeft: Int,
+        startingScore: Int,
         numberOfThrows: Int,
-        outMode: OutMode,
+        inMode: GameMode,
+        outMode: GameMode,
     ): Boolean
 
     /**
-     * Checks if the [outMode] is equal to [OutMode.Double] and if so, performs a check
+     * Checks if the [outMode] is equal to [GameMode.Double] and if so, performs a check
      * for the [scoreLeft] to ensure it is possible to be checked out on a double throw,
-     * and finally checks if the [score] is possible to be checked out with selected [OutMode.Double]
+     * and finally checks if the [score] is possible to be checked out with selected [GameMode.Double]
      */
     fun shouldAsForNumberOfDoubles(
         score: Int,
         scoreLeft: Int,
         numberOfThrows: Int,
-        outMode: OutMode,
+        outMode: GameMode,
     ): Boolean
 
     /**
@@ -37,7 +40,7 @@ interface ScoreRepository {
      * Returns minimal number of throws that is required for the [score] to be checked out
      * with selected [outMode]
      */
-    fun calculateMinNumberOfThrows(score: Int, outMode: OutMode): Int
+    fun calculateMinNumberOfThrows(score: Int, outMode: GameMode): Int
 
     /**
      * Returns true if the current [score] can be checked out after [numberOfThrows] throws
@@ -46,7 +49,7 @@ interface ScoreRepository {
     fun isCheckoutPossible(
         score: Int,
         numberOfThrows: Int,
-        outMode: OutMode,
+        outMode: GameMode,
     ): Boolean
 }
 
@@ -54,17 +57,24 @@ internal class ScoreRepositoryImpl(
     private val scoreDataSource: ScoreDataSource,
 ) : ScoreRepository {
 
-    override fun validateScore(score: Int, scoreLeft: Int, numberOfThrows: Int, outMode: OutMode) =
-        (outMode != OutMode.Double || scoreLeft > 1 || scoreLeft == 0) &&
+    override fun validateScore(
+        score: Int,
+        scoreLeft: Int,
+        startingScore: Int,
+        numberOfThrows: Int,
+        inMode: GameMode,
+        outMode: GameMode,
+    ) = (inMode == GameMode.Straight || startingScore - scoreLeft == score && score != 1) &&
+        (outMode != GameMode.Double || scoreLeft > 1 || scoreLeft == 0) &&
                 score in scoreDataSource.getPossibleScoresFor(numberOfThrows)
 
     override fun shouldAsForNumberOfDoubles(
         score: Int,
         scoreLeft: Int,
         numberOfThrows: Int,
-        outMode: OutMode,
+        outMode: GameMode,
     ) = scoreLeft <= SCORE_TO_ASK_FOR_DOUBLES && when (outMode) {
-        OutMode.Double -> score in scoreDataSource.getPossibleDoubleOutScoresFor(numberOfThrows)
+        GameMode.Double -> score in scoreDataSource.getPossibleDoubleOutScoresFor(numberOfThrows)
         else -> false
     }
 
@@ -76,14 +86,14 @@ internal class ScoreRepositoryImpl(
     }
 
     @Suppress("MagicNumber")
-    override fun calculateMinNumberOfThrows(score: Int, outMode: OutMode) = when (outMode) {
-        OutMode.Straight -> (1..3).find {
+    override fun calculateMinNumberOfThrows(score: Int, outMode: GameMode) = when (outMode) {
+        GameMode.Straight -> (1..3).find {
             score in scoreDataSource.getPossibleOutScoresFor(it)
         }
-        OutMode.Double -> (1..3).find {
+        GameMode.Double -> (1..3).find {
             score in scoreDataSource.getPossibleDoubleOutScoresFor(it)
         }
-        OutMode.Master -> (1..3).find {
+        GameMode.Master -> (1..3).find {
             score in scoreDataSource.getPossibleMasterOutScoresFor(it)
         }
     } ?: 3
@@ -91,10 +101,10 @@ internal class ScoreRepositoryImpl(
     override fun isCheckoutPossible(
         score: Int,
         numberOfThrows: Int,
-        outMode: OutMode,
+        outMode: GameMode,
     ) = score in when (outMode) {
-        OutMode.Straight -> scoreDataSource.getPossibleOutScoresFor(numberOfThrows)
-        OutMode.Double -> scoreDataSource.getPossibleDoubleOutScoresFor(numberOfThrows)
-        OutMode.Master -> scoreDataSource.getPossibleMasterOutScoresFor(numberOfThrows)
+        GameMode.Straight -> scoreDataSource.getPossibleOutScoresFor(numberOfThrows)
+        GameMode.Double -> scoreDataSource.getPossibleDoubleOutScoresFor(numberOfThrows)
+        GameMode.Master -> scoreDataSource.getPossibleMasterOutScoresFor(numberOfThrows)
     }
 }
