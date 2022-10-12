@@ -37,7 +37,11 @@ internal data class PlayerScore(val player: Player, private val startingScore: I
 
     val average: Float
         get() = allInputs.takeIf { it.isNotEmpty() }?.let {
-            it.sumOf(Input::score).toFloat() / it.size
+            it.fold(0 to 0) { (scores, weights), input ->
+                scores + input.score to weights + input.weight
+            }.let { (scores, weights) ->
+                scores * 3f / weights
+            }
         } ?: 0f
 
     val numberOfDarts: Int
