@@ -24,6 +24,8 @@ import com.pointlessapps.dartify.compose.game.setup.ui.PlayerEntryCard
 import com.pointlessapps.dartify.compose.game.setup.ui.defaultPlayerEntryCardModel
 import com.pointlessapps.dartify.compose.game.model.GameMode
 import com.pointlessapps.dartify.compose.game.model.MatchResolutionStrategy
+import com.pointlessapps.dartify.compose.game.setup.x01.ui.dialogs.GameModeDialog
+import com.pointlessapps.dartify.compose.game.setup.x01.ui.dialogs.StartingScoreDialog
 import com.pointlessapps.dartify.compose.ui.components.*
 import com.pointlessapps.dartify.compose.ui.theme.Route
 import org.koin.androidx.compose.getViewModel

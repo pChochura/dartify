@@ -26,6 +26,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.pointlessapps.dartify.R
 import com.pointlessapps.dartify.compose.game.active.x01.model.PlayerScore
+import com.pointlessapps.dartify.compose.game.active.x01.ui.dialogs.NumberOfDoublesDialog
+import com.pointlessapps.dartify.compose.game.active.x01.ui.dialogs.NumberOfThrowsAndDoublesDialog
+import com.pointlessapps.dartify.compose.game.active.x01.ui.dialogs.NumberOfThrowsDialog
+import com.pointlessapps.dartify.compose.game.active.x01.ui.dialogs.WinnerDialog
 import com.pointlessapps.dartify.compose.game.model.Bot
 import com.pointlessapps.dartify.compose.game.model.GameSettings
 import com.pointlessapps.dartify.compose.game.model.Player

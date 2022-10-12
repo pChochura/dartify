@@ -1,4 +1,4 @@
-package com.pointlessapps.dartify.compose.game.setup.x01.ui
+package com.pointlessapps.dartify.compose.game.setup.x01.ui.dialogs
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +16,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import com.pointlessapps.dartify.R
+import com.pointlessapps.dartify.compose.game.setup.x01.ui.GameSetupX01ViewModel
+import com.pointlessapps.dartify.compose.game.setup.x01.ui.TextListItem
 import com.pointlessapps.dartify.compose.ui.components.*
 
 @Composable

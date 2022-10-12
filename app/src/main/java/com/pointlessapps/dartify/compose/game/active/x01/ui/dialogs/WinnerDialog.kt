@@ -1,4 +1,4 @@
-package com.pointlessapps.dartify.compose.game.active.x01.ui
+package com.pointlessapps.dartify.compose.game.active.x01.ui.dialogs
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.pointlessapps.dartify.R
 import com.pointlessapps.dartify.compose.game.active.x01.model.PlayerScore
+import com.pointlessapps.dartify.compose.game.active.x01.ui.ScoreStatisticEntry
 import com.pointlessapps.dartify.compose.game.model.Bot
 import com.pointlessapps.dartify.compose.ui.components.*
 import com.pointlessapps.dartify.compose.utils.toPercentage
