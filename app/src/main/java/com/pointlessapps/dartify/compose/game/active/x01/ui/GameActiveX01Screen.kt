@@ -2,26 +2,16 @@ package com.pointlessapps.dartify.compose.game.active.x01.ui
 
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.pointlessapps.dartify.R
@@ -30,16 +20,17 @@ import com.pointlessapps.dartify.compose.game.active.x01.ui.dialogs.NumberOfDoub
 import com.pointlessapps.dartify.compose.game.active.x01.ui.dialogs.NumberOfThrowsAndDoublesDialog
 import com.pointlessapps.dartify.compose.game.active.x01.ui.dialogs.NumberOfThrowsDialog
 import com.pointlessapps.dartify.compose.game.active.x01.ui.dialogs.WinnerDialog
+import com.pointlessapps.dartify.compose.game.active.x01.ui.input.score.ThreeDartsInputKeyboard
+import com.pointlessapps.dartify.compose.game.active.x01.ui.input.score.ThreeDartsInputScore
 import com.pointlessapps.dartify.compose.game.model.Bot
+import com.pointlessapps.dartify.compose.game.model.GameMode
 import com.pointlessapps.dartify.compose.game.model.GameSettings
 import com.pointlessapps.dartify.compose.game.model.Player
-import com.pointlessapps.dartify.compose.ui.components.ComposeExactGrid
 import com.pointlessapps.dartify.compose.ui.components.ComposeScaffoldLayout
 import com.pointlessapps.dartify.compose.ui.components.ComposeText
 import com.pointlessapps.dartify.compose.ui.components.defaultComposeTextStyle
 import com.pointlessapps.dartify.compose.ui.modifiers.rectBorder
 import com.pointlessapps.dartify.compose.ui.theme.Route
-import com.pointlessapps.dartify.compose.utils.conditional
 import com.pointlessapps.dartify.compose.utils.scaledSp
 import com.pointlessapps.dartify.compose.utils.toPercentage
 import org.koin.androidx.compose.getViewModel
@@ -100,16 +91,14 @@ internal fun GameActiveX01Screen(
                 currentPlayer = viewModel.state.currentPlayer,
                 onScoreLeftRequested = viewModel::onScoreLeftRequested,
             )
-            InputScore(
+            ThreeDartsInputScore(
                 finishSuggestion = viewModel.getCurrentFinishSuggestion(),
                 currentInputScore = viewModel.state.currentInputScore,
                 onClearClicked = viewModel::onClearClicked,
             )
-            QuickScores(
+            ThreeDartsInputKeyboard(
                 onPossibleCheckoutRequested = viewModel::onPossibleCheckoutRequested,
                 onQuickScoreClicked = viewModel::onQuickScoreClicked,
-            )
-            Keyboard(
                 onKeyClicked = viewModel::onKeyClicked,
                 onUndoClicked = viewModel::onUndoClicked,
                 onDoneClicked = viewModel::onDoneClicked,
@@ -226,20 +215,22 @@ private fun Scores(
                     color = MaterialTheme.colors.secondary,
                 ),
         ) {
-            playersScores.forEach {
+            playersScores.forEach { score ->
                 Score(
-                    name = it.player.name,
-                    icon = when (it.player) {
+                    name = score.player.name,
+                    icon = when (score.player) {
                         is Bot -> R.drawable.ic_robot
                         else -> R.drawable.ic_person
                     },
-                    scoreLeft = onScoreLeftRequested(it.player),
-                    lastScore = it.lastScore,
-                    max = it.max,
-                    average = it.average,
-                    numberOfDarts = it.numberOfDarts,
-                    doublePercentage = it.doublePercentage,
-                    isActive = currentPlayer == it.player,
+                    scoreLeft = onScoreLeftRequested(score.player),
+                    lastScore = score.lastScore,
+                    max = score.max,
+                    average = score.average,
+                    numberOfDarts = score.numberOfDarts,
+                    doublePercentage = score.doublePercentage.takeIf {
+                        score.player.outMode == GameMode.Double
+                    },
+                    isActive = currentPlayer == score.player,
                 )
             }
         }
@@ -281,7 +272,7 @@ private fun RowScope.Score(
     max: Int,
     average: Float,
     numberOfDarts: Int,
-    doublePercentage: Float,
+    doublePercentage: Float?,
     isActive: Boolean,
 ) {
     Column(
@@ -344,13 +335,15 @@ private fun RowScope.Score(
                     stringResource(id = R.string.statistic_darts, numberOfDarts),
                     backgroundColor = MaterialTheme.colors.primary,
                 )
-                ScoreStatisticEntry(
-                    R.drawable.ic_darts,
-                    stringResource(
-                        id = R.string.statistic_double,
-                        doublePercentage.toPercentage(),
-                    ),
-                )
+                if (doublePercentage != null) {
+                    ScoreStatisticEntry(
+                        R.drawable.ic_darts,
+                        stringResource(
+                            id = R.string.statistic_double,
+                            doublePercentage.toPercentage(),
+                        ),
+                    )
+                }
             }
             Row(
                 horizontalArrangement = Arrangement.spacedBy(
@@ -367,282 +360,6 @@ private fun RowScope.Score(
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun InputScore(
-    finishSuggestion: String?,
-    currentInputScore: Int,
-    onClearClicked: () -> Unit,
-) {
-    val suggestionTextFontSize by animateFloatAsState(if (currentInputScore == 0) 40f else 16f)
-    val suggestionTextAlignment by animateFloatAsState(if (currentInputScore == 0) 0f else -1f)
-    val currentInputScoreOpacity by animateFloatAsState(
-        if (finishSuggestion == null || currentInputScore != 0) {
-            1f
-        } else {
-            0f
-        },
-    )
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                horizontal = dimensionResource(id = R.dimen.margin_semi_big),
-                vertical = dimensionResource(id = R.dimen.margin_small),
-            ),
-    ) {
-        AnimatedVisibility(
-            modifier = Modifier.align(BiasAlignment(suggestionTextAlignment, 0f)),
-            visible = finishSuggestion != null,
-        ) {
-            ComposeText(
-                text = finishSuggestion.toString(),
-                textStyle = defaultComposeTextStyle().copy(
-                    textColor = MaterialTheme.colors.onSecondary,
-                    typography = MaterialTheme.typography.h1.copy(
-                        fontSize = suggestionTextFontSize.scaledSp(),
-                        fontWeight = FontWeight.Bold,
-                    ),
-                ),
-            )
-        }
-        ComposeText(
-            modifier = Modifier
-                .align(Alignment.Center)
-                .alpha(currentInputScoreOpacity),
-            text = currentInputScore.toString(),
-            textStyle = defaultComposeTextStyle().copy(
-                textColor = MaterialTheme.colors.onSecondary,
-                typography = MaterialTheme.typography.h1.copy(
-                    fontSize = 40.scaledSp(),
-                    fontWeight = FontWeight.Bold,
-                ),
-            ),
-        )
-        Button(
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .alpha(currentInputScoreOpacity),
-            contentPadding = PaddingValues(
-                horizontal = dimensionResource(id = R.dimen.margin_tiny),
-                vertical = dimensionResource(id = R.dimen.margin_nano),
-            ),
-            elevation = null,
-            shape = CircleShape,
-            colors = ButtonDefaults.buttonColors(backgroundColor = colorResource(id = R.color.red)),
-            onClick = onClearClicked,
-            enabled = currentInputScore != 0,
-        ) {
-            ComposeText(
-                text = stringResource(id = R.string.clear),
-                textStyle = defaultComposeTextStyle().copy(
-                    textColor = MaterialTheme.colors.onSecondary,
-                    typography = MaterialTheme.typography.subtitle1.copy(
-                        fontWeight = FontWeight.Bold,
-                    ),
-                ),
-            )
-        }
-    }
-}
-
-@Composable
-private fun QuickScores(
-    onPossibleCheckoutRequested: () -> Int? = { null },
-    onQuickScoreClicked: (Int) -> Unit,
-) {
-    val possibleCheckout = onPossibleCheckoutRequested()
-
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(3),
-        userScrollEnabled = false,
-    ) {
-        itemsIndexed(GameActiveX01ViewModel.QUICK_SCORES) { index, item ->
-            if (
-                possibleCheckout != null &&
-                index == GameActiveX01ViewModel.QUICK_SCORES.lastIndex
-            ) {
-                QuickScore(
-                    score = possibleCheckout,
-                    onQuickScoreClicked = {
-                        onQuickScoreClicked(possibleCheckout)
-                    },
-                    hasAccent = true,
-                )
-            } else {
-                QuickScore(
-                    score = item,
-                    onQuickScoreClicked = {
-                        onQuickScoreClicked(item)
-                    },
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun QuickScore(score: Int, onQuickScoreClicked: () -> Unit, hasAccent: Boolean = false) {
-    Box(
-        modifier = Modifier
-            .rectBorder(
-                top = dimensionResource(id = R.dimen.score_button_border_width),
-                left = dimensionResource(id = R.dimen.score_button_border_width),
-                right = dimensionResource(id = R.dimen.score_button_border_width),
-                color = MaterialTheme.colors.primary,
-            )
-            .background(
-                if (hasAccent) {
-                    colorResource(id = R.color.red)
-                } else {
-                    MaterialTheme.colors.secondary
-                },
-            )
-            .clickable(
-                role = Role.Button,
-                onClickLabel = score.toString(),
-                onClick = onQuickScoreClicked,
-            )
-            .padding(vertical = dimensionResource(id = R.dimen.margin_small)),
-        contentAlignment = Alignment.Center,
-    ) {
-        ComposeText(
-            text = score.toString(),
-            textStyle = defaultComposeTextStyle().copy(
-                textAlign = TextAlign.Center,
-                textColor = MaterialTheme.colors.onSecondary,
-                typography = MaterialTheme.typography.h1.let {
-                    it.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = it.fontSize.value.scaledSp(),
-                    )
-                },
-            ),
-        )
-    }
-}
-
-@Composable
-private fun Keyboard(
-    onKeyClicked: (Int) -> Unit,
-    onUndoClicked: () -> Unit,
-    onDoneClicked: () -> Unit,
-) {
-    val rows = 4
-    val columns = 3
-    ComposeExactGrid(
-        rows = rows,
-        columns = columns,
-        modifier = Modifier.fillMaxSize(),
-    ) { x, y ->
-        when {
-            y < rows - 1 -> Key(
-                label = "${y * columns + x + 1}",
-                onKeyClicked = { onKeyClicked(y * columns + x + 1) },
-            )
-            x == 0 -> IconKey(
-                icon = R.drawable.ic_undo,
-                label = stringResource(id = R.string.undo),
-                onKeyClicked = onUndoClicked,
-            )
-            x == columns / 2 -> Key(
-                label = "0",
-                onKeyClicked = { onKeyClicked(0) },
-            )
-            x == columns - 1 -> IconKey(
-                icon = R.drawable.ic_done,
-                label = stringResource(id = R.string.done),
-                onKeyClicked = onDoneClicked,
-                hasAccent = true,
-            )
-        }
-    }
-}
-
-@Composable
-private fun Key(label: String, onKeyClicked: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .rectBorder(
-                top = dimensionResource(id = R.dimen.score_button_border_width),
-                left = dimensionResource(id = R.dimen.score_button_border_width),
-                right = dimensionResource(id = R.dimen.score_button_border_width),
-                color = MaterialTheme.colors.primary,
-            )
-            .clickable(
-                role = Role.Button,
-                onClickLabel = label,
-                onClick = onKeyClicked,
-            )
-            .padding(vertical = dimensionResource(id = R.dimen.margin_small)),
-        contentAlignment = Alignment.Center,
-    ) {
-        ComposeText(
-            text = label,
-            textStyle = defaultComposeTextStyle().copy(
-                textAlign = TextAlign.Center,
-                textColor = MaterialTheme.colors.onSecondary,
-                typography = MaterialTheme.typography.h1.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 32.scaledSp(),
-                ),
-            ),
-        )
-    }
-}
-
-@Composable
-private fun IconKey(
-    @DrawableRes icon: Int,
-    label: String,
-    onKeyClicked: () -> Unit,
-    hasAccent: Boolean = false,
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .rectBorder(
-                top = dimensionResource(id = R.dimen.score_button_border_width),
-                left = dimensionResource(id = R.dimen.score_button_border_width),
-                right = dimensionResource(id = R.dimen.score_button_border_width),
-                color = MaterialTheme.colors.primary,
-            )
-            .conditional(hasAccent) {
-                background(colorResource(id = R.color.red))
-            }
-            .clickable(
-                role = Role.Button,
-                onClickLabel = label,
-                onClick = onKeyClicked,
-            )
-            .padding(vertical = dimensionResource(id = R.dimen.margin_small)),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(
-            dimensionResource(id = R.dimen.margin_nano),
-            Alignment.CenterVertically,
-        ),
-    ) {
-        Icon(
-            modifier = Modifier.size(dimensionResource(id = R.dimen.key_button_icon_size)),
-            painter = painterResource(id = icon),
-            contentDescription = label,
-            tint = MaterialTheme.colors.onSecondary,
-        )
-        ComposeText(
-            text = label,
-            textStyle = defaultComposeTextStyle().copy(
-                textAlign = TextAlign.Center,
-                textColor = MaterialTheme.colors.onSecondary,
-                typography = MaterialTheme.typography.h2.let {
-                    it.copy(
-                        fontSize = it.fontSize.value.scaledSp(),
-                    )
-                },
-            ),
-        )
     }
 }
 
