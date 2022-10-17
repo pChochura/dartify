@@ -1,7 +1,7 @@
 package com.pointlessapps.dartify.compose.game.mappers
 
+import com.pointlessapps.dartify.domain.game.x01.score.model.GameMode
 import com.pointlessapps.dartify.compose.game.model.GameMode as ViewGameMode
-import com.pointlessapps.dartify.domain.game.x01.model.GameMode
 
 internal fun ViewGameMode?.toOutMode() = when (this) {
     ViewGameMode.Straight -> GameMode.Straight
@@ -15,4 +15,10 @@ internal fun ViewGameMode?.toInMode() = when (this) {
     ViewGameMode.Double -> GameMode.Double
     ViewGameMode.Master -> GameMode.Master
     else -> GameMode.DEFAULT_IN_MODE
+}
+
+internal fun GameMode.fromGameMode() = when (this) {
+    GameMode.Straight -> ViewGameMode.Straight
+    GameMode.Double -> ViewGameMode.Double
+    GameMode.Master -> ViewGameMode.Master
 }

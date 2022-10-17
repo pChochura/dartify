@@ -2,9 +2,11 @@ package com.pointlessapps.dartify.compose.game.model
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
+import java.util.*
 
 @Parcelize
 internal open class Player(
+    val id: Long = UUID.randomUUID().mostSignificantBits,
     open val name: String,
     open val outMode: GameMode? = null,
 ) : Parcelable {

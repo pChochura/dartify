@@ -111,5 +111,6 @@ dependencies {
     implementation(Compose.Accompanist.SystemUIController)
 
     implementation(project(":domain"))
+    implementation(project(":errors"))
     implementation(project(":local_datasource"))
 }

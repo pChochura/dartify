@@ -34,3 +34,6 @@ internal fun Float.scaledSp() = with(LocalDensity.current) {
 
 @Suppress("MagicNumber")
 internal fun Float.toPercentage() = (this * 100).toInt()
+
+@Suppress("MagicNumber")
+internal fun Int.addDecimal(decimal: Int) = this * 10 + decimal

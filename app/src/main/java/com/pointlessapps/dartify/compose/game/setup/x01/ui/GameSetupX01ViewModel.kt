@@ -32,7 +32,7 @@ internal data class GameSetupX01State(
     val inMode: GameMode = GameMode.Straight,
     val outMode: GameMode = GameMode.Double,
     val players: List<Player> = listOf(
-        Player("You"),
+        Player(name = "You"),
         Bot(75f, "CPU (avg. 75)"),
     ),
 )

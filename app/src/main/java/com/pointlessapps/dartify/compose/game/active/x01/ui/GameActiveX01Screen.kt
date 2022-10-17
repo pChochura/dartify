@@ -203,7 +203,7 @@ private fun Title(
 @Composable
 private fun Scores(
     playersScores: List<PlayerScore>,
-    currentPlayer: Player,
+    currentPlayer: Player?,
     onScoreLeftRequested: (Player) -> Int,
 ) {
     Column {
@@ -224,13 +224,13 @@ private fun Scores(
                     },
                     scoreLeft = onScoreLeftRequested(score.player),
                     lastScore = score.lastScore,
-                    max = score.max,
-                    average = score.average,
+                    max = score.maxScore,
+                    average = score.averageScore,
                     numberOfDarts = score.numberOfDarts,
                     doublePercentage = score.doublePercentage.takeIf {
                         score.player.outMode == GameMode.Double
                     },
-                    isActive = currentPlayer == score.player,
+                    isActive = currentPlayer?.id == score.player.id,
                 )
             }
         }
@@ -248,7 +248,7 @@ private fun Scores(
             playersScores.forEach {
                 ComposeText(
                     modifier = Modifier.weight(1f),
-                    text = stringResource(id = R.string.sets_legs, it.wonSets, it.wonLegs),
+                    text = stringResource(id = R.string.sets_legs, it.numberOfWonSets, it.numberOfWonLegs),
                     textStyle = defaultComposeTextStyle().copy(
                         textColor = MaterialTheme.colors.onPrimary,
                         typography = MaterialTheme.typography.subtitle1.copy(

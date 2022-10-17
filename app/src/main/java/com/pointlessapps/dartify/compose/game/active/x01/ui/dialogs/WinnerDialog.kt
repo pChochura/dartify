@@ -88,13 +88,13 @@ internal fun WinnerDialog(
             ) {
                 ScoreStatisticEntry(
                     icon = R.drawable.ic_score,
-                    value = stringResource(id = R.string.statistic_max, playerScore.max),
+                    value = stringResource(id = R.string.statistic_max, playerScore.maxScore),
                 )
                 ScoreStatisticEntry(
                     icon = R.drawable.ic_stats,
                     value = stringResource(
                         id = R.string.statistic_avg,
-                        playerScore.average,
+                        playerScore.averageScore,
                     ),
                 )
             }

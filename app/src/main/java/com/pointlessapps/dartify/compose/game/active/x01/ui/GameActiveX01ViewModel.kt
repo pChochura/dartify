@@ -6,13 +6,13 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pointlessapps.dartify.compose.game.active.x01.model.PlayerScore
-import com.pointlessapps.dartify.compose.game.active.x01.ui.GameActiveX01ViewModel.Companion.EMPTY_PLAYER
-import com.pointlessapps.dartify.compose.game.mappers.toInMode
-import com.pointlessapps.dartify.compose.game.mappers.toOutMode
+import com.pointlessapps.dartify.compose.game.mappers.*
 import com.pointlessapps.dartify.compose.game.model.GameSettings
 import com.pointlessapps.dartify.compose.game.model.Player
 import com.pointlessapps.dartify.compose.ui.theme.Route
-import com.pointlessapps.dartify.domain.game.x01.usecase.*
+import com.pointlessapps.dartify.compose.utils.addDecimal
+import com.pointlessapps.dartify.domain.game.x01.score.usecase.*
+import com.pointlessapps.dartify.domain.game.x01.turn.usecase.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -40,7 +40,7 @@ internal data class GameActiveX01State(
     val currentSet: Int = 1,
     val currentLeg: Int = 1,
     val playersScores: List<PlayerScore> = emptyList(),
-    val currentPlayer: Player = EMPTY_PLAYER,
+    val currentPlayer: Player? = null,
     val currentInputScore: Int = 0,
 )
 
@@ -51,10 +51,14 @@ internal class GameActiveX01ViewModel(
     private val calculateMinNumberOfThrowsUseCase: CalculateMinNumberOfThrowsUseCase,
     private val calculateMaxNumberOfDoublesUseCase: CalculateMaxNumberOfDoublesUseCase,
     private val calculateMaxNumberOfDoublesForThreeThrowsUseCase: CalculateMaxNumberOfDoublesForThreeThrowsUseCase,
+    private val nextTurnUseCase: NextTurnUseCase,
+    private val addInputUseCase: AddInputUseCase,
+    private val undoTurnUseCase: UndoTurnUseCase,
+    private val finishLegUseCase: FinishLegUseCase,
+    private val setupGameUseCase: SetupGameUseCase,
 ) : ViewModel() {
 
     private lateinit var gameSettings: GameSettings
-    private var startingPlayerIndex = 0
 
     var state by mutableStateOf(GameActiveX01State())
         private set
@@ -64,19 +68,27 @@ internal class GameActiveX01ViewModel(
 
     fun setGameSettings(gameSettings: GameSettings) {
         this.gameSettings = gameSettings
-        val players = gameSettings.players.map {
-            PlayerScore(player = it, startingScore = gameSettings.startingScore)
-        }
+        val currentState = setupGameUseCase(
+            gameSettings.players.map(Player::toPlayer),
+            gameSettings.startingScore,
+            gameSettings.numberOfSets,
+            gameSettings.numberOfLegs,
+            gameSettings.matchResolutionStrategy.toMatchResolutionStrategy(),
+        )
 
         state = state.copy(
-            playersScores = players,
-            currentPlayer = players[startingPlayerIndex].player,
+            currentInputScore = currentState.score ?: state.currentInputScore,
+            currentSet = currentState.set ?: state.currentSet,
+            currentLeg = currentState.leg ?: state.currentLeg,
+            currentPlayer = currentState.player?.fromPlayer() ?: state.currentPlayer,
+            playersScores = currentState.playerScores?.map { it.fromPlayerScore() }
+                ?: state.playersScores,
         )
     }
 
     fun onPossibleCheckoutRequested(): Int? {
         val currentPlayerScore = state.playersScores.find {
-            it.player == state.currentPlayer
+            it.player.id == state.currentPlayer?.id
         } ?: return null
 
         if (
@@ -96,7 +108,7 @@ internal class GameActiveX01ViewModel(
             it.player == player
         } ?: return 0
 
-        return playerScore.scoreLeft - if (player == state.currentPlayer) {
+        return playerScore.scoreLeft - if (player.id == state.currentPlayer?.id) {
             state.currentInputScore
         } else {
             0
@@ -105,7 +117,7 @@ internal class GameActiveX01ViewModel(
 
     fun onQuickScoreClicked(quickScore: Int) {
         val currentPlayerScore = state.playersScores.find {
-            it.player == state.currentPlayer
+            it.player.id == state.currentPlayer?.id
         } ?: return
 
         if (
@@ -133,7 +145,7 @@ internal class GameActiveX01ViewModel(
         }
 
         state = state.copy(
-            currentInputScore = state.currentInputScore * 10 + key,
+            currentInputScore = state.currentInputScore.addDecimal(key),
         )
     }
 
@@ -146,52 +158,20 @@ internal class GameActiveX01ViewModel(
             return
         }
 
-        val currentPlayerScoreIndex = state.playersScores.indexOfFirst {
-            it.player == state.currentPlayer
-        }
-        val currentPlayerScore = state.playersScores[currentPlayerScoreIndex]
-
-        val prevPlayerScoreIndex = currentPlayerScoreIndex.prevPlayerIndex()
-        var prevPlayerScore = state.playersScores[prevPlayerScoreIndex]
-
-        if (prevPlayerScore.hasNoInputs()) {
-            state = state.copy(
-                currentInputScore = 0,
-            )
-
-            return
-        }
-
-        // Set or leg was reverted
-        if (prevPlayerScore.numberOfDarts == 0) {
-            if (currentPlayerScore.hasWonPreviousLeg()) {
-                prevPlayerScore = state.playersScores[currentPlayerScoreIndex]
-            }
-            startingPlayerIndex = startingPlayerIndex.prevPlayerIndex()
-
-            state.playersScores.forEach {
-                if (it != prevPlayerScore) {
-                    it.markLegAsReverted()
-                }
-            }
-        }
-
-        val prevPlayerInputScore = prevPlayerScore.popInput()
-
-        val currentSet = state.playersScores.sumOf { it.wonSets } + 1
-        val currentLeg = state.playersScores.sumOf { it.wonLegs } + 1
-
+        val currentState = undoTurnUseCase()
         state = state.copy(
-            currentInputScore = prevPlayerInputScore,
-            currentSet = currentSet,
-            currentLeg = currentLeg,
-            currentPlayer = prevPlayerScore.player,
+            currentInputScore = currentState.score ?: state.currentInputScore,
+            currentSet = currentState.set ?: state.currentSet,
+            currentLeg = currentState.leg ?: state.currentLeg,
+            currentPlayer = currentState.player?.fromPlayer() ?: state.currentPlayer,
+            playersScores = currentState.playerScores?.map { it.fromPlayerScore() }
+                ?: state.playersScores,
         )
     }
 
     fun onDoneClicked() {
         val currentPlayerScore = state.playersScores.find {
-            it.player == state.currentPlayer
+            it.player.id == state.currentPlayer?.id
         } ?: return
 
         if (
@@ -251,8 +231,16 @@ internal class GameActiveX01ViewModel(
             return
         }
 
-        currentPlayerScore.addInput(state.currentInputScore)
-        setNextTurn()
+        addInputUseCase(state.currentInputScore, 3, 0)
+        val currentState = nextTurnUseCase()
+        state = state.copy(
+            currentInputScore = currentState.score ?: state.currentInputScore,
+            currentSet = currentState.set ?: state.currentSet,
+            currentLeg = currentState.leg ?: state.currentLeg,
+            currentPlayer = currentState.player?.fromPlayer() ?: state.currentPlayer,
+            playersScores = currentState.playerScores?.map { it.fromPlayerScore() }
+                ?: state.playersScores,
+        )
     }
 
     fun onClearClicked() {
@@ -262,25 +250,49 @@ internal class GameActiveX01ViewModel(
     }
 
     fun onNumberOfDoublesClicked(numberOfDoubles: Int) {
-        val currentPlayerScore = state.playersScores.find {
-            it.player == state.currentPlayer
-        } ?: return
-
-        currentPlayerScore.addInput(state.currentInputScore, doubleThrowTries = numberOfDoubles)
-        setNextTurn()
+        addInputUseCase(state.currentInputScore, 3, numberOfThrowsOnDouble = numberOfDoubles)
+        val currentState = nextTurnUseCase()
+        state = state.copy(
+            currentInputScore = currentState.score ?: state.currentInputScore,
+            currentSet = currentState.set ?: state.currentSet,
+            currentLeg = currentState.leg ?: state.currentLeg,
+            currentPlayer = currentState.player?.fromPlayer() ?: state.currentPlayer,
+            playersScores = currentState.playerScores?.map { it.fromPlayerScore() }
+                ?: state.playersScores,
+        )
     }
 
-    fun onNumberOfThrowsClicked(numberOfThrows: Int, numberOfDoubles: Int = 0) {
-        val currentPlayerScore = state.playersScores.find {
-            it.player == state.currentPlayer
-        } ?: return
+    fun onNumberOfThrowsClicked(numberOfThrows: Int, numberOfThrowsOnDoubles: Int = 0) {
+        val currentState = finishLegUseCase(numberOfThrows, numberOfThrowsOnDoubles)
 
-        performLegFinished(numberOfThrows, numberOfDoubles, currentPlayerScore)
+        if (currentState.won == true) {
+            val player = requireNotNull(currentState.player).fromPlayer()
+            val playerScore = requireNotNull(
+                currentState.playerScores?.find {
+                    it.player.id == player.id
+                }?.fromPlayerScore(),
+            )
+
+            viewModelScope.launch {
+                eventChannel.send(GameActiveX01Event.ShowWinnerDialog(playerScore))
+            }
+
+            return
+        }
+
+        state = state.copy(
+            currentInputScore = currentState.score ?: state.currentInputScore,
+            currentSet = currentState.set ?: state.currentSet,
+            currentLeg = currentState.leg ?: state.currentLeg,
+            currentPlayer = currentState.player?.fromPlayer() ?: state.currentPlayer,
+            playersScores = currentState.playerScores?.map { it.fromPlayerScore() }
+                ?: state.playersScores,
+        )
     }
 
     fun getCurrentFinishSuggestion(): String? {
         val playerScore = state.playersScores.find {
-            it.player == state.currentPlayer
+            it.player.id == state.currentPlayer?.id
         } ?: return null
 
         // TODO add actual implementation of this
@@ -301,90 +313,15 @@ internal class GameActiveX01ViewModel(
         }
     }
 
-    private fun setNextTurn(
-        isLegFinished: Boolean = false,
-        isSetFinished: Boolean = false,
-        nextPlayer: Player? = null,
-    ) {
-        val currentPlayerScore = state.playersScores.find {
-            it.player == state.currentPlayer
-        } ?: return
-
-        val currentPlayerScoreIndex = state.playersScores.indexOf(currentPlayerScore)
-        val nextPlayerScoreIndex = currentPlayerScoreIndex.nextPlayerIndex()
-
-        val setIncrement = if (isSetFinished) 1 else 0
-        val legIncrement = if (isLegFinished) 1 else 0
-
-        state = state.copy(
-            currentPlayer = nextPlayer ?: state.playersScores[nextPlayerScoreIndex].player,
-            currentSet = state.currentSet + if (isSetFinished) setIncrement else 0,
-            currentLeg = if (isSetFinished) 1 else state.currentLeg + legIncrement,
-            currentInputScore = 0,
-        )
-    }
-
     private fun validateKey(key: Int): Boolean {
         val currentPlayerScore = state.playersScores.find {
-            it.player == state.currentPlayer
+            it.player.id == state.currentPlayer?.id
         } ?: return false
 
-        return state.currentInputScore * 10 + key <= currentPlayerScore.scoreLeft
+        return state.currentInputScore.addDecimal(key) <= currentPlayerScore.scoreLeft
     }
-
-    private fun performLegFinished(
-        numberOfThrows: Int,
-        numberOfDoubles: Int,
-        playerScore: PlayerScore,
-    ): Boolean {
-        val isSetFinished = gameSettings.matchResolutionStrategy
-            .resolutionPredicate(gameSettings.numberOfLegs)
-            .invoke(playerScore.wonLegs + 1)
-
-        val isMatchFinished = isSetFinished && gameSettings.matchResolutionStrategy
-            .resolutionPredicate(gameSettings.numberOfSets)
-            .invoke(playerScore.wonSets + 1)
-
-        playerScore.addInput(
-            state.currentInputScore,
-            weight = numberOfThrows,
-            doubleThrowTries = numberOfDoubles,
-        )
-
-        state.playersScores.forEach {
-            if (isSetFinished) {
-                it.markSetAsFinished(it == playerScore)
-            } else {
-                it.markLegAsFinished(it == playerScore)
-            }
-        }
-
-        if (isMatchFinished) {
-            viewModelScope.launch {
-                eventChannel.send(GameActiveX01Event.ShowWinnerDialog(playerScore))
-            }
-
-            return true
-        }
-
-        startingPlayerIndex = startingPlayerIndex.nextPlayerIndex()
-
-        setNextTurn(
-            isSetFinished = isSetFinished,
-            isLegFinished = true,
-            nextPlayer = state.playersScores[startingPlayerIndex].player,
-        )
-
-        return false
-    }
-
-    private fun Int.nextPlayerIndex() = (this + 1) % gameSettings.players.size
-    private fun Int.prevPlayerIndex() =
-        (this + gameSettings.players.size - 1) % gameSettings.players.size
 
     companion object {
-        val EMPTY_PLAYER = Player("")
-
         val QUICK_SCORES = listOf(
             26, 41, 45, 60, 85, 100,
         )

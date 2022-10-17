@@ -13,6 +13,11 @@ internal val gameActiveX01Module = module {
             calculateMaxNumberOfDoublesUseCase = get(),
             calculateMinNumberOfThrowsUseCase = get(),
             calculateMaxNumberOfDoublesForThreeThrowsUseCase = get(),
+            nextTurnUseCase = get(),
+            addInputUseCase = get(),
+            undoTurnUseCase = get(),
+            finishLegUseCase = get(),
+            setupGameUseCase = get(),
         )
     }
 }

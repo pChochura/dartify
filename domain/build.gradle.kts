@@ -12,5 +12,6 @@ dependencies {
     implementation(Koin.core)
     implementation(Kotlin.Coroutines.core)
 
+    implementation(project(":errors"))
     implementation(project(":datasource"))
 }

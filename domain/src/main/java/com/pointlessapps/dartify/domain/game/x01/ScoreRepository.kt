@@ -1,7 +1,7 @@
 package com.pointlessapps.dartify.domain.game.x01
 
-import com.pointlessapps.dartify.datasource.game.x01.ScoreDataSource
-import com.pointlessapps.dartify.domain.game.x01.model.GameMode
+import com.pointlessapps.dartify.datasource.game.x01.score.ScoreDataSource
+import com.pointlessapps.dartify.domain.game.x01.score.model.GameMode
 
 interface ScoreRepository {
     /**
@@ -64,9 +64,10 @@ internal class ScoreRepositoryImpl(
         numberOfThrows: Int,
         inMode: GameMode,
         outMode: GameMode,
-    ) = (inMode == GameMode.Straight || startingScore - scoreLeft == score && score != 1) &&
-        (outMode != GameMode.Double || scoreLeft > 1 || scoreLeft == 0) &&
-                score in scoreDataSource.getPossibleScoresFor(numberOfThrows)
+    ) = score in scoreDataSource.getPossibleScoresFor(numberOfThrows) && when (score) {
+        startingScore - scoreLeft -> inMode == GameMode.Straight || score != 1
+        else -> outMode != GameMode.Double || scoreLeft > 1 || scoreLeft == 0
+    }
 
     override fun shouldAsForNumberOfDoubles(
         score: Int,

@@ -22,6 +22,7 @@ rootProject.name = "dartify"
 include(
     ":app",
     ":domain",
+    ":errors",
     ":datasource",
     ":local_datasource",
 )
