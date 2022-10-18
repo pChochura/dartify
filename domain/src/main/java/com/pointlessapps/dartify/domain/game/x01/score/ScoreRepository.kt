@@ -1,6 +1,7 @@
-package com.pointlessapps.dartify.domain.game.x01
+package com.pointlessapps.dartify.domain.game.x01.score
 
 import com.pointlessapps.dartify.datasource.game.x01.score.ScoreDataSource
+import com.pointlessapps.dartify.domain.game.x01.SCORE_TO_ASK_FOR_DOUBLES
 import com.pointlessapps.dartify.domain.game.x01.score.model.GameMode
 
 interface ScoreRepository {
@@ -64,9 +65,12 @@ internal class ScoreRepositoryImpl(
         numberOfThrows: Int,
         inMode: GameMode,
         outMode: GameMode,
-    ) = score in scoreDataSource.getPossibleScoresFor(numberOfThrows) && when (score) {
-        startingScore - scoreLeft -> inMode == GameMode.Straight || score != 1
-        else -> outMode != GameMode.Double || scoreLeft > 1 || scoreLeft == 0
+    ): Boolean {
+        val checkInSatisfied =
+            inMode == GameMode.Straight || score != startingScore - scoreLeft || score != 1
+        val checkOutSatisfied = outMode == GameMode.Straight || scoreLeft > 1 || scoreLeft == 0
+        return score in scoreDataSource.getPossibleScoresFor(numberOfThrows) &&
+                checkInSatisfied && checkOutSatisfied
     }
 
     override fun shouldAsForNumberOfDoubles(

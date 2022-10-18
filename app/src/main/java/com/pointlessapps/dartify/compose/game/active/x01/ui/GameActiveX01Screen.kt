@@ -57,14 +57,14 @@ internal fun GameActiveX01Screen(
                 is GameActiveX01Event.Navigate -> onNavigate(it.route)
                 is GameActiveX01Event.AskForNumberOfThrows ->
                     numberOfThrowsAndDoublesDialogModel = NumberOfThrowsDialogModel(
-                        it.availableThrowMin,
+                        it.minNumberOfThrows,
                     )
                 is GameActiveX01Event.AskForNumberOfDoubles ->
-                    numberOfDoublesDialogModel = NumberOfDoublesDialogModel(it.availableMax)
+                    numberOfDoublesDialogModel = NumberOfDoublesDialogModel(it.maxNumberOfDoubles)
                 is GameActiveX01Event.AskForNumberOfThrowsAndDoubles ->
                     numberOfThrowsAndDoublesDialogModel = NumberOfThrowsDialogModel(
-                        it.availableThrowMin,
-                        it.availableDoubleMax,
+                        it.minNumberOfThrows,
+                        it.maxNumberOfDoubles,
                     )
                 is GameActiveX01Event.ShowWinnerDialog ->
                     winnerDialogModel = WinnerDialogModel(it.playerScore)

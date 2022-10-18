@@ -17,6 +17,12 @@ internal val turnModule = module {
         )
     }
     factory {
+        DoneTurnUseCase(
+            turnRepository = get(),
+            scoreRepository = get(),
+        )
+    }
+    factory {
         AddInputUseCase(
             turnRepository = get(),
         )

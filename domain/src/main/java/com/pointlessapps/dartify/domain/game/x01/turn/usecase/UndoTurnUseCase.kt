@@ -6,5 +6,5 @@ class UndoTurnUseCase(
     private val turnRepository: TurnRepository,
 ) {
 
-    operator fun invoke() = turnRepository.undo()
+    operator fun invoke() = turnRepository.undoTurn()
 }

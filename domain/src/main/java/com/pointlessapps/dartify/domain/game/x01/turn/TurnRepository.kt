@@ -1,75 +1,98 @@
 package com.pointlessapps.dartify.domain.game.x01.turn
 
 import com.pointlessapps.dartify.datasource.game.x01.move.TurnDataSource
+import com.pointlessapps.dartify.domain.game.x01.DEFAULT_NUMBER_OF_THROWS
 import com.pointlessapps.dartify.domain.game.x01.model.Player
+import com.pointlessapps.dartify.domain.game.x01.score.model.GameMode
 import com.pointlessapps.dartify.domain.game.x01.turn.mappers.toPlayerScore
-import com.pointlessapps.dartify.domain.game.x01.turn.model.CurrentState
-import com.pointlessapps.dartify.domain.game.x01.turn.model.MatchResolutionStrategy
+import com.pointlessapps.dartify.domain.game.x01.turn.model.*
 import com.pointlessapps.dartify.errors.game.x01.move.EmptyPlayersListException
 
 interface TurnRepository {
-    fun getStartingState(): CurrentState
+    fun getGameState(): GameState
 
-    fun setStartingScore(score: Int)
-    fun setPlayers(players: List<Player>)
-    fun setMatchResolutionStrategy(
+    fun setup(
+        players: List<Player>,
+        startingScore: Int,
+        inMode: GameMode,
         numberOfSets: Int,
         numberOfLegs: Int,
         matchResolutionStrategy: MatchResolutionStrategy,
-    )
+    ): CurrentState
 
     fun addInput(score: Int, numberOfThrows: Int, numberOfThrowsOnDouble: Int)
-    fun undo(): CurrentState
+    fun undoTurn(): CurrentState
     fun nextTurn(): CurrentState
-    fun finishLeg(numberOfThrows: Int, numberOfThrowsOnDouble: Int): CurrentState
+    fun finishLeg(numberOfThrows: Int, numberOfThrowsOnDouble: Int): State
+
+    fun doneTurn(
+        score: Int,
+        shouldAskForNumberOfDoubles: Boolean,
+        minNumberOfThrows: Int,
+        maxNumberOfDoubles: Map<Int, Int>,
+    ): DoneTurnEvent
 }
 
 internal class TurnRepositoryImpl(
     private val turnDataSource: TurnDataSource,
 ) : TurnRepository {
 
-    private lateinit var matchResolutionStrategy: MatchResolutionStrategy
+    private lateinit var inMode: GameMode
+    private var startingScore = 0
+
     private var numberOfSets = 0
     private var numberOfLegs = 0
+    private lateinit var matchResolutionStrategy: MatchResolutionStrategy
 
     private var startingPlayerIndex = 0
 
-    private val players = mutableListOf<Player>()
-    private var currentPlayer: Player? = null
+    private lateinit var currentPlayer: Player
+    private lateinit var players: List<Player>
+    private val playersById: Map<Long, Player>
+        get() = players.associateBy(Player::id)
 
-    override fun getStartingState() = CurrentState(
-        set = 1,
-        leg = 1,
-        player = players[startingPlayerIndex],
+    override fun getGameState() = GameState(
+        inMode = inMode,
+        startingScore = startingScore,
+        player = currentPlayer,
         playerScores = turnDataSource.getPlayerScores().map {
-            it.toPlayerScore(players.associateBy(Player::id))
+            it.toPlayerScore(playersById)
         },
     )
 
-    override fun setStartingScore(score: Int) {
-        turnDataSource.setStartingScore(score)
-    }
-
-    override fun setPlayers(players: List<Player>) {
+    override fun setup(
+        players: List<Player>,
+        startingScore: Int,
+        inMode: GameMode,
+        numberOfSets: Int,
+        numberOfLegs: Int,
+        matchResolutionStrategy: MatchResolutionStrategy,
+    ): CurrentState {
         if (players.isEmpty()) {
             throw EmptyPlayersListException()
         }
 
         startingPlayerIndex = 0
-        this.players.clear()
-        this.players.addAll(players)
+        this.players = players
         this.currentPlayer = players.first()
-        turnDataSource.setPlayers(players.map(Player::id))
-    }
-
-    override fun setMatchResolutionStrategy(
-        numberOfSets: Int,
-        numberOfLegs: Int,
-        matchResolutionStrategy: MatchResolutionStrategy,
-    ) {
+        this.startingScore = startingScore
+        this.inMode = inMode
         this.numberOfSets = numberOfSets
         this.numberOfLegs = numberOfLegs
         this.matchResolutionStrategy = matchResolutionStrategy
+
+        turnDataSource.setStartingScore(startingScore)
+        turnDataSource.setPlayers(players.map(Player::id))
+
+        return CurrentState(
+            score = 0,
+            set = 1,
+            leg = 1,
+            player = players[startingPlayerIndex],
+            playerScores = turnDataSource.getPlayerScores().map {
+                it.toPlayerScore(playersById)
+            },
+        )
     }
 
     override fun addInput(
@@ -77,39 +100,39 @@ internal class TurnRepositoryImpl(
         numberOfThrows: Int,
         numberOfThrowsOnDouble: Int,
     ) {
-        if (currentPlayer == null) {
-            throw IllegalStateException("currentPlayer cannot be null")
-        }
-
         turnDataSource.addInput(
-            requireNotNull(currentPlayer).id,
+            currentPlayer.id,
             score,
             numberOfThrows,
             numberOfThrowsOnDouble,
         )
     }
 
-    override fun undo(): CurrentState {
-        if (currentPlayer == null) {
-            throw IllegalStateException("currentPlayer cannot be null")
-        }
-
+    override fun undoTurn(): CurrentState {
         val currentPlayerIndex = players.indexOf(currentPlayer)
         var previousPlayer = players[currentPlayerIndex.prevPlayerIndex()]
 
         if (turnDataSource.hasNoInputs(previousPlayer.id)) {
-            return CurrentState(score = 0)
+            return CurrentState(
+                score = 0,
+                set = turnDataSource.getWonSets() + 1,
+                leg = turnDataSource.getWonLegs() + 1,
+                player = currentPlayer,
+                playerScores = turnDataSource.getPlayerScores().map {
+                    it.toPlayerScore(playersById)
+                },
+            )
         }
 
         // Set or leg was reverted
         if (turnDataSource.hasNoInputsInThisLeg(previousPlayer.id)) {
-            if (turnDataSource.hasWonPreviousLeg(requireNotNull(currentPlayer).id)) {
-                previousPlayer = requireNotNull(currentPlayer)
+            if (turnDataSource.hasWonPreviousLeg(currentPlayer.id)) {
+                previousPlayer = currentPlayer
             }
             startingPlayerIndex = startingPlayerIndex.prevPlayerIndex()
 
             players.forEach {
-                if (it != previousPlayer) {
+                if (it.id != previousPlayer.id) {
                     turnDataSource.revertLeg(it.id)
                 }
             }
@@ -117,27 +140,20 @@ internal class TurnRepositoryImpl(
 
         val previousPlayerInputScore = turnDataSource.popInput(previousPlayer.id)
 
-        val currentSet = turnDataSource.getWonSets() + 1
-        val currentLeg = turnDataSource.getWonLegs() + 1
-
         currentPlayer = previousPlayer
 
         return CurrentState(
             score = previousPlayerInputScore,
-            leg = currentLeg,
-            set = currentSet,
+            set = turnDataSource.getWonSets() + 1,
+            leg = turnDataSource.getWonLegs() + 1,
             player = previousPlayer,
             playerScores = turnDataSource.getPlayerScores().map {
-                it.toPlayerScore(players.associateBy(Player::id))
+                it.toPlayerScore(playersById)
             },
         )
     }
 
     override fun nextTurn(): CurrentState {
-        if (currentPlayer == null) {
-            throw IllegalStateException("currentPlayer cannot be null")
-        }
-
         val currentPlayerIndex = players.indexOf(currentPlayer)
         val nextPlayer = players[currentPlayerIndex.nextPlayerIndex()]
 
@@ -145,19 +161,52 @@ internal class TurnRepositoryImpl(
 
         return CurrentState(
             score = 0,
+            set = turnDataSource.getWonSets() + 1,
+            leg = turnDataSource.getWonLegs() + 1,
             player = nextPlayer,
             playerScores = turnDataSource.getPlayerScores().map {
-                it.toPlayerScore(players.associateBy(Player::id))
+                it.toPlayerScore(playersById)
             },
         )
     }
 
-    override fun finishLeg(numberOfThrows: Int, numberOfThrowsOnDouble: Int): CurrentState {
-        if (currentPlayer == null) {
-            throw IllegalStateException("currentPlayer cannot be null")
+    override fun doneTurn(
+        score: Int,
+        shouldAskForNumberOfDoubles: Boolean,
+        minNumberOfThrows: Int,
+        maxNumberOfDoubles: Map<Int, Int>,
+    ): DoneTurnEvent {
+        val currentPlayerScore = requireNotNull(
+            turnDataSource.getPlayerScores().find {
+                it.playerId == currentPlayer.id
+            },
+        )
+
+        if (currentPlayerScore.scoreLeft == score) {
+            return if (shouldAskForNumberOfDoubles) {
+                DoneTurnEvent.AskForNumberOfThrowsAndDoubles(
+                    minNumberOfThrows = minNumberOfThrows,
+                    maxNumberOfDoubles = maxNumberOfDoubles,
+                )
+            } else {
+                DoneTurnEvent.AskForNumberOfThrows(
+                    minNumberOfThrows = minNumberOfThrows,
+                )
+            }
         }
 
-        val currentPlayerId = requireNotNull(currentPlayer).id
+        if (shouldAskForNumberOfDoubles) {
+            return DoneTurnEvent.AskForNumberOfDoubles(
+                maxNumberOfDoublesForThreeThrows = maxNumberOfDoubles[DEFAULT_NUMBER_OF_THROWS]
+                    ?: 1,
+            )
+        }
+
+        return DoneTurnEvent.AddInput
+    }
+
+    override fun finishLeg(numberOfThrows: Int, numberOfThrowsOnDouble: Int): State {
+        val currentPlayerId = currentPlayer.id
 
         val isSetFinished = matchResolutionStrategy
             .resolutionPredicate(numberOfLegs)
@@ -181,7 +230,13 @@ internal class TurnRepositoryImpl(
         }
 
         if (isMatchFinished) {
-            return CurrentState(player = currentPlayer, won = true)
+            return WinState(
+                playerScore = requireNotNull(
+                    turnDataSource.getPlayerScores().find {
+                        it.playerId == currentPlayerId
+                    }?.toPlayerScore(playersById),
+                ),
+            )
         }
 
         startingPlayerIndex = startingPlayerIndex.nextPlayerIndex()
@@ -195,7 +250,7 @@ internal class TurnRepositoryImpl(
             leg = turnDataSource.getWonLegs() + 1,
             player = nextPlayer,
             playerScores = turnDataSource.getPlayerScores().map {
-                it.toPlayerScore(players.associateBy(Player::id))
+                it.toPlayerScore(playersById)
             },
         )
     }
