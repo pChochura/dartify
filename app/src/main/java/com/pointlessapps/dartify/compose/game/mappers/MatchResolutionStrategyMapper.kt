@@ -7,8 +7,3 @@ internal fun ViewMatchResolutionStrategy.toMatchResolutionStrategy() = when (thi
     ViewMatchResolutionStrategy.FirstTo -> MatchResolutionStrategy.FirstTo
     ViewMatchResolutionStrategy.BestOf -> MatchResolutionStrategy.BestOf
 }
-
-internal fun MatchResolutionStrategy.fromMatchResolutionStrategy() = when (this) {
-    MatchResolutionStrategy.FirstTo -> ViewMatchResolutionStrategy.FirstTo
-    MatchResolutionStrategy.BestOf -> ViewMatchResolutionStrategy.BestOf
-}

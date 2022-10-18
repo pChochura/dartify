@@ -8,9 +8,3 @@ open class Player(
     val outMode: GameMode,
     val id: Long = UUID.randomUUID().mostSignificantBits,
 )
-
-class Bot(
-    name: String,
-    outMode: GameMode,
-    val average: Float,
-) : Player(name, outMode)

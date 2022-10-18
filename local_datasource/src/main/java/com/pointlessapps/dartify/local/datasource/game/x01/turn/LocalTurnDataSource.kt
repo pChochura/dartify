@@ -7,16 +7,11 @@ import com.pointlessapps.dartify.errors.game.x01.move.NotExistentPlayerException
 internal class LocalTurnDataSource : TurnDataSource {
 
     private val playerScoreHandlers = mutableMapOf<Long, PlayerScoreHandler>()
-    private var startingScore: Int = 0
 
     private fun getScoreHandler(playerId: Long) =
         playerScoreHandlers[playerId] ?: throw NotExistentPlayerException(playerId)
 
-    override fun setStartingScore(score: Int) {
-        this.startingScore = score
-    }
-
-    override fun setPlayers(playerIds: List<Long>) {
+    override fun setup(startingScore: Int, playerIds: List<Long>) {
         playerScoreHandlers.clear()
         playerIds.forEach {
             playerScoreHandlers[it] = PlayerScoreHandler(startingScore)

@@ -9,8 +9,15 @@ import com.pointlessapps.dartify.domain.game.x01.turn.model.*
 import com.pointlessapps.dartify.errors.game.x01.move.EmptyPlayersListException
 
 interface TurnRepository {
+    /**
+     * Returns the state of the game, containing information like starting score, check-in mode
+     * or scores of the players.
+     */
     fun getGameState(): GameState
 
+    /**
+     * Sets up all of the functionality for the game and returns back the state
+     */
     fun setup(
         players: List<Player>,
         startingScore: Int,
@@ -20,11 +27,34 @@ interface TurnRepository {
         matchResolutionStrategy: MatchResolutionStrategy,
     ): CurrentState
 
+    /**
+     * Performs an insertion of the score into the current player's account
+     */
     fun addInput(score: Int, numberOfThrows: Int, numberOfThrowsOnDouble: Int)
+
+    /**
+     * Reverts a turn by removing the previous input and sets the current player to the previous one
+     * returning the state after the changes
+     */
     fun undoTurn(): CurrentState
+
+    /**
+     * Marks the current turn as complete and sets the current player to the next one
+     * returning the state after the changes
+     */
     fun nextTurn(): CurrentState
+
+    /**
+     * Adds the input to the current player's account and marks the current leg as complete.
+     * Also performs a check to see if the match is finished, if so returns an applicable [State]
+     */
     fun finishLeg(numberOfThrows: Int, numberOfThrowsOnDouble: Int): State
 
+    /**
+     * Performs a set of checks to see if the current action should be to ask the player for an
+     * additional input (as number of throws or number of doubles, or both) and returns an
+     * appropriate [DoneTurnEvent]
+     */
     fun doneTurn(
         score: Int,
         shouldAskForNumberOfDoubles: Boolean,
@@ -81,8 +111,7 @@ internal class TurnRepositoryImpl(
         this.numberOfLegs = numberOfLegs
         this.matchResolutionStrategy = matchResolutionStrategy
 
-        turnDataSource.setStartingScore(startingScore)
-        turnDataSource.setPlayers(players.map(Player::id))
+        turnDataSource.setup(startingScore, players.map(Player::id))
 
         return CurrentState(
             score = 0,

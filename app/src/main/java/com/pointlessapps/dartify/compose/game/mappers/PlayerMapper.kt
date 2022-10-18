@@ -17,18 +17,6 @@ internal fun Player.fromPlayer() = ViewPlayer(
     outMode = outMode.fromGameMode(),
 )
 
-internal fun ViewPlayerScore.toPlayerScore() = PlayerScore(
-    numberOfWonSets = numberOfWonSets,
-    numberOfWonLegs = numberOfWonLegs,
-    doublePercentage = doublePercentage,
-    maxScore = maxScore,
-    averageScore = averageScore,
-    numberOfDarts = numberOfDarts,
-    scoreLeft = scoreLeft,
-    lastScore = lastScore,
-    player = player.toPlayer(),
-)
-
 internal fun PlayerScore.fromPlayerScore() = ViewPlayerScore(
     numberOfWonSets = numberOfWonSets,
     numberOfWonLegs = numberOfWonLegs,
