@@ -66,3 +66,14 @@ object Koin {
     const val android = "io.insert-koin:koin-android:$version"
     const val core = "io.insert-koin:koin-core:$version"
 }
+
+object Kotest {
+    private const val version = "5.5.1"
+    const val core = "io.kotest:kotest-runner-junit5-jvm:$version"
+    const val assertions = "io.kotest:kotest-assertions-core-jvm:$version"
+}
+
+object Mockk {
+    private const val version = "1.13.2"
+    const val core = "io.mockk:mockk:$version"
+}

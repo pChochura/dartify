@@ -25,6 +25,10 @@ subprojects {
             sarif.required.set(false)
         }
     }
+
+    tasks.withType<Test>().configureEach {
+        useJUnitPlatform()
+    }
 }
 
 task("clean", Delete::class) {

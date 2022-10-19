@@ -14,4 +14,9 @@ dependencies {
 
     implementation(project(":errors"))
     implementation(project(":datasource"))
+
+    testImplementation(kotlin("test"))
+    testImplementation(Kotest.core)
+    testImplementation(Kotest.assertions)
+    testImplementation(Mockk.core)
 }
