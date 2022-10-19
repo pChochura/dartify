@@ -17,7 +17,7 @@ class DoneTurnUseCase(
                 it.player.id == gameState.player.id
             },
         )
-        val shouldAsForNumberOfDoubles = scoreRepository.shouldAsForNumberOfDoubles(
+        val shouldAskForNumberOfDoubles = scoreRepository.shouldAskForNumberOfDoubles(
             score = currentPlayerScore.scoreLeft,
             scoreLeft = currentPlayerScore.scoreLeft - score,
             numberOfThrows = numberOfThrows,
@@ -33,7 +33,7 @@ class DoneTurnUseCase(
 
         return turnRepository.doneTurn(
             score = score,
-            shouldAskForNumberOfDoubles = shouldAsForNumberOfDoubles,
+            shouldAskForNumberOfDoubles = shouldAskForNumberOfDoubles,
             minNumberOfThrows = minNumberOfThrows,
             maxNumberOfDoubles = maxNumberOfDoubles,
         )

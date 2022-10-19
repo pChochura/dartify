@@ -24,7 +24,7 @@ interface ScoreRepository {
      * for the [scoreLeft] to ensure it is possible to be checked out on a double throw,
      * and finally checks if the [score] is possible to be checked out with selected [GameMode.Double]
      */
-    fun shouldAsForNumberOfDoubles(
+    fun shouldAskForNumberOfDoubles(
         score: Int,
         scoreLeft: Int,
         numberOfThrows: Int,
@@ -73,7 +73,7 @@ internal class ScoreRepositoryImpl(
                 checkInSatisfied && checkOutSatisfied
     }
 
-    override fun shouldAsForNumberOfDoubles(
+    override fun shouldAskForNumberOfDoubles(
         score: Int,
         scoreLeft: Int,
         numberOfThrows: Int,

@@ -16,7 +16,7 @@ import io.kotest.matchers.types.beInstanceOf
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 import io.mockk.*
 
-class TurnRepositoryTest : AnnotationSpec() {
+internal class TurnRepositoryTest : AnnotationSpec() {
 
     private val dataSource: TurnDataSource = mockk()
     private val repository: TurnRepository = TurnRepositoryImpl(dataSource)
