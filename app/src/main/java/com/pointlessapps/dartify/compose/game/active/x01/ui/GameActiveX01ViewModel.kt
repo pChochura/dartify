@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pointlessapps.dartify.compose.game.active.x01.model.InputMode
 import com.pointlessapps.dartify.compose.game.active.x01.model.PlayerScore
 import com.pointlessapps.dartify.compose.game.mappers.*
 import com.pointlessapps.dartify.compose.game.model.GameSettings
@@ -45,7 +46,8 @@ internal data class GameActiveX01State(
     val currentLeg: Int = 1,
     val playersScores: List<PlayerScore> = emptyList(),
     val currentPlayer: Player? = null,
-    val currentInputScore: Int = 0,
+    val currentInputScore: List<Int> = emptyList(),
+    val inputMode: InputMode = InputMode.PerDart,
 )
 
 internal class GameActiveX01ViewModel(
@@ -79,7 +81,7 @@ internal class GameActiveX01ViewModel(
         )
 
         state = state.copy(
-            currentInputScore = currentState.score,
+            currentInputScore = listOf(currentState.score),
             currentSet = currentState.set,
             currentLeg = currentState.leg,
             currentPlayer = currentState.player.fromPlayer(),
@@ -110,7 +112,7 @@ internal class GameActiveX01ViewModel(
         } ?: return 0
 
         return playerScore.scoreLeft - if (player.id == state.currentPlayer?.id) {
-            state.currentInputScore
+            state.currentInputScore.sum()
         } else {
             0
         }
@@ -122,7 +124,7 @@ internal class GameActiveX01ViewModel(
         }
 
         state = state.copy(
-            currentInputScore = quickScore,
+            currentInputScore = listOf(quickScore),
         )
 
         onDoneClicked()
@@ -133,15 +135,20 @@ internal class GameActiveX01ViewModel(
             return
         }
 
-        state = state.copy(
-            currentInputScore = state.currentInputScore.addDecimal(key),
-        )
+        state = when (state.inputMode) {
+            InputMode.PerDart -> state.copy(
+                currentInputScore = state.currentInputScore + key,
+            )
+            InputMode.PerTurn -> state.copy(
+                currentInputScore = listOf(state.currentInputScore.sum().addDecimal(key)),
+            )
+        }
     }
 
     fun onUndoClicked() {
-        if (state.currentInputScore != 0) {
+        if (state.currentInputScore.sum() != 0) {
             state = state.copy(
-                currentInputScore = 0,
+                currentInputScore = emptyList(),
             )
 
             return
@@ -149,7 +156,7 @@ internal class GameActiveX01ViewModel(
 
         val currentState = undoTurnUseCase()
         state = state.copy(
-            currentInputScore = currentState.score,
+            currentInputScore = listOf(currentState.score),
             currentSet = currentState.set,
             currentLeg = currentState.leg,
             currentPlayer = currentState.player.fromPlayer(),
@@ -158,13 +165,13 @@ internal class GameActiveX01ViewModel(
     }
 
     fun onDoneClicked() {
-        if (!validateScoreUseCase(state.currentInputScore)) {
+        if (!validateScoreUseCase(state.currentInputScore.sum())) {
             // TODO show error snackbar
             return
         }
 
         viewModelScope.launch {
-            when (val event = doneTurnUseCase(state.currentInputScore)) {
+            when (val event = doneTurnUseCase(state.currentInputScore.sum())) {
                 is DoneTurnEvent.AskForNumberOfDoubles -> eventChannel.send(
                     GameActiveX01Event.AskForNumberOfDoubles(
                         maxNumberOfDoubles = event.maxNumberOfDoublesForThreeThrows,
@@ -180,10 +187,10 @@ internal class GameActiveX01ViewModel(
                     ),
                 )
                 is DoneTurnEvent.AddInput -> {
-                    addInputUseCase(state.currentInputScore, numberOfThrowsOnDouble = 0)
+                    addInputUseCase(state.currentInputScore.sum(), numberOfThrowsOnDouble = 0)
                     val currentState = nextTurnUseCase()
                     state = state.copy(
-                        currentInputScore = currentState.score,
+                        currentInputScore = listOf(currentState.score),
                         currentSet = currentState.set,
                         currentLeg = currentState.leg,
                         currentPlayer = currentState.player.fromPlayer(),
@@ -196,15 +203,15 @@ internal class GameActiveX01ViewModel(
 
     fun onClearClicked() {
         state = state.copy(
-            currentInputScore = 0,
+            currentInputScore = emptyList(),
         )
     }
 
     fun onNumberOfDoublesClicked(numberOfDoubles: Int) {
-        addInputUseCase(state.currentInputScore, numberOfThrowsOnDouble = numberOfDoubles)
+        addInputUseCase(state.currentInputScore.sum(), numberOfThrowsOnDouble = numberOfDoubles)
         val currentState = nextTurnUseCase()
         state = state.copy(
-            currentInputScore = currentState.score,
+            currentInputScore = listOf(currentState.score),
             currentSet = currentState.set,
             currentLeg = currentState.leg,
             currentPlayer = currentState.player.fromPlayer(),
@@ -225,7 +232,7 @@ internal class GameActiveX01ViewModel(
             }
             is CurrentState -> {
                 this.state = this.state.copy(
-                    currentInputScore = state.score,
+                    currentInputScore = listOf(state.score),
                     currentSet = state.set,
                     currentLeg = state.leg,
                     currentPlayer = state.player.fromPlayer(),
@@ -241,12 +248,16 @@ internal class GameActiveX01ViewModel(
         } ?: return null
 
         // TODO add actual implementation of this
-        if (playerScore.scoreLeft == 100) {
-            return "T20 D20"
+        if (playerScore.scoreLeft == 101) {
+            return "T20 D20 D1"
         }
 
         return null
     }
+
+    fun getCurrentInputScore() = state.currentInputScore.sum()
+
+    fun getCurrentInputScoreList() = state.currentInputScore
 
     fun onShowGameStatsClicked() {
         // TODO do something
@@ -263,7 +274,11 @@ internal class GameActiveX01ViewModel(
             it.player.id == state.currentPlayer?.id
         } ?: return false
 
-        return state.currentInputScore.addDecimal(key) <= currentPlayerScore.scoreLeft
+        return when (state.inputMode) {
+            InputMode.PerDart -> state.currentInputScore.sum() <= currentPlayerScore.scoreLeft
+            InputMode.PerTurn -> state.currentInputScore.sum()
+                .addDecimal(key) <= currentPlayerScore.scoreLeft
+        }
     }
 
     companion object {

@@ -15,13 +15,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.pointlessapps.dartify.R
+import com.pointlessapps.dartify.compose.game.active.x01.model.InputMode
 import com.pointlessapps.dartify.compose.game.active.x01.model.PlayerScore
 import com.pointlessapps.dartify.compose.game.active.x01.ui.dialogs.NumberOfDoublesDialog
 import com.pointlessapps.dartify.compose.game.active.x01.ui.dialogs.NumberOfThrowsAndDoublesDialog
 import com.pointlessapps.dartify.compose.game.active.x01.ui.dialogs.NumberOfThrowsDialog
 import com.pointlessapps.dartify.compose.game.active.x01.ui.dialogs.WinnerDialog
-import com.pointlessapps.dartify.compose.game.active.x01.ui.input.score.ThreeDartsInputKeyboard
-import com.pointlessapps.dartify.compose.game.active.x01.ui.input.score.ThreeDartsInputScore
+import com.pointlessapps.dartify.compose.game.active.x01.ui.input.dart.DartInputKeyboard
+import com.pointlessapps.dartify.compose.game.active.x01.ui.input.dart.DartInputScore
+import com.pointlessapps.dartify.compose.game.active.x01.ui.input.turn.TurnInputKeyboard
+import com.pointlessapps.dartify.compose.game.active.x01.ui.input.turn.TurnInputScore
 import com.pointlessapps.dartify.compose.game.model.Bot
 import com.pointlessapps.dartify.compose.game.model.GameMode
 import com.pointlessapps.dartify.compose.game.model.GameSettings
@@ -91,18 +94,29 @@ internal fun GameActiveX01Screen(
                 currentPlayer = viewModel.state.currentPlayer,
                 onScoreLeftRequested = viewModel::onScoreLeftRequested,
             )
-            ThreeDartsInputScore(
-                finishSuggestion = viewModel.getCurrentFinishSuggestion(),
-                currentInputScore = viewModel.state.currentInputScore,
-                onClearClicked = viewModel::onClearClicked,
-            )
-            ThreeDartsInputKeyboard(
-                onPossibleCheckoutRequested = viewModel::onPossibleCheckoutRequested,
-                onQuickScoreClicked = viewModel::onQuickScoreClicked,
-                onKeyClicked = viewModel::onKeyClicked,
-                onUndoClicked = viewModel::onUndoClicked,
-                onDoneClicked = viewModel::onDoneClicked,
-            )
+            if (viewModel.state.inputMode == InputMode.PerDart) {
+                DartInputScore(
+                    finishSuggestion = viewModel.getCurrentFinishSuggestion(),
+                    currentInputScore = viewModel.getCurrentInputScoreList(),
+                )
+                DartInputKeyboard(
+                    onKeyClicked = viewModel::onKeyClicked,
+                    onUndoClicked = viewModel::onUndoClicked,
+                )
+            } else {
+                TurnInputScore(
+                    finishSuggestion = viewModel.getCurrentFinishSuggestion(),
+                    currentInputScore = viewModel.getCurrentInputScore(),
+                    onClearClicked = viewModel::onClearClicked,
+                )
+                TurnInputKeyboard(
+                    onPossibleCheckoutRequested = viewModel::onPossibleCheckoutRequested,
+                    onQuickScoreClicked = viewModel::onQuickScoreClicked,
+                    onKeyClicked = viewModel::onKeyClicked,
+                    onUndoClicked = viewModel::onUndoClicked,
+                    onDoneClicked = viewModel::onDoneClicked,
+                )
+            }
         }
     }
 

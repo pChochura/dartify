@@ -1,4 +1,4 @@
-package com.pointlessapps.dartify.compose.game.active.x01.ui.input.score
+package com.pointlessapps.dartify.compose.game.active.x01.ui.input.turn
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -23,7 +23,7 @@ import com.pointlessapps.dartify.compose.ui.components.defaultComposeTextStyle
 import com.pointlessapps.dartify.compose.utils.scaledSp
 
 @Composable
-internal fun ThreeDartsInputScore(
+internal fun TurnInputScore(
     finishSuggestion: String?,
     currentInputScore: Int,
     onClearClicked: () -> Unit,
