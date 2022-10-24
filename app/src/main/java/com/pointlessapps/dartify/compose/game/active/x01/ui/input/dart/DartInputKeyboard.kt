@@ -47,6 +47,7 @@ private const val KEYBOARD_COLUMNS = 5
 internal fun ColumnScope.DartInputKeyboard(
     onKeyClicked: (Int) -> Unit,
     onUndoClicked: () -> Unit,
+    onDoneClicked: () -> Unit,
 ) {
     var keyModifier by remember { mutableStateOf<Int?>(null) }
 
@@ -74,9 +75,14 @@ internal fun ColumnScope.DartInputKeyboard(
             keyModifier = null
             onUndoClicked()
         },
+        onDoneClicked = {
+            keyModifier = null
+            onDoneClicked()
+        },
     )
 }
 
+@Suppress("MagicNumber")
 @Composable
 private fun ColumnScope.Keyboard(
     keyModifier: Int?,
@@ -189,6 +195,7 @@ private fun ColumnScope.BottomKeys(
     onKeyClicked: (Int) -> Unit,
     onKeyModifierClicked: (Int) -> Unit,
     onUndoClicked: () -> Unit,
+    onDoneClicked: () -> Unit,
 ) {
     ComposeExactGrid(
         rows = 2,
@@ -197,34 +204,35 @@ private fun ColumnScope.BottomKeys(
     ) { x, y ->
         when {
             x == 0 && y == 0 -> InputKey(
-                label = stringResource(id = R.string.miss).uppercase(),
-                onKeyClicked = { onKeyClicked(0) },
+                label = "${if (keyModifier == 2) 50 else 25}",
+                onKeyClicked = { onKeyClicked(if (keyModifier == 2) 50 else 25) },
                 hasSmallerFont = true,
             )
-            x == 1 && y == 0 -> InputKey(
-                label = "25",
-                onKeyClicked = { onKeyClicked(25) },
-                hasSmallerFont = true,
+            x == 1 && y == 0 -> ModifierKey(
+                label = stringResource(id = R.string.modifier_double).uppercase(),
+                selected = keyModifier == 2,
+                onKeyClicked = { onKeyModifierClicked(2) },
             )
-            x == 2 && y == 0 -> InputKey(
-                label = "50",
-                onKeyClicked = { onKeyClicked(50) },
-                hasSmallerFont = true,
+            x == 2 && y == 0 -> ModifierKey(
+                label = stringResource(id = R.string.modifier_triple).uppercase(),
+                selected = keyModifier == 3,
+                onKeyClicked = { onKeyModifierClicked(3) },
             )
             x == 0 && y == 1 -> InputIconKey(
                 icon = R.drawable.ic_undo,
                 label = stringResource(id = R.string.undo),
                 onKeyClicked = { onUndoClicked() },
             )
-            x == 1 && y == 1 -> ModifierKey(
-                label = stringResource(id = R.string.modifier_double).uppercase(),
-                selected = keyModifier == 2,
-                onKeyClicked = { onKeyModifierClicked(2) },
+            x == 1 && y == 1 -> InputKey(
+                label = stringResource(id = R.string.miss).uppercase(),
+                onKeyClicked = { onKeyClicked(0) },
+                hasSmallerFont = true,
             )
-            x == 2 && y == 1 -> ModifierKey(
-                label = stringResource(id = R.string.modifier_triple).uppercase(),
-                selected = keyModifier == 3,
-                onKeyClicked = { onKeyModifierClicked(3) },
+            x == 2 && y == 1 -> InputIconKey(
+                icon = R.drawable.ic_done,
+                label = stringResource(id = R.string.done),
+                onKeyClicked = onDoneClicked,
+                hasAccent = true,
             )
         }
     }

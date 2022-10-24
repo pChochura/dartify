@@ -1,6 +1,7 @@
 package com.pointlessapps.dartify.local.datasource.game.x01.turn
 
 import com.pointlessapps.dartify.datasource.game.x01.move.TurnDataSource
+import com.pointlessapps.dartify.datasource.game.x01.move.model.InputScore
 import com.pointlessapps.dartify.datasource.game.x01.move.model.PlayerScore
 import com.pointlessapps.dartify.errors.game.x01.move.NotExistentPlayerException
 
@@ -20,7 +21,7 @@ internal class LocalTurnDataSource : TurnDataSource {
 
     override fun addInput(
         playerId: Long,
-        score: Int,
+        score: InputScore,
         numberOfThrows: Int,
         numberOfThrowsOnDouble: Int,
     ) {
@@ -82,4 +83,6 @@ internal class LocalTurnDataSource : TurnDataSource {
             playerId = id,
         )
     }
+
+    override fun geLastInputScore(playerId: Long) = getScoreHandler(playerId).lastInputScore
 }

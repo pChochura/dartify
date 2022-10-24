@@ -102,6 +102,7 @@ internal fun GameActiveX01Screen(
                 DartInputKeyboard(
                     onKeyClicked = viewModel::onKeyClicked,
                     onUndoClicked = viewModel::onUndoClicked,
+                    onDoneClicked = viewModel::onDoneClicked,
                 )
             } else {
                 TurnInputScore(

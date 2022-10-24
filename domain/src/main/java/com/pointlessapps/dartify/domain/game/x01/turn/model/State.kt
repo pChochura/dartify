@@ -14,7 +14,7 @@ data class GameState(
 sealed interface State
 
 data class CurrentState(
-    val score: Int,
+    val score: InputScore?,
     val leg: Int,
     val set: Int,
     val player: Player,

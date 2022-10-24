@@ -1,5 +1,6 @@
 package com.pointlessapps.dartify.datasource.game.x01.move
 
+import com.pointlessapps.dartify.datasource.game.x01.move.model.InputScore
 import com.pointlessapps.dartify.datasource.game.x01.move.model.PlayerScore
 
 interface TurnDataSource {
@@ -13,7 +14,7 @@ interface TurnDataSource {
      */
     fun addInput(
         playerId: Long,
-        score: Int,
+        score: InputScore,
         numberOfThrows: Int,
         numberOfThrowsOnDouble: Int,
     )
@@ -45,7 +46,7 @@ interface TurnDataSource {
      * inputs, it removes them from the history, marks them as the current ones and remove the
      * the last throw, returning the score back
      */
-    fun popInput(playerId: Long): Int
+    fun popInput(playerId: Long): InputScore?
 
     /**
      * Saves the current leg's inputs for all the players to the history
@@ -88,4 +89,9 @@ interface TurnDataSource {
      * Returns the scores for all of the players
      */
     fun getPlayerScores(): List<PlayerScore>
+
+    /**
+     * Returns the type of the last score input for the player with the [playerId]
+     */
+    fun geLastInputScore(playerId: Long): InputScore?
 }

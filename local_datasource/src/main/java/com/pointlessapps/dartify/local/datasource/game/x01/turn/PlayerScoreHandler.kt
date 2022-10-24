@@ -1,5 +1,6 @@
 package com.pointlessapps.dartify.local.datasource.game.x01.turn
 
+import com.pointlessapps.dartify.datasource.game.x01.move.model.InputScore
 import com.pointlessapps.dartify.local.datasource.game.x01.turn.model.Input
 import com.pointlessapps.dartify.local.datasource.game.x01.turn.model.InputHistoryEvent
 
@@ -33,12 +34,12 @@ internal class PlayerScoreHandler(private val startingScore: Int) {
         } ?: 0f
 
     val max: Int
-        get() = allInputs.maxOfOrNull(Input::score) ?: 0
+        get() = allInputs.maxOfOrNull { it.score.score() } ?: 0
 
     val average: Float
         get() = allInputs.takeIf { it.isNotEmpty() }?.let {
             it.fold(0 to 0) { (scores, throws), input ->
-                scores + input.score to throws + input.numberOfThrows
+                scores + input.score.score() to throws + input.numberOfThrows
             }.let { (scores, throws) ->
                 scores * 3f / throws
             }
@@ -48,10 +49,13 @@ internal class PlayerScoreHandler(private val startingScore: Int) {
         get() = inputs.sumOf(Input::numberOfThrows)
 
     val scoreLeft: Int
-        get() = startingScore - inputs.sumOf(Input::score)
+        get() = startingScore - inputs.sumOf { it.score.score() }
+
+    val lastInputScore: InputScore?
+        get() = inputs.lastOrNull()?.score
 
     val lastScore: Int?
-        get() = inputs.lastOrNull()?.score
+        get() = lastInputScore?.score()
 
     fun hasNoInputs() = allInputs.isEmpty()
 
@@ -60,14 +64,14 @@ internal class PlayerScoreHandler(private val startingScore: Int) {
                 it is InputHistoryEvent.SetFinished && it.won
     } ?: false
 
-    fun addInput(score: Int, numberOfThrows: Int, numberOfThrowsOnDouble: Int) {
+    fun addInput(score: InputScore, numberOfThrows: Int, numberOfThrowsOnDouble: Int) {
         inputs.add(Input(score, numberOfThrows, numberOfThrowsOnDouble))
     }
 
-    fun popInput(): Int {
+    fun popInput(): InputScore? {
         val input = inputs.removeLastOrNull()?.score
         if (input == null) {
-            val previousInputs = previousInputs.removeLastOrNull() ?: return 0
+            val previousInputs = previousInputs.removeLastOrNull() ?: return null
             inputs.addAll(
                 when (previousInputs) {
                     is InputHistoryEvent.SetFinished ->
@@ -76,7 +80,7 @@ internal class PlayerScoreHandler(private val startingScore: Int) {
                 },
             )
 
-            return inputs.removeLastOrNull()?.score ?: 0
+            return inputs.removeLastOrNull()?.score
         }
 
         return input

@@ -4,6 +4,8 @@ import com.pointlessapps.dartify.datasource.game.x01.move.TurnDataSource
 import com.pointlessapps.dartify.domain.game.x01.DEFAULT_NUMBER_OF_THROWS
 import com.pointlessapps.dartify.domain.game.x01.model.Player
 import com.pointlessapps.dartify.domain.game.x01.score.model.GameMode
+import com.pointlessapps.dartify.domain.game.x01.turn.mappers.fromInputScore
+import com.pointlessapps.dartify.domain.game.x01.turn.mappers.toInputScore
 import com.pointlessapps.dartify.domain.game.x01.turn.mappers.toPlayerScore
 import com.pointlessapps.dartify.domain.game.x01.turn.model.*
 import com.pointlessapps.dartify.errors.game.x01.move.EmptyPlayersListException
@@ -30,7 +32,7 @@ interface TurnRepository {
     /**
      * Performs an insertion of the score into the current player's account
      */
-    fun addInput(score: Int, numberOfThrows: Int, numberOfThrowsOnDouble: Int)
+    fun addInput(score: InputScore, numberOfThrows: Int, numberOfThrowsOnDouble: Int)
 
     /**
      * Reverts a turn by removing the previous input and sets the current player to the previous one
@@ -114,7 +116,7 @@ internal class TurnRepositoryImpl(
         turnDataSource.setup(startingScore, players.map(Player::id))
 
         return CurrentState(
-            score = 0,
+            score = null,
             set = 1,
             leg = 1,
             player = players[startingPlayerIndex],
@@ -125,13 +127,13 @@ internal class TurnRepositoryImpl(
     }
 
     override fun addInput(
-        score: Int,
+        score: InputScore,
         numberOfThrows: Int,
         numberOfThrowsOnDouble: Int,
     ) {
         turnDataSource.addInput(
             currentPlayer.id,
-            score,
+            score.fromInputScore(),
             numberOfThrows,
             numberOfThrowsOnDouble,
         )
@@ -143,7 +145,7 @@ internal class TurnRepositoryImpl(
 
         if (turnDataSource.hasNoInputs(previousPlayer.id)) {
             return CurrentState(
-                score = 0,
+                score = null,
                 set = turnDataSource.getWonSets() + 1,
                 leg = turnDataSource.getWonLegs() + 1,
                 player = currentPlayer,
@@ -172,7 +174,7 @@ internal class TurnRepositoryImpl(
         currentPlayer = previousPlayer
 
         return CurrentState(
-            score = previousPlayerInputScore,
+            score = previousPlayerInputScore?.toInputScore(),
             set = turnDataSource.getWonSets() + 1,
             leg = turnDataSource.getWonLegs() + 1,
             player = previousPlayer,
@@ -189,7 +191,7 @@ internal class TurnRepositoryImpl(
         currentPlayer = nextPlayer
 
         return CurrentState(
-            score = 0,
+            score = null,
             set = turnDataSource.getWonSets() + 1,
             leg = turnDataSource.getWonLegs() + 1,
             player = nextPlayer,
@@ -245,9 +247,14 @@ internal class TurnRepositoryImpl(
             .resolutionPredicate(numberOfSets)
             .invoke(turnDataSource.getWonSets(currentPlayerId) + 1)
 
+        val currentPlayerInputScore =
+            turnDataSource.geLastInputScore(currentPlayerId)?.toInputScore()
+
         turnDataSource.addInput(
             currentPlayerId,
-            turnDataSource.getScoreLeft(currentPlayerId),
+            turnDataSource.getScoreLeft(currentPlayerId)
+                .boxWithInputScore(currentPlayerInputScore)
+                .fromInputScore(),
             numberOfThrows,
             numberOfThrowsOnDouble,
         )
@@ -274,7 +281,7 @@ internal class TurnRepositoryImpl(
         currentPlayer = nextPlayer
 
         return CurrentState(
-            score = 0,
+            score = null,
             set = turnDataSource.getWonSets() + 1,
             leg = turnDataSource.getWonLegs() + 1,
             player = nextPlayer,
@@ -286,4 +293,9 @@ internal class TurnRepositoryImpl(
 
     private fun Int.nextPlayerIndex() = (this + 1) % players.size
     private fun Int.prevPlayerIndex() = (this + players.size - 1) % players.size
+
+    private fun Int.boxWithInputScore(inputScore: InputScore?) = when (inputScore) {
+        is InputScore.Dart -> InputScore.Dart(listOf(this))
+        else -> InputScore.Turn(this)
+    }
 }
