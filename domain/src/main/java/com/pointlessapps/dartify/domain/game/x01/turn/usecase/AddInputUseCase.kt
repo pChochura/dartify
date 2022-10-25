@@ -2,7 +2,7 @@ package com.pointlessapps.dartify.domain.game.x01.turn.usecase
 
 import com.pointlessapps.dartify.domain.game.x01.DEFAULT_NUMBER_OF_THROWS
 import com.pointlessapps.dartify.domain.game.x01.turn.TurnRepository
-import com.pointlessapps.dartify.domain.game.x01.turn.model.InputScore
+import com.pointlessapps.dartify.domain.game.x01.model.InputScore
 
 class AddInputUseCase(
     private val turnRepository: TurnRepository,

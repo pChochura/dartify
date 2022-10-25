@@ -1,6 +1,6 @@
 package com.pointlessapps.dartify.compose.game.mappers
 
-import com.pointlessapps.dartify.domain.game.x01.turn.model.InputScore
+import com.pointlessapps.dartify.domain.game.x01.model.InputScore
 import com.pointlessapps.dartify.compose.game.active.x01.model.InputScore as ViewInputScore
 
 internal fun ViewInputScore.toInputScore() = when (this) {

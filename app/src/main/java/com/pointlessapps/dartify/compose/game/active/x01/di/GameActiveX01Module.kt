@@ -7,6 +7,7 @@ import org.koin.dsl.module
 internal val gameActiveX01Module = module {
     viewModel {
         GameActiveX01ViewModel(
+            validateSingleThrowUseCase = get(),
             validateScoreUseCase = get(),
             isCheckoutPossibleUseCase = get(),
             nextTurnUseCase = get(),

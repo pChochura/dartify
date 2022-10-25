@@ -1,10 +1,11 @@
 package com.pointlessapps.dartify.domain.game.x01.turn.usecase
 
 import com.pointlessapps.dartify.domain.game.x01.DEFAULT_NUMBER_OF_THROWS
+import com.pointlessapps.dartify.domain.game.x01.model.InputScore
 import com.pointlessapps.dartify.domain.game.x01.score.ScoreRepository
 import com.pointlessapps.dartify.domain.game.x01.turn.TurnRepository
 import com.pointlessapps.dartify.domain.game.x01.turn.model.DoneTurnEvent
-import com.pointlessapps.dartify.domain.game.x01.turn.model.InputScore
+import kotlin.math.min
 
 class DoneTurnUseCase(
     private val turnRepository: TurnRepository,
@@ -53,10 +54,6 @@ class DoneTurnUseCase(
             numberOfThrows = inputScore.scores.size,
             outMode = gameState.player.outMode,
         )
-        val minNumberOfThrows = scoreRepository.calculateMinNumberOfThrows(
-            score = currentPlayerScore.scoreLeft,
-            outMode = gameState.player.outMode,
-        )
         val maxNumberOfDoubles = scoreRepository.calculateMaxNumberOfDoubles(
             score = currentPlayerScore.scoreLeft,
         )
@@ -64,8 +61,17 @@ class DoneTurnUseCase(
         return turnRepository.doneTurn(
             score = inputScore.scores.sum(),
             shouldAskForNumberOfDoubles = shouldAskForNumberOfDoubles,
-            minNumberOfThrows = minNumberOfThrows,
-            maxNumberOfDoubles = maxNumberOfDoubles,
+            minNumberOfThrows = inputScore.scores.size,
+            maxNumberOfDoubles = maxNumberOfDoubles.mapValues { (key, value) ->
+                if (key == inputScore.scores.size) {
+                    return@mapValues min(
+                        value,
+                        inputScore.scores.reversed().takeWhile { it % 2 == 0 }.size,
+                    )
+                }
+
+                return@mapValues value
+            },
         )
     }
 }

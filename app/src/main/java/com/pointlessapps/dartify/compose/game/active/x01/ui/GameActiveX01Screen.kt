@@ -5,7 +5,9 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -78,8 +80,10 @@ internal fun GameActiveX01Screen(
     ComposeScaffoldLayout(
         topBar = {
             Title(
+                inputMode = viewModel.state.inputMode,
                 currentSet = viewModel.state.currentSet,
                 currentLeg = viewModel.state.currentLeg,
+                onChangeInputModeClicked = viewModel::onChangeInputModeClicked,
             )
         },
     ) { innerPadding ->
@@ -97,7 +101,7 @@ internal fun GameActiveX01Screen(
             if (viewModel.state.inputMode == InputMode.PerDart) {
                 DartInputScore(
                     finishSuggestion = viewModel.getCurrentFinishSuggestion(),
-                    currentInputScore = viewModel.getCurrentInputScoreList(),
+                    currentInputScore = viewModel.state.currentInputScore,
                 )
                 DartInputKeyboard(
                     onKeyClicked = viewModel::onKeyClicked,
@@ -107,13 +111,13 @@ internal fun GameActiveX01Screen(
             } else {
                 TurnInputScore(
                     finishSuggestion = viewModel.getCurrentFinishSuggestion(),
-                    currentInputScore = viewModel.getCurrentInputScore(),
+                    currentInputScore = viewModel.state.currentInputScore,
                     onClearClicked = viewModel::onClearClicked,
                 )
                 TurnInputKeyboard(
                     onPossibleCheckoutRequested = viewModel::onPossibleCheckoutRequested,
                     onQuickScoreClicked = viewModel::onQuickScoreClicked,
-                    onKeyClicked = viewModel::onKeyClicked,
+                    onKeyClicked = { viewModel.onKeyClicked(it) },
                     onUndoClicked = viewModel::onUndoClicked,
                     onDoneClicked = viewModel::onDoneClicked,
                 )
@@ -177,8 +181,10 @@ internal fun GameActiveX01Screen(
 
 @Composable
 private fun Title(
+    inputMode: InputMode,
     currentSet: Int,
     currentLeg: Int,
+    onChangeInputModeClicked: () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -189,10 +195,11 @@ private fun Title(
                 horizontal = dimensionResource(id = R.dimen.margin_medium),
                 vertical = dimensionResource(id = R.dimen.margin_tiny),
             ),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.margin_small)),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         ComposeText(
+            modifier = Modifier.weight(1f),
             text = stringResource(id = R.string.set_leg, currentSet, currentLeg),
             textStyle = defaultComposeTextStyle().copy(
                 textColor = MaterialTheme.colors.onBackground,
@@ -204,6 +211,19 @@ private fun Title(
                 },
             ),
         )
+        IconButton(onClick = onChangeInputModeClicked) {
+            Icon(
+                modifier = Modifier.size(dimensionResource(id = R.dimen.button_icon_size)),
+                painter = painterResource(
+                    id = when (inputMode) {
+                        InputMode.PerDart -> R.drawable.ic_per_turn_score
+                        InputMode.PerTurn -> R.drawable.ic_per_dart_score
+                    },
+                ),
+                tint = MaterialTheme.colors.onSecondary,
+                contentDescription = null,
+            )
+        }
         IconButton(onClick = { /*TODO*/ }) {
             Icon(
                 modifier = Modifier.size(dimensionResource(id = R.dimen.button_icon_size)),
@@ -263,7 +283,11 @@ private fun Scores(
             playersScores.forEach {
                 ComposeText(
                     modifier = Modifier.weight(1f),
-                    text = stringResource(id = R.string.sets_legs, it.numberOfWonSets, it.numberOfWonLegs),
+                    text = stringResource(
+                        id = R.string.sets_legs,
+                        it.numberOfWonSets,
+                        it.numberOfWonLegs,
+                    ),
                     textStyle = defaultComposeTextStyle().copy(
                         textColor = MaterialTheme.colors.onPrimary,
                         typography = MaterialTheme.typography.subtitle1.copy(

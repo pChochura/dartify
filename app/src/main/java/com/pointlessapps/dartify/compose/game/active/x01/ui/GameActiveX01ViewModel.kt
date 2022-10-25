@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pointlessapps.dartify.compose.game.active.x01.model.InputMode
 import com.pointlessapps.dartify.compose.game.active.x01.model.InputScore
+import com.pointlessapps.dartify.compose.game.active.x01.model.InputScore.Dart.Companion.MAX_NUMBER_OF_THROWS
 import com.pointlessapps.dartify.compose.game.active.x01.model.PlayerScore
 import com.pointlessapps.dartify.compose.game.active.x01.model.score
 import com.pointlessapps.dartify.compose.game.mappers.*
@@ -16,6 +17,7 @@ import com.pointlessapps.dartify.compose.ui.theme.Route
 import com.pointlessapps.dartify.compose.utils.addDecimal
 import com.pointlessapps.dartify.domain.game.x01.score.usecase.IsCheckoutPossibleUseCase
 import com.pointlessapps.dartify.domain.game.x01.score.usecase.ValidateScoreUseCase
+import com.pointlessapps.dartify.domain.game.x01.score.usecase.ValidateSingleThrowUseCase
 import com.pointlessapps.dartify.domain.game.x01.turn.model.CurrentState
 import com.pointlessapps.dartify.domain.game.x01.turn.model.DoneTurnEvent
 import com.pointlessapps.dartify.domain.game.x01.turn.model.WinState
@@ -53,6 +55,7 @@ internal data class GameActiveX01State(
 )
 
 internal class GameActiveX01ViewModel(
+    private val validateSingleThrowUseCase: ValidateSingleThrowUseCase,
     private val validateScoreUseCase: ValidateScoreUseCase,
     private val isCheckoutPossibleUseCase: IsCheckoutPossibleUseCase,
     private val nextTurnUseCase: NextTurnUseCase,
@@ -132,14 +135,14 @@ internal class GameActiveX01ViewModel(
         onDoneClicked()
     }
 
-    fun onKeyClicked(key: Int) {
-        if (!validateKey(key)) {
+    fun onKeyClicked(key: Int, multiplier: Int = 1) {
+        if (!validateKey(key, multiplier)) {
             return
         }
 
         if (
             state.inputMode == InputMode.PerDart &&
-            (state.currentInputScore as? InputScore.Dart)?.scores?.size == 3
+            (state.currentInputScore as? InputScore.Dart)?.scores?.size == MAX_NUMBER_OF_THROWS
         ) {
             // TODO show an error snackbar
             return
@@ -147,7 +150,9 @@ internal class GameActiveX01ViewModel(
 
         state = state.copy(
             currentInputScore = when (state.inputMode) {
-                InputMode.PerTurn -> InputScore.Turn(state.currentInputScore.score() + key)
+                InputMode.PerTurn -> InputScore.Turn(
+                    state.currentInputScore.score().addDecimal(key),
+                )
                 InputMode.PerDart -> InputScore.Dart(
                     when (val score = state.currentInputScore) {
                         is InputScore.Dart -> score.scores
@@ -160,11 +165,7 @@ internal class GameActiveX01ViewModel(
     }
 
     fun onUndoClicked() {
-        if (state.currentInputScore.score() != 0) {
-            state = state.copy(
-                currentInputScore = null,
-            )
-
+        if (invokeSingleUndoAction()) {
             return
         }
 
@@ -178,8 +179,40 @@ internal class GameActiveX01ViewModel(
         )
     }
 
+    private fun invokeSingleUndoAction(): Boolean {
+        when (state.inputMode) {
+            InputMode.PerDart -> {
+                val score = state.currentInputScore
+                if (score is InputScore.Dart && score.scores.isNotEmpty()) {
+                    state = state.copy(
+                        currentInputScore = InputScore.Dart(score.scores.dropLast(1)),
+                    )
+
+                    return true
+                } else if (score is InputScore.Turn && score.score != 0) {
+                    state = state.copy(
+                        currentInputScore = null,
+                    )
+
+                    return true
+                }
+            }
+            InputMode.PerTurn -> {
+                if (state.currentInputScore.score() != 0) {
+                    state = state.copy(
+                        currentInputScore = null,
+                    )
+
+                    return true
+                }
+            }
+        }
+
+        return false
+    }
+
     fun onDoneClicked() {
-        if (!validateScoreUseCase(state.currentInputScore.score())) {
+        if (!validateScoreUseCase(state.currentInputScore?.toInputScore())) {
             // TODO show error snackbar
             return
         }
@@ -262,6 +295,15 @@ internal class GameActiveX01ViewModel(
         }
     }
 
+    fun onChangeInputModeClicked() {
+        state = state.copy(
+            inputMode = when (state.inputMode) {
+                InputMode.PerDart -> InputMode.PerTurn
+                InputMode.PerTurn -> InputMode.PerDart
+            },
+        )
+    }
+
     fun getCurrentFinishSuggestion(): String? {
         val playerScore = state.playersScores.find {
             it.player.id == state.currentPlayer?.id
@@ -275,11 +317,6 @@ internal class GameActiveX01ViewModel(
         return null
     }
 
-    fun getCurrentInputScore() = state.currentInputScore.score()
-
-    fun getCurrentInputScoreList() =
-        (state.currentInputScore as? InputScore.Dart)?.scores ?: emptyList()
-
     fun onShowGameStatsClicked() {
         // TODO do something
     }
@@ -290,13 +327,19 @@ internal class GameActiveX01ViewModel(
         }
     }
 
-    private fun validateKey(key: Int): Boolean {
+    private fun validateKey(key: Int, multiplier: Int): Boolean {
         val currentPlayerScore = state.playersScores.find {
             it.player.id == state.currentPlayer?.id
         } ?: return false
 
         return when (state.inputMode) {
-            InputMode.PerDart -> state.currentInputScore.score() + key <= currentPlayerScore.scoreLeft
+            InputMode.PerDart -> {
+                validateSingleThrowUseCase(
+                    key,
+                    multiplier,
+                    currentPlayerScore.scoreLeft - state.currentInputScore.score(),
+                ) && state.currentInputScore.score() + key <= currentPlayerScore.scoreLeft
+            }
             InputMode.PerTurn -> state.currentInputScore.score()
                 .addDecimal(key) <= currentPlayerScore.scoreLeft
         }

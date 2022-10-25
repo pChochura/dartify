@@ -13,6 +13,12 @@ internal val scoreModule = module {
     }
 
     factory {
+        ValidateSingleThrowUseCase(
+            scoreRepository = get(),
+            turnRepository = get(),
+        )
+    }
+    factory {
         ValidateScoreUseCase(
             scoreRepository = get(),
             turnRepository = get(),

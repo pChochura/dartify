@@ -45,7 +45,7 @@ private const val KEYBOARD_COLUMNS = 5
 
 @Composable
 internal fun ColumnScope.DartInputKeyboard(
-    onKeyClicked: (Int) -> Unit,
+    onKeyClicked: (Int, Int) -> Unit,
     onUndoClicked: () -> Unit,
     onDoneClicked: () -> Unit,
 ) {
@@ -53,9 +53,9 @@ internal fun ColumnScope.DartInputKeyboard(
 
     Keyboard(
         keyModifier = keyModifier,
-        onKeyClicked = {
+        onKeyClicked = { key, multiplier ->
+            onKeyClicked(key, multiplier ?: keyModifier ?: 1)
             keyModifier = null
-            onKeyClicked(it)
         },
         onKeyModifierResetRequested = {
             keyModifier = null
@@ -65,8 +65,8 @@ internal fun ColumnScope.DartInputKeyboard(
     BottomKeys(
         keyModifier = keyModifier,
         onKeyClicked = {
+            onKeyClicked(it, keyModifier ?: 1)
             keyModifier = null
-            onKeyClicked(it)
         },
         onKeyModifierClicked = {
             keyModifier = if (keyModifier == it) null else it
@@ -86,7 +86,7 @@ internal fun ColumnScope.DartInputKeyboard(
 @Composable
 private fun ColumnScope.Keyboard(
     keyModifier: Int?,
-    onKeyClicked: (Int) -> Unit,
+    onKeyClicked: (Int, Int?) -> Unit,
     onKeyModifierResetRequested: () -> Unit,
 ) {
     var showPopup by remember { mutableStateOf<Popup?>(null) }
@@ -139,7 +139,10 @@ private fun ColumnScope.Keyboard(
                     onEnd = {
                         showPopup?.let {
                             if (activePopupSelection.show) {
-                                onKeyClicked(it.value * activePopupSelection.selection.multiplier)
+                                onKeyClicked(
+                                    it.value * activePopupSelection.selection.multiplier,
+                                    activePopupSelection.selection.multiplier,
+                                )
                             }
                         }
                         resetPopup()
@@ -165,7 +168,7 @@ private fun ColumnScope.Keyboard(
                     },
                     onKeyClicked = {
                         if (showPopup == null) {
-                            onKeyClicked(value * (keyModifier ?: 1))
+                            onKeyClicked(value * (keyModifier ?: 1), null)
                         }
                     },
                     hasSmallerFont = true,
@@ -178,8 +181,8 @@ private fun ColumnScope.Keyboard(
                 value = it.value,
                 active = activePopupSelection,
                 position = it.popupOffset,
-                onClicked = { value ->
-                    onKeyClicked(value)
+                onClicked = { value, multiplier ->
+                    onKeyClicked(value, multiplier)
                     resetPopup()
                 },
                 onDismissRequest = { resetPopup() },
@@ -283,7 +286,7 @@ private fun LongClickPopup(
     value: Int,
     active: PopupSelection,
     position: Offset,
-    onClicked: (Int) -> Unit,
+    onClicked: (Int, Int) -> Unit,
     onDismissRequest: () -> Unit,
 ) {
     val alignmentBias by animateFloatAsState(targetValue = active.selection.alignmentBias)
@@ -327,8 +330,8 @@ private fun LongClickPopup(
                         .clip(MaterialTheme.shapes.small)
                         .clickable(
                             role = Role.Button,
-                            onClickLabel = "${value.triple()}",
-                            onClick = { onClicked(value.double()) },
+                            onClickLabel = "${value.double()}",
+                            onClick = { onClicked(value.double(), 2) },
                         )
                         .padding(dimensionResource(id = R.dimen.margin_small)),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -360,7 +363,7 @@ private fun LongClickPopup(
                         .clickable(
                             role = Role.Button,
                             onClickLabel = "${value.triple()}",
-                            onClick = { onClicked(value.triple()) },
+                            onClick = { onClicked(value.triple(), 3) },
                         )
                         .padding(dimensionResource(id = R.dimen.margin_small)),
                     horizontalAlignment = Alignment.CenterHorizontally,

@@ -2,13 +2,17 @@ package com.pointlessapps.dartify.compose.game.active.x01.ui.input.turn
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
@@ -18,6 +22,8 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import com.pointlessapps.dartify.R
+import com.pointlessapps.dartify.compose.game.active.x01.model.InputScore
+import com.pointlessapps.dartify.compose.game.active.x01.model.score
 import com.pointlessapps.dartify.compose.ui.components.ComposeText
 import com.pointlessapps.dartify.compose.ui.components.defaultComposeTextStyle
 import com.pointlessapps.dartify.compose.utils.scaledSp
@@ -25,13 +31,14 @@ import com.pointlessapps.dartify.compose.utils.scaledSp
 @Composable
 internal fun TurnInputScore(
     finishSuggestion: String?,
-    currentInputScore: Int,
+    currentInputScore: InputScore?,
     onClearClicked: () -> Unit,
 ) {
-    val suggestionTextFontSize by animateFloatAsState(if (currentInputScore == 0) 40f else 16f)
-    val suggestionTextAlignment by animateFloatAsState(if (currentInputScore == 0) 0f else -1f)
+    val score = remember(currentInputScore) { currentInputScore.score() }
+    val suggestionTextFontSize by animateFloatAsState(if (score == 0) 40f else 16f)
+    val suggestionTextAlignment by animateFloatAsState(if (score == 0) 0f else -1f)
     val currentInputScoreOpacity by animateFloatAsState(
-        if (finishSuggestion == null || currentInputScore != 0) {
+        if (finishSuggestion == null || score != 0) {
             1f
         } else {
             0f
@@ -64,7 +71,7 @@ internal fun TurnInputScore(
             modifier = Modifier
                 .align(Alignment.Center)
                 .alpha(currentInputScoreOpacity),
-            text = currentInputScore.toString(),
+            text = "$score",
             textStyle = defaultComposeTextStyle().copy(
                 textColor = MaterialTheme.colors.onSecondary,
                 typography = MaterialTheme.typography.h1.copy(
@@ -85,7 +92,7 @@ internal fun TurnInputScore(
             shape = CircleShape,
             colors = ButtonDefaults.buttonColors(backgroundColor = colorResource(id = R.color.red)),
             onClick = onClearClicked,
-            enabled = currentInputScore != 0,
+            enabled = score != 0,
         ) {
             ComposeText(
                 text = stringResource(id = R.string.clear),
