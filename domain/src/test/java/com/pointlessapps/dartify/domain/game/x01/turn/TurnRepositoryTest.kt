@@ -1,15 +1,18 @@
 package com.pointlessapps.dartify.domain.game.x01.turn
 
 import com.pointlessapps.dartify.datasource.game.x01.move.TurnDataSource
+import com.pointlessapps.dartify.datasource.game.x01.move.model.InputScore
 import com.pointlessapps.dartify.datasource.game.x01.move.model.PlayerScore
 import com.pointlessapps.dartify.domain.game.x01.DEFAULT_NUMBER_OF_THROWS
 import com.pointlessapps.dartify.domain.game.x01.model.Player
 import com.pointlessapps.dartify.domain.game.x01.score.model.GameMode
+import com.pointlessapps.dartify.domain.game.x01.turn.mappers.toInputScore
 import com.pointlessapps.dartify.domain.game.x01.turn.model.CurrentState
 import com.pointlessapps.dartify.domain.game.x01.turn.model.DoneTurnEvent
 import com.pointlessapps.dartify.domain.game.x01.turn.model.MatchResolutionStrategy
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.ints.shouldBeExactly
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beInstanceOf
@@ -53,7 +56,7 @@ internal class TurnRepositoryTest : AnnotationSpec() {
         every { dataSource.getPlayerScores() } returns emptyList()
         val currentState = setupRepository(players, startingScore, inMode)
 
-        currentState.score shouldBeExactly 0
+        currentState.score should beNull()
         currentState.set shouldBeExactly 1
         currentState.leg shouldBeExactly 1
         currentState.player shouldBeSameInstanceAs players.first()
@@ -67,7 +70,7 @@ internal class TurnRepositoryTest : AnnotationSpec() {
             Player(name = "player 1", outMode = GameMode.Double, id = 1L),
             Player(name = "player 2", outMode = GameMode.Double, id = 2L),
         )
-        val score = 25
+        val score = InputScore.Turn(25)
         val numberOfThrows = 3
         val numberOfThrowsOnDouble = 1
         every { dataSource.getPlayerScores() } returns emptyList()
@@ -77,7 +80,7 @@ internal class TurnRepositoryTest : AnnotationSpec() {
             dataSource.addInput(players.first().id, score, numberOfThrows, numberOfThrowsOnDouble)
         } just Runs
         repository.addInput(
-            score = score,
+            score = score.toInputScore(),
             numberOfThrows = numberOfThrows,
             numberOfThrowsOnDouble = numberOfThrowsOnDouble,
         )
@@ -97,14 +100,16 @@ internal class TurnRepositoryTest : AnnotationSpec() {
         every { dataSource.getPlayerScores() } returns emptyList()
         setupRepository(players, 501, GameMode.Straight)
 
+        val inputScore = InputScore.Turn(100)
+
         every { dataSource.hasNoInputs(any()) } returns false
         every { dataSource.hasNoInputsInThisLeg(any()) } returns false
-        every { dataSource.popInput(any()) } returns 100
+        every { dataSource.popInput(any()) } returns inputScore
         every { dataSource.getWonSets() } returns 0
         every { dataSource.getWonLegs() } returns 0
         val currentState = repository.undoTurn()
 
-        currentState.score shouldBeExactly 100
+        currentState.score shouldBe inputScore.toInputScore()
         currentState.set shouldBeExactly 1
         currentState.leg shouldBeExactly 1
         currentState.player shouldBeSameInstanceAs previousPlayer
@@ -133,7 +138,7 @@ internal class TurnRepositoryTest : AnnotationSpec() {
         every { dataSource.getPlayerScores() } returns emptyList()
         val currentState = repository.undoTurn()
 
-        currentState.score shouldBeExactly 0
+        currentState.score should beNull()
         currentState.set shouldBeExactly 1
         currentState.leg shouldBeExactly 1
         currentState.player shouldBeSameInstanceAs currentPlayer
@@ -154,16 +159,18 @@ internal class TurnRepositoryTest : AnnotationSpec() {
         every { dataSource.getPlayerScores() } returns emptyList()
         setupRepository(players, 501, GameMode.Straight)
 
+        val inputScore = InputScore.Turn(100)
+
         every { dataSource.hasNoInputs(any()) } returns false
         every { dataSource.hasNoInputsInThisLeg(previousPlayer.id) } returns true
         every { dataSource.hasWonPreviousLeg(currentPlayer.id) } returns true
         every { dataSource.revertLeg(any()) } just Runs
-        every { dataSource.popInput(currentPlayer.id) } returns 100
+        every { dataSource.popInput(currentPlayer.id) } returns inputScore
         every { dataSource.getWonSets() } returns 0
         every { dataSource.getWonLegs() } returns 0
         val currentState = repository.undoTurn()
 
-        currentState.score shouldBeExactly 100
+        currentState.score shouldBe inputScore.toInputScore()
         currentState.set shouldBeExactly 1
         currentState.leg shouldBeExactly 1
         currentState.player shouldBeSameInstanceAs currentPlayer
@@ -191,16 +198,18 @@ internal class TurnRepositoryTest : AnnotationSpec() {
         every { dataSource.getPlayerScores() } returns emptyList()
         setupRepository(players, 501, GameMode.Straight)
 
+        val inputScore = InputScore.Turn(100)
+
         every { dataSource.hasNoInputs(any()) } returns false
         every { dataSource.hasNoInputsInThisLeg(previousPlayer.id) } returns true
         every { dataSource.hasWonPreviousLeg(currentPlayer.id) } returns false
         every { dataSource.revertLeg(any()) } just Runs
-        every { dataSource.popInput(previousPlayer.id) } returns 100
+        every { dataSource.popInput(previousPlayer.id) } returns inputScore
         every { dataSource.getWonSets() } returns 0
         every { dataSource.getWonLegs() } returns 0
         val currentState = repository.undoTurn()
 
-        currentState.score shouldBeExactly 100
+        currentState.score shouldBe inputScore.toInputScore()
         currentState.set shouldBeExactly 1
         currentState.leg shouldBeExactly 1
         currentState.player shouldBeSameInstanceAs previousPlayer
@@ -231,7 +240,7 @@ internal class TurnRepositoryTest : AnnotationSpec() {
         every { dataSource.getWonLegs() } returns 0
         val currentState = repository.nextTurn()
 
-        currentState.score shouldBeExactly 0
+        currentState.score should beNull()
         currentState.set shouldBeExactly 1
         currentState.leg shouldBeExactly 1
         currentState.player shouldBeSameInstanceAs nextPlayer
