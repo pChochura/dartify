@@ -31,17 +31,17 @@ class ValidateScoreUseCase(
     }
 
     operator fun invoke(
-        inputScore: InputScore?,
+        inputScore: InputScore,
         numberOfThrows: Int = DEFAULT_NUMBER_OF_THROWS,
     ): Boolean {
-        val score = inputScore?.score() ?: 0
+        val score = inputScore.score()
         val gameState = turnRepository.getGameState()
         val currentPlayer = gameState.player
         val scoreLeft = gameState.playerScores.find {
             it.player.id == currentPlayer.id
         }?.scoreLeft ?: return false
 
-        val singleThrowsValid = inputScore is InputScore.Dart &&
+        val singleThrowsValid = inputScore !is InputScore.Dart ||
                 scoreRepository.validateSingleThrows(
                     inputScore,
                     scoreLeft - score,

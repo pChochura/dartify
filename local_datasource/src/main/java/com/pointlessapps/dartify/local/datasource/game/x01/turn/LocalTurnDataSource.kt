@@ -83,6 +83,4 @@ internal class LocalTurnDataSource : TurnDataSource {
             playerId = id,
         )
     }
-
-    override fun geLastInputScore(playerId: Long) = getScoreHandler(playerId).lastInputScore
 }

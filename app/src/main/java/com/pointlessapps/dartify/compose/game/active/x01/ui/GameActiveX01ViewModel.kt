@@ -1,6 +1,7 @@
 package com.pointlessapps.dartify.compose.game.active.x01.ui
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -51,7 +52,6 @@ internal data class GameActiveX01State(
     val playersScores: List<PlayerScore> = emptyList(),
     val currentPlayer: Player? = null,
     val currentInputScore: InputScore? = null,
-    val inputMode: InputMode = InputMode.PerDart,
 )
 
 internal class GameActiveX01ViewModel(
@@ -71,6 +71,9 @@ internal class GameActiveX01ViewModel(
     var state by mutableStateOf(GameActiveX01State())
         private set
 
+    var inputModes = mutableStateMapOf<Long, InputMode>()
+        private set
+
     private val eventChannel = Channel<GameActiveX01Event>()
     val events = eventChannel.receiveAsFlow()
 
@@ -83,6 +86,10 @@ internal class GameActiveX01ViewModel(
             gameSettings.numberOfSets,
             gameSettings.numberOfLegs,
             gameSettings.matchResolutionStrategy.toMatchResolutionStrategy(),
+        )
+
+        inputModes.putAll(
+            gameSettings.players.associate { it.id to InputMode.PerTurn },
         )
 
         state = state.copy(
@@ -124,7 +131,10 @@ internal class GameActiveX01ViewModel(
     }
 
     fun onQuickScoreClicked(quickScore: Int) {
-        if (!validateScoreUseCase(quickScore) && state.inputMode == InputMode.PerTurn) {
+        if (
+            !validateScoreUseCase(quickScore) &&
+            inputModes[state.currentPlayer?.id] == InputMode.PerTurn
+        ) {
             return
         }
 
@@ -141,7 +151,7 @@ internal class GameActiveX01ViewModel(
         }
 
         if (
-            state.inputMode == InputMode.PerDart &&
+            inputModes[state.currentPlayer?.id] == InputMode.PerDart &&
             (state.currentInputScore as? InputScore.Dart)?.scores?.size == MAX_NUMBER_OF_THROWS
         ) {
             // TODO show an error snackbar
@@ -149,17 +159,20 @@ internal class GameActiveX01ViewModel(
         }
 
         state = state.copy(
-            currentInputScore = when (state.inputMode) {
+            currentInputScore = when (requireNotNull(inputModes[state.currentPlayer?.id])) {
                 InputMode.PerTurn -> InputScore.Turn(
                     state.currentInputScore.score().addDecimal(key),
                 )
-                InputMode.PerDart -> InputScore.Dart(
-                    when (val score = state.currentInputScore) {
-                        is InputScore.Dart -> score.scores
-                        is InputScore.Turn -> listOf(score.score)
-                        null -> emptyList()
-                    } + key,
-                )
+                InputMode.PerDart -> {
+                    val score = state.currentInputScore
+                    InputScore.Dart(
+                        when {
+                            score is InputScore.Dart -> score.scores
+                            score is InputScore.Turn && score.score != 0 -> listOf(score.score)
+                            else -> emptyList()
+                        } + key,
+                    )
+                }
             },
         )
     }
@@ -180,7 +193,7 @@ internal class GameActiveX01ViewModel(
     }
 
     private fun invokeSingleUndoAction(): Boolean {
-        when (state.inputMode) {
+        when (requireNotNull(inputModes[state.currentPlayer?.id])) {
             InputMode.PerDart -> {
                 val score = state.currentInputScore
                 if (score is InputScore.Dart && score.scores.isNotEmpty()) {
@@ -212,13 +225,17 @@ internal class GameActiveX01ViewModel(
     }
 
     fun onDoneClicked() {
-        if (!validateScoreUseCase(state.currentInputScore?.toInputScore())) {
+        val inputScore = state.currentInputScore.toInputScore(
+            requireNotNull(inputModes[state.currentPlayer?.id]),
+        )
+
+        if (!validateScoreUseCase(inputScore)) {
             // TODO show error snackbar
             return
         }
 
         viewModelScope.launch {
-            when (val event = doneTurnUseCase(state.currentInputScore.score())) {
+            when (val event = doneTurnUseCase(inputScore)) {
                 is DoneTurnEvent.AskForNumberOfDoubles -> eventChannel.send(
                     GameActiveX01Event.AskForNumberOfDoubles(
                         maxNumberOfDoubles = event.maxNumberOfDoublesForThreeThrows,
@@ -234,10 +251,7 @@ internal class GameActiveX01ViewModel(
                     ),
                 )
                 is DoneTurnEvent.AddInput -> {
-                    addInputUseCase(
-                        requireNotNull(state.currentInputScore).toInputScore(),
-                        numberOfThrowsOnDouble = 0,
-                    )
+                    addInputUseCase(inputScore)
                     val currentState = nextTurnUseCase()
                     state = state.copy(
                         currentInputScore = currentState.score?.fromInputScore(),
@@ -259,7 +273,9 @@ internal class GameActiveX01ViewModel(
 
     fun onNumberOfDoublesClicked(numberOfDoubles: Int) {
         addInputUseCase(
-            requireNotNull(state.currentInputScore).toInputScore(),
+            state.currentInputScore.toInputScore(
+                requireNotNull(inputModes[state.currentPlayer?.id]),
+            ),
             numberOfThrowsOnDouble = numberOfDoubles,
         )
         val currentState = nextTurnUseCase()
@@ -273,7 +289,16 @@ internal class GameActiveX01ViewModel(
     }
 
     fun onNumberOfThrowsClicked(numberOfThrows: Int, numberOfThrowsOnDoubles: Int = 0) {
-        when (val state = finishLegUseCase(numberOfThrows, numberOfThrowsOnDoubles)) {
+
+        when (
+            val state = finishLegUseCase(
+                state.currentInputScore.toInputScore(
+                    requireNotNull(inputModes[state.currentPlayer?.id]),
+                ),
+                numberOfThrows,
+                numberOfThrowsOnDoubles,
+            )
+        ) {
             is WinState -> {
                 viewModelScope.launch {
                     eventChannel.send(
@@ -296,12 +321,11 @@ internal class GameActiveX01ViewModel(
     }
 
     fun onChangeInputModeClicked() {
-        state = state.copy(
-            inputMode = when (state.inputMode) {
+        inputModes[requireNotNull(state.currentPlayer?.id)] =
+            when (requireNotNull(inputModes[state.currentPlayer?.id])) {
                 InputMode.PerDart -> InputMode.PerTurn
                 InputMode.PerTurn -> InputMode.PerDart
-            },
-        )
+            }
     }
 
     fun getCurrentFinishSuggestion(): String? {
@@ -316,6 +340,8 @@ internal class GameActiveX01ViewModel(
 
         return null
     }
+
+    fun getCurrentInputMode() = inputModes[state.currentPlayer?.id] ?: InputMode.PerTurn
 
     fun onShowGameStatsClicked() {
         // TODO do something
@@ -332,7 +358,7 @@ internal class GameActiveX01ViewModel(
             it.player.id == state.currentPlayer?.id
         } ?: return false
 
-        return when (state.inputMode) {
+        return when (requireNotNull(inputModes[state.currentPlayer?.id])) {
             InputMode.PerDart -> {
                 validateSingleThrowUseCase(
                     key,

@@ -51,11 +51,8 @@ internal class PlayerScoreHandler(private val startingScore: Int) {
     val scoreLeft: Int
         get() = startingScore - inputs.sumOf { it.score.score() }
 
-    val lastInputScore: InputScore?
-        get() = inputs.lastOrNull()?.score
-
     val lastScore: Int?
-        get() = lastInputScore?.score()
+        get() = inputs.lastOrNull()?.score?.score()
 
     fun hasNoInputs() = allInputs.isEmpty()
 

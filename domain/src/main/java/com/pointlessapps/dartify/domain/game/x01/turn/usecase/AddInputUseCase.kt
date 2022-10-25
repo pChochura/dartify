@@ -10,9 +10,12 @@ class AddInputUseCase(
 
     operator fun invoke(
         score: InputScore,
-        numberOfThrows: Int = DEFAULT_NUMBER_OF_THROWS,
-        numberOfThrowsOnDouble: Int,
+        numberOfThrowsOnDouble: Int = 0,
     ) {
-        turnRepository.addInput(score, numberOfThrows, numberOfThrowsOnDouble)
+        turnRepository.addInput(
+            score,
+            if (score is InputScore.Dart) score.scores.size else DEFAULT_NUMBER_OF_THROWS,
+            numberOfThrowsOnDouble,
+        )
     }
 }

@@ -51,7 +51,7 @@ interface TurnRepository {
      * Adds the input to the current player's account and marks the current leg as complete.
      * Also performs a check to see if the match is finished, if so returns an applicable [State]
      */
-    fun finishLeg(numberOfThrows: Int, numberOfThrowsOnDouble: Int): State
+    fun finishLeg(inputScore: InputScore, numberOfThrows: Int, numberOfThrowsOnDouble: Int): State
 
     /**
      * Performs a set of checks to see if the current action should be to ask the player for an
@@ -237,7 +237,7 @@ internal class TurnRepositoryImpl(
         return DoneTurnEvent.AddInput
     }
 
-    override fun finishLeg(numberOfThrows: Int, numberOfThrowsOnDouble: Int): State {
+    override fun finishLeg(inputScore: InputScore, numberOfThrows: Int, numberOfThrowsOnDouble: Int): State {
         val currentPlayerId = currentPlayer.id
 
         val isSetFinished = matchResolutionStrategy
@@ -248,14 +248,9 @@ internal class TurnRepositoryImpl(
             .resolutionPredicate(numberOfSets)
             .invoke(turnDataSource.getWonSets(currentPlayerId) + 1)
 
-        val currentPlayerInputScore =
-            turnDataSource.geLastInputScore(currentPlayerId)?.toInputScore()
-
         turnDataSource.addInput(
             currentPlayerId,
-            turnDataSource.getScoreLeft(currentPlayerId)
-                .boxWithInputScore(currentPlayerInputScore)
-                .fromInputScore(),
+            inputScore.fromInputScore(),
             numberOfThrows,
             numberOfThrowsOnDouble,
         )
@@ -294,9 +289,4 @@ internal class TurnRepositoryImpl(
 
     private fun Int.nextPlayerIndex() = (this + 1) % players.size
     private fun Int.prevPlayerIndex() = (this + players.size - 1) % players.size
-
-    private fun Int.boxWithInputScore(inputScore: InputScore?) = when (inputScore) {
-        is InputScore.Dart -> InputScore.Dart(listOf(this))
-        else -> InputScore.Turn(this)
-    }
 }

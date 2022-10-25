@@ -40,13 +40,14 @@ internal fun DartInputScore(
             dimensionResource(id = R.dimen.margin_small),
         ),
     ) {
-        when (currentInputScore) {
-            is InputScore.Turn -> DartSingleInputScore(
+        if (currentInputScore is InputScore.Turn && currentInputScore.score != 0) {
+            DartSingleInputScore(
                 value = "${currentInputScore.score}",
                 alpha = 1f,
                 backgroundColor = MaterialTheme.colors.secondary,
             )
-            else -> DartTripleInputScore(finishSuggestion, currentInputScore as? InputScore.Dart)
+        } else {
+            DartTripleInputScore(finishSuggestion, currentInputScore as? InputScore.Dart)
         }
     }
 }

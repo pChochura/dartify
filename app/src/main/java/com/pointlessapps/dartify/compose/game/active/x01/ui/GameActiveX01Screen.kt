@@ -80,7 +80,7 @@ internal fun GameActiveX01Screen(
     ComposeScaffoldLayout(
         topBar = {
             Title(
-                inputMode = viewModel.state.inputMode,
+                inputMode = viewModel.getCurrentInputMode(),
                 currentSet = viewModel.state.currentSet,
                 currentLeg = viewModel.state.currentLeg,
                 onChangeInputModeClicked = viewModel::onChangeInputModeClicked,
@@ -98,7 +98,7 @@ internal fun GameActiveX01Screen(
                 currentPlayer = viewModel.state.currentPlayer,
                 onScoreLeftRequested = viewModel::onScoreLeftRequested,
             )
-            if (viewModel.state.inputMode == InputMode.PerDart) {
+            if (viewModel.getCurrentInputMode() == InputMode.PerDart) {
                 DartInputScore(
                     finishSuggestion = viewModel.getCurrentFinishSuggestion(),
                     currentInputScore = viewModel.state.currentInputScore,

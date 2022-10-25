@@ -89,9 +89,4 @@ interface TurnDataSource {
      * Returns the scores for all of the players
      */
     fun getPlayerScores(): List<PlayerScore>
-
-    /**
-     * Returns the type of the last score input for the player with the [playerId]
-     */
-    fun geLastInputScore(playerId: Long): InputScore?
 }
