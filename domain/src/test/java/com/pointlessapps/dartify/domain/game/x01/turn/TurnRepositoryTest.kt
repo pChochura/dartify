@@ -279,7 +279,7 @@ internal class TurnRepositoryTest : AnnotationSpec() {
 
     @Test
     fun `Test calling doneTurn - AskForNumberOfDoubles expected, maxNumberOfDoublesForThreeThrows = 2`() {
-        val maxNumberOfDoublesForThreeThrows = 2
+        val maxNumberOfDoubles = 2
         val players = listOf(
             Player(name = "player 1", outMode = GameMode.Double, id = 1L),
             Player(name = "player 2", outMode = GameMode.Double, id = 2L),
@@ -303,13 +303,13 @@ internal class TurnRepositoryTest : AnnotationSpec() {
             50,
             true,
             0,
-            mapOf(DEFAULT_NUMBER_OF_THROWS to maxNumberOfDoublesForThreeThrows),
+            mapOf(DEFAULT_NUMBER_OF_THROWS to maxNumberOfDoubles),
         )
 
         doneTurnEvent should beInstanceOf<DoneTurnEvent.AskForNumberOfDoubles>()
 
         (doneTurnEvent as DoneTurnEvent.AskForNumberOfDoubles).should {
-            it.maxNumberOfDoublesForThreeThrows shouldBeExactly maxNumberOfDoublesForThreeThrows
+            it.maxNumberOfDoubles shouldBeExactly maxNumberOfDoubles
         }
 
         verify(exactly = 2) { dataSource.getPlayerScores() }
@@ -341,7 +341,7 @@ internal class TurnRepositoryTest : AnnotationSpec() {
         doneTurnEvent should beInstanceOf<DoneTurnEvent.AskForNumberOfDoubles>()
 
         (doneTurnEvent as DoneTurnEvent.AskForNumberOfDoubles).should {
-            it.maxNumberOfDoublesForThreeThrows shouldBeExactly 1
+            it.maxNumberOfDoubles shouldBeExactly 1
         }
 
         verify(exactly = 2) { dataSource.getPlayerScores() }

@@ -59,7 +59,7 @@ interface TurnRepository {
      * appropriate [DoneTurnEvent]
      */
     fun doneTurn(
-        score: Int,
+        inputScore: InputScore,
         shouldAskForNumberOfDoubles: Boolean,
         minNumberOfThrows: Int,
         maxNumberOfDoubles: Map<Int, Int>,
@@ -203,7 +203,7 @@ internal class TurnRepositoryImpl(
     }
 
     override fun doneTurn(
-        score: Int,
+        inputScore: InputScore,
         shouldAskForNumberOfDoubles: Boolean,
         minNumberOfThrows: Int,
         maxNumberOfDoubles: Map<Int, Int>,
@@ -214,30 +214,41 @@ internal class TurnRepositoryImpl(
             },
         )
 
-        if (currentPlayerScore.scoreLeft == score) {
-            return if (shouldAskForNumberOfDoubles) {
-                DoneTurnEvent.AskForNumberOfThrowsAndDoubles(
-                    minNumberOfThrows = minNumberOfThrows,
-                    maxNumberOfDoubles = maxNumberOfDoubles,
-                )
-            } else {
-                DoneTurnEvent.AskForNumberOfThrows(
-                    minNumberOfThrows = minNumberOfThrows,
-                )
+        if (currentPlayerScore.scoreLeft == inputScore.score()) {
+            return when {
+                shouldAskForNumberOfDoubles && inputScore is InputScore.Dart -> {
+                    DoneTurnEvent.AskForNumberOfDoubles(
+                        maxNumberOfDoubles = maxNumberOfDoubles[inputScore.scores.size] ?: 1,
+                    )
+                }
+                shouldAskForNumberOfDoubles -> {
+                    DoneTurnEvent.AskForNumberOfThrowsAndDoubles(
+                        minNumberOfThrows = minNumberOfThrows,
+                        maxNumberOfDoubles = maxNumberOfDoubles,
+                    )
+                }
+                else -> {
+                    DoneTurnEvent.AskForNumberOfThrows(
+                        minNumberOfThrows = minNumberOfThrows,
+                    )
+                }
             }
         }
 
         if (shouldAskForNumberOfDoubles) {
             return DoneTurnEvent.AskForNumberOfDoubles(
-                maxNumberOfDoublesForThreeThrows = maxNumberOfDoubles[DEFAULT_NUMBER_OF_THROWS]
-                    ?: 1,
+                maxNumberOfDoubles = maxNumberOfDoubles[DEFAULT_NUMBER_OF_THROWS] ?: 1,
             )
         }
 
         return DoneTurnEvent.AddInput
     }
 
-    override fun finishLeg(inputScore: InputScore, numberOfThrows: Int, numberOfThrowsOnDouble: Int): State {
+    override fun finishLeg(
+        inputScore: InputScore,
+        numberOfThrows: Int,
+        numberOfThrowsOnDouble: Int,
+    ): State {
         val currentPlayerId = currentPlayer.id
 
         val isSetFinished = matchResolutionStrategy

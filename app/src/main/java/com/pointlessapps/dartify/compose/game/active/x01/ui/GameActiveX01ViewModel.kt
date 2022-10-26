@@ -238,7 +238,7 @@ internal class GameActiveX01ViewModel(
             when (val event = doneTurnUseCase(inputScore)) {
                 is DoneTurnEvent.AskForNumberOfDoubles -> eventChannel.send(
                     GameActiveX01Event.AskForNumberOfDoubles(
-                        maxNumberOfDoubles = event.maxNumberOfDoublesForThreeThrows,
+                        maxNumberOfDoubles = event.maxNumberOfDoubles,
                     ),
                 )
                 is DoneTurnEvent.AskForNumberOfThrows -> eventChannel.send(
@@ -272,6 +272,20 @@ internal class GameActiveX01ViewModel(
     }
 
     fun onNumberOfDoublesClicked(numberOfDoubles: Int) {
+        val currentPlayerScore = state.playersScores.find {
+            it.player.id == state.currentPlayer?.id
+        }
+
+        val score = state.currentInputScore
+        if (
+            score is InputScore.Dart &&
+            score.score() == currentPlayerScore?.scoreLeft
+        ) {
+            invokeFinishLeg(score.scores.size, numberOfDoubles)
+
+            return
+        }
+
         addInputUseCase(
             state.currentInputScore.toInputScore(
                 requireNotNull(inputModes[state.currentPlayer?.id]),
@@ -289,7 +303,10 @@ internal class GameActiveX01ViewModel(
     }
 
     fun onNumberOfThrowsClicked(numberOfThrows: Int, numberOfThrowsOnDoubles: Int = 0) {
+        invokeFinishLeg(numberOfThrows, numberOfThrowsOnDoubles)
+    }
 
+    private fun invokeFinishLeg(numberOfThrows: Int, numberOfThrowsOnDoubles: Int) {
         when (
             val state = finishLegUseCase(
                 state.currentInputScore.toInputScore(

@@ -15,18 +15,15 @@ class DoneTurnUseCase(
 
     operator fun invoke(inputScore: InputScore) = when (inputScore) {
         is InputScore.Dart -> doneTurn(
-            inputScore.scores.sum(),
+            inputScore,
             inputScore.scores.size,
             inputScore.scores.takeLastWhile { it % 2 == 0 }.size,
         )
-        is InputScore.Turn -> doneTurn(
-            inputScore.score,
-            DEFAULT_NUMBER_OF_THROWS,
-        )
+        is InputScore.Turn -> doneTurn(inputScore)
     }
 
     private fun doneTurn(
-        score: Int,
+        inputScore: InputScore,
         numberOfThrows: Int? = null,
         numberOfDoubles: Int? = null,
     ): DoneTurnEvent {
@@ -38,7 +35,7 @@ class DoneTurnUseCase(
         )
         val shouldAskForNumberOfDoubles = scoreRepository.shouldAskForNumberOfDoubles(
             score = currentPlayerScore.scoreLeft,
-            scoreLeft = currentPlayerScore.scoreLeft - score,
+            scoreLeft = currentPlayerScore.scoreLeft - inputScore.score(),
             numberOfThrows = numberOfThrows ?: DEFAULT_NUMBER_OF_THROWS,
             outMode = gameState.player.outMode,
         )
@@ -51,7 +48,7 @@ class DoneTurnUseCase(
         )
 
         return turnRepository.doneTurn(
-            score = score,
+            inputScore = inputScore,
             shouldAskForNumberOfDoubles = shouldAskForNumberOfDoubles,
             minNumberOfThrows = max(minNumberOfThrows, numberOfThrows ?: 1),
             maxNumberOfDoubles = maxNumberOfDoubles.mapValues { (key, value) ->
