@@ -266,12 +266,12 @@ internal class ScoreRepositoryTest : AnnotationSpec() {
     @Test
     fun `Test calculate max number of doubles`() {
         val score = 25
-        every { dataSource.getPossibleDoubleScoresFor(1, 1) } returns emptySet()
-        every { dataSource.getPossibleDoubleScoresFor(2, 1) } returns setOf(score)
-        every { dataSource.getPossibleDoubleScoresFor(2, 2) } returns emptySet()
-        every { dataSource.getPossibleDoubleScoresFor(3, 1) } returns setOf(score)
-        every { dataSource.getPossibleDoubleScoresFor(3, 2) } returns setOf(score)
-        every { dataSource.getPossibleDoubleScoresFor(3, 3) } returns emptySet()
+        every { dataSource.isScorePossibleToDoubleOutWith(1, 1) } returns emptySet()
+        every { dataSource.isScorePossibleToDoubleOutWith(2, 1) } returns setOf(score)
+        every { dataSource.isScorePossibleToDoubleOutWith(2, 2) } returns emptySet()
+        every { dataSource.isScorePossibleToDoubleOutWith(3, 1) } returns setOf(score)
+        every { dataSource.isScorePossibleToDoubleOutWith(3, 2) } returns setOf(score)
+        every { dataSource.isScorePossibleToDoubleOutWith(3, 3) } returns emptySet()
         val maxNumberOfDoubles = repository.calculateMaxNumberOfDoubles(score)
 
         maxNumberOfDoubles shouldContainExactly mapOf(
@@ -279,7 +279,7 @@ internal class ScoreRepositoryTest : AnnotationSpec() {
             2 to 1,
             3 to 2,
         )
-        verify { dataSource.getPossibleDoubleScoresFor(range(1, 3), range(1, 3)) }
+        verify { dataSource.isScorePossibleToDoubleOutWith(range(1, 3), range(1, 3)) }
     }
 
     @Test

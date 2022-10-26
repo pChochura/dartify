@@ -19,8 +19,4 @@ internal class OneThrowPossibleScoresCalculator {
     val oneThrowPossibleScores by lazy {
         oneThrowPossibleOutScores + 0
     }
-
-    val oneThrowOneDoublePossibleScores by lazy {
-        oneThrowPossibleDoubleOutScores
-    }
 }

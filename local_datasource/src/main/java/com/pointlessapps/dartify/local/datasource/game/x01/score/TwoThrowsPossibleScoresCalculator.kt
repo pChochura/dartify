@@ -31,14 +31,4 @@ internal class TwoThrowsPossibleScoresCalculator(
             oneThrowPossibleMasterOutScores.map { second -> first + second }
         }.toSet()
     }
-
-    val twoThrowsOneDoublePossibleScores by lazy {
-        twoThrowsPossibleDoubleOutScores
-    }
-
-    val twoThrowsTwoDoublesPossibleScores by lazy {
-        oneThrowPossibleDoubleOutScores.flatMap { first ->
-            oneThrowPossibleDoubleOutScores.map { second -> first + second }
-        }.toSet()
-    }
 }

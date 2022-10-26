@@ -11,8 +11,6 @@ internal class ThreeThrowsPossibleScoresCalculator(
     private val oneThrowPossibleMasterOutScores =
         oneThrowPossibleScoresCalculator.oneThrowPossibleMasterOutScores
     private val twoThrowsPossibleScores = twoThrowsPossibleScoresCalculator.twoThrowsPossibleScores
-    private val twoThrowsTwoDoublesPossibleScores =
-        twoThrowsPossibleScoresCalculator.twoThrowsTwoDoublesPossibleScores
 
     val threeThrowsPossibleScores by lazy {
         twoThrowsPossibleScores.flatMap { firstAndSecond ->
@@ -33,24 +31,6 @@ internal class ThreeThrowsPossibleScoresCalculator(
     val threeThrowsPossibleMasterOutScores by lazy {
         twoThrowsPossibleScores.flatMap { firstAndSecond ->
             oneThrowPossibleMasterOutScores.map { third -> firstAndSecond + third }
-        }.toSet()
-    }
-
-    val threeThrowsOneDoublePossibleScores by lazy {
-        oneThrowPossibleDoubleOutScores.flatMap { firstAndSecond ->
-            oneThrowPossibleScores.map { third -> firstAndSecond + third }
-        }.toSet()
-    }
-
-    val threeThrowsTwoDoublesPossibleScores by lazy {
-        twoThrowsTwoDoublesPossibleScores.flatMap { firstAndSecond ->
-            oneThrowPossibleScores.map { third -> firstAndSecond + third }
-        }.toSet()
-    }
-
-    val threeThrowsThreeDoublesPossibleScores by lazy {
-        twoThrowsTwoDoublesPossibleScores.flatMap { firstAndSecond ->
-            oneThrowPossibleDoubleOutScores.map { third -> firstAndSecond + third }
         }.toSet()
     }
 }

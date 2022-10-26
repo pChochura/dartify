@@ -174,7 +174,7 @@ internal class ScoreRepositoryImpl(
 
     override fun calculateMaxNumberOfDoubles(score: Int) = (1..3).associateWith { throws ->
         (throws downTo 1).find { doubles ->
-            score in scoreDataSource.getPossibleDoubleScoresFor(throws, doubles)
+            scoreDataSource.isScorePossibleToDoubleOutWith(score, throws, doubles)
         } ?: 1
     }
 

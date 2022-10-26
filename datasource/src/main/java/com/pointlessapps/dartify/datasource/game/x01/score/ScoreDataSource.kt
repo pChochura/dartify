@@ -26,8 +26,12 @@ interface ScoreDataSource {
     fun getPossibleMasterOutScoresFor(numberOfThrows: Int): Set<Int>
 
     /**
-     * Returns all possible scores that a player can score after [numberOfThrows] throws
-     * that contains [numberOfDoubles] shots on double
+     * Checks if the [score] is possible to be checked out after [numberOfThrows] throws
+     * that contain [numberOfDoubles] shots on double
      */
-    fun getPossibleDoubleScoresFor(numberOfThrows: Int, numberOfDoubles: Int): Set<Int>
+    fun isScorePossibleToDoubleOutWith(
+        score: Int,
+        numberOfThrows: Int,
+        numberOfDoubles: Int,
+    ): Boolean
 }

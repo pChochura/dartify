@@ -37,23 +37,54 @@ internal class LocalScoreDataSource(
         else -> emptySet()
     }
 
-    override fun getPossibleDoubleScoresFor(numberOfThrows: Int, numberOfDoubles: Int) =
+    override fun isScorePossibleToDoubleOutWith(
+        score: Int,
+        numberOfThrows: Int,
+        numberOfDoubles: Int,
+    ): Boolean {
         when (numberOfThrows) {
-            1 -> when (numberOfDoubles) {
-                1 -> oneThrowPossibleScoresCalculator.oneThrowOneDoublePossibleScores
-                else -> emptySet()
+            3 -> when (numberOfDoubles) {
+                3 -> if (
+                    score in oneThrowPossibleScoresCalculator.oneThrowPossibleDoubleOutScores &&
+                    oneThrowPossibleScoresCalculator.oneThrowPossibleDoubleOutScores.find {
+                        isScorePossibleToDoubleOutWith(score - it, 2, 2)
+                    } != null
+                ) {
+                    return true
+                }
+                2 -> if (
+                    score in twoThrowsPossibleScoresCalculator.twoThrowsPossibleDoubleOutScores &&
+                    oneThrowPossibleScoresCalculator.oneThrowPossibleScores.find {
+                        isScorePossibleToDoubleOutWith(score - it, 2, 2)
+                    } != null
+                ) {
+                    return true
+                }
+                1 -> if (score in threeThrowsPossibleScoresCalculator.threeThrowsPossibleDoubleOutScores) {
+                    return true
+                }
             }
             2 -> when (numberOfDoubles) {
-                1 -> twoThrowsPossibleScoresCalculator.twoThrowsOneDoublePossibleScores
-                2 -> twoThrowsPossibleScoresCalculator.twoThrowsTwoDoublesPossibleScores
-                else -> emptySet()
+                2 -> if (
+                    score in oneThrowPossibleScoresCalculator.oneThrowPossibleDoubleOutScores &&
+                    oneThrowPossibleScoresCalculator.oneThrowPossibleDoubleOutScores.find {
+                        isScorePossibleToDoubleOutWith(score - it, 1, 1)
+                    } != null
+                ) {
+                    return true
+                }
+                1 -> if (score in twoThrowsPossibleScoresCalculator.twoThrowsPossibleDoubleOutScores) {
+                    return true
+                }
             }
-            3 -> when (numberOfDoubles) {
-                1 -> threeThrowsPossibleScoresCalculator.threeThrowsOneDoublePossibleScores
-                2 -> threeThrowsPossibleScoresCalculator.threeThrowsTwoDoublesPossibleScores
-                3 -> threeThrowsPossibleScoresCalculator.threeThrowsThreeDoublesPossibleScores
-                else -> emptySet()
+            1 -> if (
+                numberOfDoubles == 1 &&
+                score in oneThrowPossibleScoresCalculator.oneThrowPossibleDoubleOutScores
+            ) {
+                return true
             }
-            else -> emptySet()
         }
+
+        return false
+    }
 }
