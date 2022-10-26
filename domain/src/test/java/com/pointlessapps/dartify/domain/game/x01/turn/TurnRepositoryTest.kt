@@ -270,7 +270,8 @@ internal class TurnRepositoryTest : AnnotationSpec() {
         )
         setupRepository(players, 501, GameMode.Straight)
 
-        val doneTurnEvent = repository.doneTurn(12, false, 0, emptyMap())
+        val doneTurnEvent =
+            repository.doneTurn(InputScore.Turn(12).toInputScore(), false, 0, emptyMap())
 
         doneTurnEvent shouldBe DoneTurnEvent.AddInput
 
@@ -300,7 +301,7 @@ internal class TurnRepositoryTest : AnnotationSpec() {
         setupRepository(players, 501, GameMode.Straight)
 
         val doneTurnEvent = repository.doneTurn(
-            50,
+            InputScore.Turn(50).toInputScore(),
             true,
             0,
             mapOf(DEFAULT_NUMBER_OF_THROWS to maxNumberOfDoubles),
@@ -336,7 +337,12 @@ internal class TurnRepositoryTest : AnnotationSpec() {
         )
         setupRepository(players, 501, GameMode.Straight)
 
-        val doneTurnEvent = repository.doneTurn(50, true, 0, emptyMap())
+        val doneTurnEvent = repository.doneTurn(
+            InputScore.Turn(50).toInputScore(),
+            true,
+            0,
+            emptyMap(),
+        )
 
         doneTurnEvent should beInstanceOf<DoneTurnEvent.AskForNumberOfDoubles>()
 
@@ -370,7 +376,12 @@ internal class TurnRepositoryTest : AnnotationSpec() {
         )
         setupRepository(players, 501, GameMode.Straight)
 
-        val doneTurnEvent = repository.doneTurn(scoreLeft, false, minNumberOfThrows, emptyMap())
+        val doneTurnEvent = repository.doneTurn(
+            InputScore.Turn(scoreLeft).toInputScore(),
+            false,
+            minNumberOfThrows,
+            emptyMap(),
+        )
 
         doneTurnEvent should beInstanceOf<DoneTurnEvent.AskForNumberOfThrows>()
 
@@ -406,7 +417,7 @@ internal class TurnRepositoryTest : AnnotationSpec() {
         setupRepository(players, 501, GameMode.Straight)
 
         val doneTurnEvent = repository.doneTurn(
-            scoreLeft,
+            InputScore.Turn(scoreLeft).toInputScore(),
             true,
             minNumberOfThrows,
             maxNumberOfDoubles,
