@@ -45,4 +45,7 @@
 	<string name="miss">miss</string>
 	<string name="modifier_double">double</string>
 	<string name="modifier_triple">triple</string>
+	<string name="warning">warning!</string>
+	<string name="restart">restart</string>
+	<string name="discard_and_close">discard and close</string>
 </resources>

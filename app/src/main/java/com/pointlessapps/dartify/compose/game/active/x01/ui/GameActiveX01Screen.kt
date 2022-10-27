@@ -1,5 +1,6 @@
 package com.pointlessapps.dartify.compose.game.active.x01.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -19,10 +20,7 @@ import androidx.compose.ui.text.style.TextAlign
 import com.pointlessapps.dartify.R
 import com.pointlessapps.dartify.compose.game.active.x01.model.InputMode
 import com.pointlessapps.dartify.compose.game.active.x01.model.PlayerScore
-import com.pointlessapps.dartify.compose.game.active.x01.ui.dialogs.NumberOfDoublesDialog
-import com.pointlessapps.dartify.compose.game.active.x01.ui.dialogs.NumberOfThrowsAndDoublesDialog
-import com.pointlessapps.dartify.compose.game.active.x01.ui.dialogs.NumberOfThrowsDialog
-import com.pointlessapps.dartify.compose.game.active.x01.ui.dialogs.WinnerDialog
+import com.pointlessapps.dartify.compose.game.active.x01.ui.dialogs.*
 import com.pointlessapps.dartify.compose.game.active.x01.ui.input.dart.DartInputKeyboard
 import com.pointlessapps.dartify.compose.game.active.x01.ui.input.dart.DartInputScore
 import com.pointlessapps.dartify.compose.game.active.x01.ui.input.turn.TurnInputKeyboard
@@ -51,9 +49,13 @@ internal fun GameActiveX01Screen(
     }
     var numberOfDoublesDialogModel by remember { mutableStateOf<NumberOfDoublesDialogModel?>(null) }
     var winnerDialogModel by remember { mutableStateOf<WinnerDialogModel?>(null) }
+    var showWarningDialog by remember { mutableStateOf(false) }
+
     LaunchedEffect(gameSettings) {
         viewModel.setGameSettings(gameSettings)
     }
+
+    BackHandler { showWarningDialog = true }
 
     LaunchedEffect(Unit) {
         viewModel.events.collect {
@@ -175,6 +177,21 @@ internal fun GameActiveX01Screen(
                 viewModel.onSaveAndCloseClicked()
             },
             onDismissRequest = { winnerDialogModel = null },
+        )
+    }
+
+    if (showWarningDialog) {
+        WarningDialog(
+            onDiscardAndCloseClicked = { showWarningDialog = false },
+            onRestartClicked = {
+                showWarningDialog = false
+                viewModel.onRestartClicked()
+            },
+            onSaveAndCloseClicked = {
+                showWarningDialog = false
+                viewModel.onSaveAndCloseClicked()
+            },
+            onDismissRequest = { showWarningDialog = false },
         )
     }
 }

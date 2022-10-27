@@ -111,7 +111,9 @@ internal fun WinnerDialog(
                 ),
             ) {
                 ComposeSimpleButton(
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
                     label = stringResource(id = R.string.undo_last_move),
                     onClick = onUndoLastMoveClicked,
                     simpleButtonModel = defaultComposeSimpleButtonModel().copy(
@@ -124,7 +126,9 @@ internal fun WinnerDialog(
                     ),
                 )
                 ComposeSimpleButton(
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
                     label = stringResource(id = R.string.show_game_stats),
                     onClick = onShowGameStatsClicked,
                     simpleButtonModel = defaultComposeSimpleButtonModel().copy(

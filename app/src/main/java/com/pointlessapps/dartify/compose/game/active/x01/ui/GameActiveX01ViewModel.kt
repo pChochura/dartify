@@ -79,6 +79,10 @@ internal class GameActiveX01ViewModel(
 
     fun setGameSettings(gameSettings: GameSettings) {
         this.gameSettings = gameSettings
+        setupGame(gameSettings)
+    }
+
+    private fun setupGame(gameSettings: GameSettings) {
         val currentState = setupGameUseCase(
             gameSettings.players.map(Player::toPlayer),
             gameSettings.startingScore,
@@ -368,6 +372,10 @@ internal class GameActiveX01ViewModel(
         viewModelScope.launch {
             eventChannel.send(GameActiveX01Event.NavigateBack)
         }
+    }
+
+    fun onRestartClicked() {
+        setupGame(gameSettings)
     }
 
     private fun validateKey(key: Int, multiplier: Int): Boolean {
