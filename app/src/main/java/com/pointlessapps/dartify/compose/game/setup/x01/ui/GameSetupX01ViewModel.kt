@@ -27,10 +27,7 @@ internal data class GameSetupX01State(
     val startingScore: Int = DEFAULT_STARTING_SCORE,
     val inMode: GameMode = GameMode.Straight,
     val outMode: GameMode = GameMode.Double,
-    val players: List<Player> = listOf(
-        Player(name = "You"),
-        Bot(75f, "CPU (avg. 75)"),
-    ),
+    val players: List<Player> = emptyList(),
 )
 
 internal class GameSetupX01ViewModel : ViewModel() {
@@ -42,6 +39,11 @@ internal class GameSetupX01ViewModel : ViewModel() {
     val events = eventChannel.receiveAsFlow()
 
     fun onStartGameClicked() {
+        if (state.players.size != 2) {
+            // TODO show error snackbar
+            return
+        }
+
         viewModelScope.launch {
             eventChannel.send(
                 GameSetupX01Event.Navigate(
@@ -103,7 +105,14 @@ internal class GameSetupX01ViewModel : ViewModel() {
 
     fun onAddPlayerClicked() {
         viewModelScope.launch {
-            eventChannel.send(GameSetupX01Event.Navigate(Route.Players))
+            eventChannel.send(
+                GameSetupX01Event.Navigate(
+                    Route.Players(
+                        selectedPlayers = state.players,
+                        callback = ::onPlayersSelected,
+                    ),
+                ),
+            )
         }
     }
 
@@ -150,6 +159,12 @@ internal class GameSetupX01ViewModel : ViewModel() {
 
         state = state.copy(
             numberOfLegs = state.numberOfLegs + realChange,
+        )
+    }
+
+    private fun onPlayersSelected(players: List<Player>) {
+        state = state.copy(
+            players = players,
         )
     }
 

@@ -365,7 +365,7 @@ private fun Players(
                 contentDescription = null,
             )
             ComposeText(
-                text = stringResource(id = R.string.add_a_player),
+                text = stringResource(id = R.string.select_players),
                 textStyle = defaultComposeTextStyle().copy(
                     typography = MaterialTheme.typography.h2.copy(
                         fontWeight = FontWeight.Normal,

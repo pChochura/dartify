@@ -6,7 +6,7 @@ import java.util.*
 
 @Parcelize
 internal open class Player(
-    val id: Long = UUID.randomUUID().mostSignificantBits,
+    open val id: Long = UUID.randomUUID().mostSignificantBits,
     open val name: String,
     open val outMode: GameMode? = null,
 ) : Parcelable {
@@ -20,9 +20,11 @@ internal open class Player(
 @Parcelize
 internal data class Bot(
     val average: Float,
+    override val id: Long = UUID.randomUUID().mostSignificantBits,
     override val name: String,
     override val outMode: GameMode? = null,
 ) : Player(
+    id = id,
     name = name,
     outMode = outMode,
 )

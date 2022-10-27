@@ -2,6 +2,7 @@ package com.pointlessapps.dartify.compose.ui.theme
 
 import android.os.Parcelable
 import com.pointlessapps.dartify.compose.game.model.GameSettings
+import com.pointlessapps.dartify.compose.game.model.Player
 import kotlinx.parcelize.Parcelize
 
 internal sealed interface Route : Parcelable {
@@ -10,7 +11,10 @@ internal sealed interface Route : Parcelable {
     object Home : Route
 
     @Parcelize
-    object Players : Route
+    class Players(
+        val selectedPlayers: List<Player>,
+        val callback: (List<Player>) -> Unit,
+    ) : Route
 
     object GameSetup {
         @Parcelize

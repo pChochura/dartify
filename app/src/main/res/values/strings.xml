@@ -16,7 +16,7 @@
 	<string name="in_mode">in-mode</string>
 	<string name="out_mode">out-mode</string>
 	<string name="players">players</string>
-	<string name="add_a_player">add a player</string>
+	<string name="select_players">select players</string>
 	<string name="custom">custom</string>
 	<string name="set_leg">set %d | leg %d</string>
 	<string name="statistic_max">max: %d</string>
@@ -53,4 +53,12 @@
 	<string name="d">d</string>
 	<string name="m">m</string>
 	<string name="out_mode_abbrev">%s-out</string>
+	<string name="label_selected">selected</string>
+	<string name="label_all">all</string>
+	<string name="add_a_player">add a player</string>
+	<string name="cpu">cpu</string>
+	<string name="save">save</string>
+	<string name="average">average</string>
+	<string name="cpu_avg">CPU (avg. %.0f)</string>
+	<string name="name">name</string>
 </resources>
