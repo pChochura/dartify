@@ -37,8 +37,8 @@
 	<string name="how_many_throws_on_double_desc">indicates how many throws you took on double to finish the game</string>
 	<string name="how_many_throws_in_total">how many throws in total?</string>
 	<string name="and_the_winner_is">and the winner is</string>
-	<string name="undo_last_move">undo last\nmove</string>
-	<string name="show_game_stats">show game\nstats</string>
+	<string name="undo_last_move">undo last move</string>
+	<string name="show_game_stats">show game stats</string>
 	<string name="save_and_close">save and close</string>
 	<string name="sets_legs">sets: %d | legs: %d</string>
 	<string name="last_score">last: %d</string>

@@ -23,7 +23,7 @@ internal fun WarningDialog(
         dialogModel = defaultComposeDialogModel().copy(
             label = stringResource(id = R.string.warning),
             icon = R.drawable.ic_warning,
-            dismissible = true,
+            dismissible = ComposeDialogDismissible.Both,
         ),
     ) {
         Column(

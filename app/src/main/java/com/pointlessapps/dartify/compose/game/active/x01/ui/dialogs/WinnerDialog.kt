@@ -28,14 +28,13 @@ internal fun WinnerDialog(
     onUndoLastMoveClicked: () -> Unit,
     onShowGameStatsClicked: () -> Unit,
     onSaveAndCloseClicked: () -> Unit,
-    onDismissRequest: () -> Unit,
 ) {
     ComposeDialog(
-        onDismissRequest = onDismissRequest,
+        onDismissRequest = onUndoLastMoveClicked,
         dialogModel = defaultComposeDialogModel().copy(
             label = stringResource(id = R.string.and_the_winner_is),
             icon = R.drawable.ic_trophy,
-            dismissible = false,
+            dismissible = ComposeDialogDismissible.OnBackPress,
         ),
     ) {
         Column(

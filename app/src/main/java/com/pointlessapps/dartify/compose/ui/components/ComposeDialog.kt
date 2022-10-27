@@ -27,8 +27,8 @@ internal fun ComposeDialog(
     Dialog(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(
-            dismissOnBackPress = dialogModel.dismissible,
-            dismissOnClickOutside = dialogModel.dismissible,
+            dismissOnBackPress = dialogModel.dismissible.isDismissibleOnBackPress(),
+            dismissOnClickOutside = dialogModel.dismissible.isDismissibleOnClickOutside(),
         ),
     ) {
         Column(
@@ -79,7 +79,7 @@ internal fun defaultComposeDialogModel() = ComposeDialogModel(
     textColor = MaterialTheme.colors.onBackground,
     label = "",
     icon = R.drawable.ic_settings,
-    dismissible = true,
+    dismissible = ComposeDialogDismissible.Both,
 )
 
 internal data class ComposeDialogModel(
@@ -87,5 +87,17 @@ internal data class ComposeDialogModel(
     val textColor: Color,
     val label: String,
     @DrawableRes val icon: Int,
-    val dismissible: Boolean,
+    val dismissible: ComposeDialogDismissible,
 )
+
+internal enum class ComposeDialogDismissible {
+    None, OnBackPress, OnClickOutside, Both;
+
+    fun isDismissibleOnBackPress() = this in setOf(
+        OnBackPress, Both,
+    )
+
+    fun isDismissibleOnClickOutside() = this in setOf(
+        OnClickOutside, Both,
+    )
+}

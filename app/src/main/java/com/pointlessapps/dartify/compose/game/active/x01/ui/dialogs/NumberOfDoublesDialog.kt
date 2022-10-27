@@ -2,6 +2,7 @@ package com.pointlessapps.dartify.compose.game.active.x01.ui.dialogs
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
@@ -20,15 +21,15 @@ import com.pointlessapps.dartify.compose.ui.components.*
 internal fun NumberOfDoublesDialog(
     minNumberOfDoubles: Int,
     maxNumberOfDoubles: Int,
+    onUndoLastMoveClicked: () -> Unit,
     onButtonClicked: (Int) -> Unit,
-    onDismissRequest: () -> Unit,
 ) {
     ComposeDialog(
-        onDismissRequest = onDismissRequest,
+        onDismissRequest = onUndoLastMoveClicked,
         dialogModel = defaultComposeDialogModel().copy(
             label = stringResource(id = R.string.how_many_throws_on_double),
             icon = R.drawable.ic_darts,
-            dismissible = false,
+            dismissible = ComposeDialogDismissible.OnBackPress,
         ),
     ) {
         Row(
@@ -80,5 +81,16 @@ internal fun NumberOfDoublesDialog(
                 ),
             )
         }
+
+        ComposeSimpleButton(
+            modifier = Modifier.fillMaxWidth(),
+            label = stringResource(id = R.string.undo_last_move),
+            onClick = onUndoLastMoveClicked,
+            simpleButtonModel = defaultComposeSimpleButtonModel().copy(
+                backgroundColor = MaterialTheme.colors.secondary,
+                icon = R.drawable.ic_undo,
+                orientation = ComposeSimpleButtonOrientation.Horizontal,
+            ),
+        )
     }
 }

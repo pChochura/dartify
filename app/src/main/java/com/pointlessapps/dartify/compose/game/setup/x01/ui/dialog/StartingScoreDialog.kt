@@ -30,6 +30,7 @@ internal fun StartingScoreDialog(
         dialogModel = defaultComposeDialogModel().copy(
             label = stringResource(id = R.string.starting_score),
             icon = R.drawable.ic_score,
+            dismissible = ComposeDialogDismissible.Both,
         ),
     ) {
         var customStartingScoreValue by remember { mutableStateOf("") }

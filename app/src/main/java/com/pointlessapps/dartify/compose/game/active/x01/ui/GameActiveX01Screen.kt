@@ -135,20 +135,26 @@ internal fun GameActiveX01Screen(
             NumberOfThrowsAndDoublesDialog(
                 minNumberOfThrows = model.minNumberOfThrows,
                 maxNumberOfDoubles = model.maxNumberOfDoubles,
+                onUndoLastMoveClicked = {
+                    numberOfThrowsAndDoublesDialogModel = null
+                    viewModel.onUndoClicked()
+                },
                 onDoneClicked = { throwsInTotal, throwsOnDouble ->
                     viewModel.onNumberOfThrowsClicked(throwsInTotal, throwsOnDouble)
                     numberOfThrowsAndDoublesDialogModel = null
                 },
-                onDismissRequest = { numberOfThrowsAndDoublesDialogModel = null },
             )
         } else {
             NumberOfThrowsDialog(
                 minNumberOfThrows = model.minNumberOfThrows,
+                onUndoLastMoveClicked = {
+                    numberOfThrowsAndDoublesDialogModel = null
+                    viewModel.onUndoClicked()
+                },
                 onButtonClicked = { throwsInTotal ->
                     viewModel.onNumberOfThrowsClicked(throwsInTotal)
                     numberOfThrowsAndDoublesDialogModel = null
                 },
-                onDismissRequest = { numberOfThrowsAndDoublesDialogModel = null },
             )
         }
     }
@@ -157,11 +163,14 @@ internal fun GameActiveX01Screen(
         NumberOfDoublesDialog(
             minNumberOfDoubles = model.minNumberOfDoubles,
             maxNumberOfDoubles = model.maxNumberOfDoubles,
+            onUndoLastMoveClicked = {
+                numberOfDoublesDialogModel = null
+                viewModel.onUndoClicked()
+            },
             onButtonClicked = {
                 viewModel.onNumberOfDoublesClicked(it)
                 numberOfDoublesDialogModel = null
             },
-            onDismissRequest = { numberOfDoublesDialogModel = null },
         )
     }
 
@@ -180,7 +189,6 @@ internal fun GameActiveX01Screen(
                 winnerDialogModel = null
                 viewModel.onSaveAndCloseClicked()
             },
-            onDismissRequest = { winnerDialogModel = null },
         )
     }
 

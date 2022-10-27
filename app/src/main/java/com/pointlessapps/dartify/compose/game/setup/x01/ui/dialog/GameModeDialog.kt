@@ -26,6 +26,7 @@ internal fun GameModeDialog(
         dialogModel = defaultComposeDialogModel().copy(
             label = stringResource(id = label),
             icon = R.drawable.ic_darts,
+            dismissible = ComposeDialogDismissible.Both,
         ),
     ) {
         Column(

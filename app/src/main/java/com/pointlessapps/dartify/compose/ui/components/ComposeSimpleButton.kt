@@ -46,7 +46,6 @@ internal fun ComposeSimpleButton(
             }
 
             ComposeText(
-                modifier = Modifier,
                 text = label,
                 textStyle = simpleButtonModel.textStyle,
             )

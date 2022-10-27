@@ -20,18 +20,18 @@ import kotlin.math.min
 internal fun NumberOfThrowsAndDoublesDialog(
     minNumberOfThrows: Int,
     maxNumberOfDoubles: Map<Int, Int>,
+    onUndoLastMoveClicked: () -> Unit,
     onDoneClicked: (throws: Int, doubles: Int) -> Unit,
-    onDismissRequest: () -> Unit,
 ) {
     var numberOfThrows by remember { mutableStateOf(minNumberOfThrows) }
     var numberOfThrowsOnDouble by remember { mutableStateOf(1) }
 
     ComposeDialog(
-        onDismissRequest = onDismissRequest,
+        onDismissRequest = onUndoLastMoveClicked,
         dialogModel = defaultComposeDialogModel().copy(
             label = stringResource(id = R.string.how_many_throws),
             icon = R.drawable.ic_darts,
-            dismissible = false,
+            dismissible = ComposeDialogDismissible.OnBackPress,
         ),
     ) {
         Column(
@@ -163,27 +163,43 @@ internal fun NumberOfThrowsAndDoublesDialog(
             )
         }
 
-        ComposeSimpleButton(
-            modifier = Modifier.fillMaxWidth(),
-            label = stringResource(id = R.string.done),
-            onClick = {
-                if (
-                    validate(
-                        minNumberOfThrows,
-                        maxNumberOfDoubles,
-                        numberOfThrows,
-                        numberOfThrowsOnDouble,
-                    )
-                ) {
-                    onDoneClicked(numberOfThrows, numberOfThrowsOnDouble)
-                }
-            },
-            simpleButtonModel = defaultComposeSimpleButtonModel().copy(
-                backgroundColor = colorResource(id = R.color.red),
-                icon = R.drawable.ic_done,
-                orientation = ComposeSimpleButtonOrientation.Horizontal,
+        Column(
+            verticalArrangement = Arrangement.spacedBy(
+                dimensionResource(id = R.dimen.margin_tiny),
             ),
-        )
+        ) {
+            ComposeSimpleButton(
+                modifier = Modifier.fillMaxWidth(),
+                label = stringResource(id = R.string.undo_last_move),
+                onClick = onUndoLastMoveClicked,
+                simpleButtonModel = defaultComposeSimpleButtonModel().copy(
+                    backgroundColor = MaterialTheme.colors.secondary,
+                    icon = R.drawable.ic_undo,
+                    orientation = ComposeSimpleButtonOrientation.Horizontal,
+                ),
+            )
+            ComposeSimpleButton(
+                modifier = Modifier.fillMaxWidth(),
+                label = stringResource(id = R.string.done),
+                onClick = {
+                    if (
+                        validate(
+                            minNumberOfThrows,
+                            maxNumberOfDoubles,
+                            numberOfThrows,
+                            numberOfThrowsOnDouble,
+                        )
+                    ) {
+                        onDoneClicked(numberOfThrows, numberOfThrowsOnDouble)
+                    }
+                },
+                simpleButtonModel = defaultComposeSimpleButtonModel().copy(
+                    backgroundColor = colorResource(id = R.color.red),
+                    icon = R.drawable.ic_done,
+                    orientation = ComposeSimpleButtonOrientation.Horizontal,
+                ),
+            )
+        }
     }
 }
 
