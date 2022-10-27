@@ -372,6 +372,12 @@ internal class GameActiveX01ViewModel(
         // TODO do something
     }
 
+    fun onDiscardAndCloseClicked() {
+        viewModelScope.launch {
+            eventChannel.send(GameActiveX01Event.NavigateBack)
+        }
+    }
+
     fun onSaveAndCloseClicked() {
         viewModelScope.launch {
             eventChannel.send(GameActiveX01Event.NavigateBack)

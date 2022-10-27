@@ -185,7 +185,10 @@ internal fun GameActiveX01Screen(
 
     if (showWarningDialog) {
         WarningDialog(
-            onDiscardAndCloseClicked = { showWarningDialog = false },
+            onDiscardAndCloseClicked = {
+                showWarningDialog = false
+                viewModel.onDiscardAndCloseClicked()
+            },
             onRestartClicked = {
                 showWarningDialog = false
                 viewModel.onRestartClicked()
