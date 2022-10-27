@@ -61,4 +61,8 @@
 	<string name="average">average</string>
 	<string name="cpu_avg">CPU (avg. %.0f)</string>
 	<string name="name">name</string>
+	<string name="score_inputted_is_incorrect">score you inputted is incorrect!</string>
+	<string name="you_can_input_three_values">you can input only three values in total!</string>
+	<string name="only_two_players_game_is_supported">only two players game is supported</string>
+	<string name="you_can_input_x01_values">you can only input values ending in a 01!</string>
 </resources>

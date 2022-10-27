@@ -1,10 +1,12 @@
 package com.pointlessapps.dartify.compose.game.setup.x01.ui
 
+import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pointlessapps.dartify.R
 import com.pointlessapps.dartify.compose.game.model.*
 import com.pointlessapps.dartify.compose.game.setup.x01.ui.GameSetupX01ViewModel.Companion.DEFAULT_NUMBER_OF_LEGS
 import com.pointlessapps.dartify.compose.game.setup.x01.ui.GameSetupX01ViewModel.Companion.DEFAULT_NUMBER_OF_SETS
@@ -18,6 +20,8 @@ import java.lang.Integer.min
 internal sealed interface GameSetupX01Event {
     @JvmInline
     value class Navigate(val route: Route) : GameSetupX01Event
+    @JvmInline
+    value class ShowErrorSnackbar(@StringRes val message: Int) : GameSetupX01Event
 }
 
 internal data class GameSetupX01State(
@@ -40,7 +44,12 @@ internal class GameSetupX01ViewModel : ViewModel() {
 
     fun onStartGameClicked() {
         if (state.players.size != 2) {
-            // TODO show error snackbar
+            viewModelScope.launch {
+                eventChannel.send(
+                    GameSetupX01Event.ShowErrorSnackbar(R.string.only_two_players_game_is_supported),
+                )
+            }
+
             return
         }
 
@@ -70,7 +79,12 @@ internal class GameSetupX01ViewModel : ViewModel() {
 
     fun setStartingScore(score: Int?) {
         if (score == null || !validateStartingScore(score)) {
-            // TODO show error snackbar
+            viewModelScope.launch {
+                eventChannel.send(
+                    GameSetupX01Event.ShowErrorSnackbar(R.string.you_can_input_x01_values),
+                )
+            }
+
             return
         }
 

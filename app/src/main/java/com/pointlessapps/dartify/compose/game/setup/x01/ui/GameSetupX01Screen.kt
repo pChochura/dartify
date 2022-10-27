@@ -18,6 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
+import com.pointlessapps.dartify.LocalSnackbarHostState
 import com.pointlessapps.dartify.R
 import com.pointlessapps.dartify.compose.game.model.GameMode
 import com.pointlessapps.dartify.compose.game.model.MatchResolutionStrategy
@@ -35,6 +36,8 @@ internal fun GameSetupX01Screen(
     viewModel: GameSetupX01ViewModel = getViewModel(),
     onNavigate: (Route?) -> Unit,
 ) {
+    val localSnackbarHostState = LocalSnackbarHostState.current
+
     var showStartingScoreDialog by remember { mutableStateOf(false) }
     var gameModeDialogModel by remember { mutableStateOf<GameModeDialogModel?>(null) }
 
@@ -42,6 +45,8 @@ internal fun GameSetupX01Screen(
         viewModel.events.collect {
             when (it) {
                 is GameSetupX01Event.Navigate -> onNavigate(it.route)
+                is GameSetupX01Event.ShowErrorSnackbar ->
+                    localSnackbarHostState.showSnackbar(it.message)
             }
         }
     }

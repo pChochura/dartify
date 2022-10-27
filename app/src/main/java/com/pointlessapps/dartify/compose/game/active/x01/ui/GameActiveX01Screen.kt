@@ -17,6 +17,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import com.pointlessapps.dartify.LocalSnackbarHostState
 import com.pointlessapps.dartify.R
 import com.pointlessapps.dartify.compose.game.active.x01.model.InputMode
 import com.pointlessapps.dartify.compose.game.active.x01.model.PlayerScore
@@ -44,6 +45,8 @@ internal fun GameActiveX01Screen(
     gameSettings: GameSettings,
     onNavigate: (Route?) -> Unit,
 ) {
+    val localSnackbarHostState = LocalSnackbarHostState.current
+
     var numberOfThrowsAndDoublesDialogModel by remember {
         mutableStateOf<NumberOfThrowsDialogModel?>(null)
     }
@@ -78,6 +81,8 @@ internal fun GameActiveX01Screen(
                     )
                 is GameActiveX01Event.ShowWinnerDialog ->
                     winnerDialogModel = WinnerDialogModel(it.playerScore)
+                is GameActiveX01Event.ShowErrorSnackbar ->
+                    localSnackbarHostState.showSnackbar(it.message)
             }
         }
     }

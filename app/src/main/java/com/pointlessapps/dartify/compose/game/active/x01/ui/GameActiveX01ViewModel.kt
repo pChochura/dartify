@@ -1,11 +1,13 @@
 package com.pointlessapps.dartify.compose.game.active.x01.ui
 
+import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pointlessapps.dartify.R
 import com.pointlessapps.dartify.compose.game.active.x01.model.InputMode
 import com.pointlessapps.dartify.compose.game.active.x01.model.InputScore
 import com.pointlessapps.dartify.compose.game.active.x01.model.InputScore.Dart.Companion.MAX_NUMBER_OF_THROWS
@@ -46,6 +48,9 @@ internal sealed interface GameActiveX01Event {
     ) : GameActiveX01Event
 
     data class ShowWinnerDialog(val playerScore: PlayerScore) : GameActiveX01Event
+
+    @JvmInline
+    value class ShowErrorSnackbar(@StringRes val message: Int) : GameActiveX01Event
 }
 
 internal data class GameActiveX01State(
@@ -160,7 +165,12 @@ internal class GameActiveX01ViewModel(
             inputModes[state.currentPlayer?.id] == InputMode.PerDart &&
             (state.currentInputScore as? InputScore.Dart)?.scores?.size == MAX_NUMBER_OF_THROWS
         ) {
-            // TODO show an error snackbar
+            viewModelScope.launch {
+                eventChannel.send(
+                    GameActiveX01Event.ShowErrorSnackbar(R.string.you_can_input_three_values),
+                )
+            }
+
             return
         }
 
@@ -236,7 +246,12 @@ internal class GameActiveX01ViewModel(
         )
 
         if (!validateScoreUseCase(inputScore)) {
-            // TODO show error snackbar
+            viewModelScope.launch {
+                eventChannel.send(
+                    GameActiveX01Event.ShowErrorSnackbar(R.string.score_inputted_is_incorrect),
+                )
+            }
+
             return
         }
 
