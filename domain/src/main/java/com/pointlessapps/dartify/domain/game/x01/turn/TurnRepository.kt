@@ -218,6 +218,7 @@ internal class TurnRepositoryImpl(
             return when {
                 shouldAskForNumberOfDoubles && inputScore is InputScore.Dart -> {
                     DoneTurnEvent.AskForNumberOfDoubles(
+                        minNumberOfDoubles = 1,
                         maxNumberOfDoubles = maxNumberOfDoubles[inputScore.scores.size] ?: 1,
                     )
                 }
@@ -237,6 +238,7 @@ internal class TurnRepositoryImpl(
 
         if (shouldAskForNumberOfDoubles) {
             return DoneTurnEvent.AskForNumberOfDoubles(
+                minNumberOfDoubles = 0,
                 maxNumberOfDoubles = maxNumberOfDoubles[DEFAULT_NUMBER_OF_THROWS] ?: 1,
             )
         }

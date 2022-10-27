@@ -6,6 +6,7 @@ sealed interface DoneTurnEvent {
     data class AskForNumberOfThrows(val minNumberOfThrows: Int) : DoneTurnEvent
 
     data class AskForNumberOfDoubles(
+        val minNumberOfDoubles: Int,
         val maxNumberOfDoubles: Int,
     ) : DoneTurnEvent
 

@@ -40,8 +40,10 @@ internal sealed interface GameActiveX01Event {
     @JvmInline
     value class AskForNumberOfThrows(val minNumberOfThrows: Int) : GameActiveX01Event
 
-    @JvmInline
-    value class AskForNumberOfDoubles(val maxNumberOfDoubles: Int) : GameActiveX01Event
+    data class AskForNumberOfDoubles(
+        val minNumberOfDoubles: Int,
+        val maxNumberOfDoubles: Int,
+    ) : GameActiveX01Event
 
     data class ShowWinnerDialog(val playerScore: PlayerScore) : GameActiveX01Event
 }
@@ -242,6 +244,7 @@ internal class GameActiveX01ViewModel(
             when (val event = doneTurnUseCase(inputScore)) {
                 is DoneTurnEvent.AskForNumberOfDoubles -> eventChannel.send(
                     GameActiveX01Event.AskForNumberOfDoubles(
+                        minNumberOfDoubles = event.minNumberOfDoubles,
                         maxNumberOfDoubles = event.maxNumberOfDoubles,
                     ),
                 )

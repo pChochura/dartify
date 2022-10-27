@@ -64,14 +64,17 @@ internal fun GameActiveX01Screen(
                 is GameActiveX01Event.Navigate -> onNavigate(it.route)
                 is GameActiveX01Event.AskForNumberOfThrows ->
                     numberOfThrowsAndDoublesDialogModel = NumberOfThrowsDialogModel(
-                        it.minNumberOfThrows,
+                        minNumberOfThrows = it.minNumberOfThrows,
                     )
                 is GameActiveX01Event.AskForNumberOfDoubles ->
-                    numberOfDoublesDialogModel = NumberOfDoublesDialogModel(it.maxNumberOfDoubles)
+                    numberOfDoublesDialogModel = NumberOfDoublesDialogModel(
+                        minNumberOfDoubles = it.minNumberOfDoubles,
+                        maxNumberOfDoubles = it.maxNumberOfDoubles,
+                    )
                 is GameActiveX01Event.AskForNumberOfThrowsAndDoubles ->
                     numberOfThrowsAndDoublesDialogModel = NumberOfThrowsDialogModel(
-                        it.minNumberOfThrows,
-                        it.maxNumberOfDoubles,
+                        minNumberOfThrows = it.minNumberOfThrows,
+                        maxNumberOfDoubles = it.maxNumberOfDoubles,
                     )
                 is GameActiveX01Event.ShowWinnerDialog ->
                     winnerDialogModel = WinnerDialogModel(it.playerScore)
@@ -128,10 +131,10 @@ internal fun GameActiveX01Screen(
     }
 
     numberOfThrowsAndDoublesDialogModel?.let { model ->
-        if (model.maxNumberOfDouble != null) {
+        if (model.maxNumberOfDoubles != null) {
             NumberOfThrowsAndDoublesDialog(
                 minNumberOfThrows = model.minNumberOfThrows,
-                maxNumberOfDoubles = model.maxNumberOfDouble,
+                maxNumberOfDoubles = model.maxNumberOfDoubles,
                 onDoneClicked = { throwsInTotal, throwsOnDouble ->
                     viewModel.onNumberOfThrowsClicked(throwsInTotal, throwsOnDouble)
                     numberOfThrowsAndDoublesDialogModel = null
@@ -152,7 +155,8 @@ internal fun GameActiveX01Screen(
 
     numberOfDoublesDialogModel?.let { model ->
         NumberOfDoublesDialog(
-            maxNumberOfDoubles = model.maxNumberOfDouble,
+            minNumberOfDoubles = model.minNumberOfDoubles,
+            maxNumberOfDoubles = model.maxNumberOfDoubles,
             onButtonClicked = {
                 viewModel.onNumberOfDoublesClicked(it)
                 numberOfDoublesDialogModel = null
@@ -421,11 +425,12 @@ private fun RowScope.Score(
 
 private data class NumberOfThrowsDialogModel(
     val minNumberOfThrows: Int,
-    val maxNumberOfDouble: Map<Int, Int>? = null,
+    val maxNumberOfDoubles: Map<Int, Int>? = null,
 )
 
 private data class NumberOfDoublesDialogModel(
-    val maxNumberOfDouble: Int,
+    val minNumberOfDoubles: Int,
+    val maxNumberOfDoubles: Int,
 )
 
 private data class WinnerDialogModel(

@@ -18,6 +18,7 @@ import com.pointlessapps.dartify.compose.ui.components.*
 
 @Composable
 internal fun NumberOfDoublesDialog(
+    minNumberOfDoubles: Int,
     maxNumberOfDoubles: Int,
     onButtonClicked: (Int) -> Unit,
     onDismissRequest: () -> Unit,
@@ -52,7 +53,7 @@ internal fun NumberOfDoublesDialog(
                                 fontSize = 32.sp,
                             ),
                         ),
-                        enabled = it <= maxNumberOfDoubles,
+                        enabled = it in minNumberOfDoubles..maxNumberOfDoubles,
                     ),
                 )
             }
