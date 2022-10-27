@@ -67,7 +67,11 @@ internal fun SelectPlayerNameDialog(
             ComposeSimpleButton(
                 modifier = Modifier.fillMaxWidth(),
                 label = stringResource(id = R.string.save),
-                onClick = { onSaveClicked(Player(name = name)) },
+                onClick = {
+                    if (name.isNotBlank()) {
+                        onSaveClicked(Player(name = name))
+                    }
+                },
                 simpleButtonModel = defaultComposeSimpleButtonModel().copy(
                     backgroundColor = colorResource(id = R.color.red),
                     icon = R.drawable.ic_done,
