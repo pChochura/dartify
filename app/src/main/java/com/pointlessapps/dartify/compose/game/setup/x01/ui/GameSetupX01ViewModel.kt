@@ -5,11 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.pointlessapps.dartify.compose.game.model.Bot
-import com.pointlessapps.dartify.compose.game.model.GameSettings
-import com.pointlessapps.dartify.compose.game.model.MatchResolutionStrategy
-import com.pointlessapps.dartify.compose.game.model.Player
-import com.pointlessapps.dartify.compose.game.model.GameMode
+import com.pointlessapps.dartify.compose.game.model.*
 import com.pointlessapps.dartify.compose.game.setup.x01.ui.GameSetupX01ViewModel.Companion.DEFAULT_NUMBER_OF_LEGS
 import com.pointlessapps.dartify.compose.game.setup.x01.ui.GameSetupX01ViewModel.Companion.DEFAULT_NUMBER_OF_SETS
 import com.pointlessapps.dartify.compose.game.setup.x01.ui.GameSetupX01ViewModel.Companion.DEFAULT_STARTING_SCORE
@@ -81,15 +77,27 @@ internal class GameSetupX01ViewModel : ViewModel() {
         )
     }
 
-    fun onInGameModeSelected(gameMode: GameMode) {
+    fun onInGameModeSelected(gameMode: GameMode?) {
         state = state.copy(
-            inMode = gameMode,
+            inMode = requireNotNull(gameMode),
         )
     }
 
-    fun onOutGameModeSelected(gameMode: GameMode) {
+    fun onOutGameModeSelected(gameMode: GameMode?) {
         state = state.copy(
-            outMode = gameMode,
+            outMode = requireNotNull(gameMode),
+        )
+    }
+
+    fun onOutGameModeSelectedForPlayer(gameMode: GameMode?, player: Player) {
+        state = state.copy(
+            players = state.players.map {
+                if (it.id == player.id) {
+                    it.copy(outMode = gameMode)
+                } else {
+                    it
+                }
+            },
         )
     }
 

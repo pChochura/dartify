@@ -1,4 +1,4 @@
-package com.pointlessapps.dartify.compose.game.setup.x01.ui.dialogs
+package com.pointlessapps.dartify.compose.game.setup.x01.ui.dialog
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement

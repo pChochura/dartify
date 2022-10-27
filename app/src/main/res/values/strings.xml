@@ -48,4 +48,9 @@
 	<string name="warning">warning!</string>
 	<string name="restart">restart</string>
 	<string name="discard_and_close">discard and close</string>
+	<string name="use_default">use default</string>
+	<string name="s">s</string>
+	<string name="d">d</string>
+	<string name="m">m</string>
+	<string name="out_mode_abbrev">%s-out</string>
 </resources>

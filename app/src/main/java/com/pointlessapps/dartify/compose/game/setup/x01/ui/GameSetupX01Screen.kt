@@ -19,13 +19,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import com.pointlessapps.dartify.R
+import com.pointlessapps.dartify.compose.game.model.GameMode
+import com.pointlessapps.dartify.compose.game.model.MatchResolutionStrategy
 import com.pointlessapps.dartify.compose.game.model.Player
 import com.pointlessapps.dartify.compose.game.setup.ui.PlayerEntryCard
 import com.pointlessapps.dartify.compose.game.setup.ui.defaultPlayerEntryCardModel
-import com.pointlessapps.dartify.compose.game.model.GameMode
-import com.pointlessapps.dartify.compose.game.model.MatchResolutionStrategy
-import com.pointlessapps.dartify.compose.game.setup.x01.ui.dialogs.GameModeDialog
-import com.pointlessapps.dartify.compose.game.setup.x01.ui.dialogs.StartingScoreDialog
+import com.pointlessapps.dartify.compose.game.setup.x01.ui.dialog.GameModeDialog
+import com.pointlessapps.dartify.compose.game.setup.x01.ui.dialog.StartingScoreDialog
 import com.pointlessapps.dartify.compose.ui.components.*
 import com.pointlessapps.dartify.compose.ui.theme.Route
 import org.koin.androidx.compose.getViewModel
@@ -35,7 +35,7 @@ internal fun GameSetupX01Screen(
     viewModel: GameSetupX01ViewModel = getViewModel(),
     onNavigate: (Route?) -> Unit,
 ) {
-    var startingScoreDialogModel by remember { mutableStateOf<StartingScoreDialogModel?>(null) }
+    var showStartingScoreDialog by remember { mutableStateOf(false) }
     var gameModeDialogModel by remember { mutableStateOf<GameModeDialogModel?>(null) }
 
     LaunchedEffect(Unit) {
@@ -66,7 +66,7 @@ internal fun GameSetupX01Screen(
                 numberOfSets = viewModel.state.numberOfSets,
                 numberOfLegs = viewModel.state.numberOfLegs,
                 matchResolutionStrategy = viewModel.state.matchResolutionStrategy,
-                onShowStartingScoreDialog = { startingScoreDialogModel = it },
+                onShowStartingScoreDialog = { showStartingScoreDialog = true },
                 onMatchResolutionStrategyChanged = viewModel::onMatchResolutionStrategyChanged,
                 onNumberOfSetsChanged = viewModel::onNumberOfSetsChanged,
                 onNumberOfLegsChanged = viewModel::onNumberOfLegsChanged,
@@ -80,26 +80,34 @@ internal fun GameSetupX01Screen(
             )
             Players(
                 players = viewModel.state.players,
+                onPlayerClicked = { player ->
+                    gameModeDialogModel = GameModeDialogModel(
+                        R.string.out_mode,
+                        cancelable = true,
+                        callback = { viewModel.onOutGameModeSelectedForPlayer(it, player) },
+                    )
+                },
                 onAddPlayerClicked = viewModel::onAddPlayerClicked,
             )
         }
     }
 
-    startingScoreDialogModel?.let {
+    if (showStartingScoreDialog) {
         StartingScoreDialog(
             onButtonClicked = {
                 viewModel.setStartingScore(it)
-                startingScoreDialogModel = null
+                showStartingScoreDialog = false
             },
-            onDismissRequest = { startingScoreDialogModel = null },
+            onDismissRequest = { showStartingScoreDialog = false },
         )
     }
 
     gameModeDialogModel?.let { model ->
         GameModeDialog(
             label = model.label,
+            cancelable = model.cancelable,
             onButtonClicked = {
-                gameModeDialogModel?.callback?.invoke(it)
+                model.callback(it)
                 gameModeDialogModel = null
             },
             onDismissRequest = { gameModeDialogModel = null },
@@ -163,7 +171,7 @@ private fun MatchSettings(
     numberOfSets: Int,
     numberOfLegs: Int,
     matchResolutionStrategy: MatchResolutionStrategy,
-    onShowStartingScoreDialog: (StartingScoreDialogModel) -> Unit,
+    onShowStartingScoreDialog: () -> Unit,
     onMatchResolutionStrategyChanged: (MatchResolutionStrategy?) -> Unit,
     onNumberOfSetsChanged: (Int) -> Unit,
     onNumberOfLegsChanged: (Int) -> Unit,
@@ -236,7 +244,7 @@ private fun MatchSettings(
     ComposeInputButton(
         label = stringResource(id = R.string.starting_score),
         value = "$startingScore",
-        onClick = { onShowStartingScoreDialog(StartingScoreDialogModel(enabled = true)) },
+        onClick = onShowStartingScoreDialog,
         inputButtonModel = defaultComposeInputButtonModel().copy(
             icon = R.drawable.ic_score,
         ),
@@ -247,8 +255,8 @@ private fun MatchSettings(
 private fun GameModes(
     inMode: GameMode,
     outMode: GameMode,
-    onInGameModeSelected: (GameMode) -> Unit,
-    onOutGameModeSelected: (GameMode) -> Unit,
+    onInGameModeSelected: (GameMode?) -> Unit,
+    onOutGameModeSelected: (GameMode?) -> Unit,
     onShowGameModeDialog: (GameModeDialogModel) -> Unit,
 ) {
     Column(
@@ -270,7 +278,6 @@ private fun GameModes(
             onClick = {
                 onShowGameModeDialog(
                     GameModeDialogModel(
-                        enabled = true,
                         label = R.string.in_mode,
                         callback = onInGameModeSelected,
                     ),
@@ -286,7 +293,6 @@ private fun GameModes(
             onClick = {
                 onShowGameModeDialog(
                     GameModeDialogModel(
-                        enabled = true,
                         label = R.string.out_mode,
                         callback = onOutGameModeSelected,
                     ),
@@ -302,6 +308,7 @@ private fun GameModes(
 @Composable
 private fun Players(
     players: List<Player>,
+    onPlayerClicked: (Player) -> Unit,
     onAddPlayerClicked: () -> Unit,
 ) {
     Column(
@@ -320,8 +327,13 @@ private fun Players(
         players.forEach { player ->
             PlayerEntryCard(
                 label = player.name,
-                onClick = { /*TODO*/ },
-                infoCardText = player.outMode?.label?.let { stringResource(id = it) },
+                onClick = { onPlayerClicked(player) },
+                infoCardText = player.outMode?.abbrev?.let {
+                    stringResource(
+                        id = R.string.out_mode_abbrev,
+                        stringResource(id = it),
+                    ).uppercase()
+                },
                 playerEntryCardModel = defaultPlayerEntryCardModel().copy(
                     mainIcon = R.drawable.ic_person,
                     additionalIcon = R.drawable.ic_move_handle,
@@ -366,11 +378,7 @@ private fun Players(
 }
 
 private data class GameModeDialogModel(
-    val enabled: Boolean = false,
     @StringRes val label: Int = R.string.in_mode,
-    val callback: (GameMode) -> Unit,
-)
-
-private data class StartingScoreDialogModel(
-    val enabled: Boolean = false,
+    val cancelable: Boolean = false,
+    val callback: (GameMode?) -> Unit,
 )
