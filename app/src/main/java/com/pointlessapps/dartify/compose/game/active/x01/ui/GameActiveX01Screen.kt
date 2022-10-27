@@ -135,10 +135,7 @@ internal fun GameActiveX01Screen(
             NumberOfThrowsAndDoublesDialog(
                 minNumberOfThrows = model.minNumberOfThrows,
                 maxNumberOfDoubles = model.maxNumberOfDoubles,
-                onUndoLastMoveClicked = {
-                    numberOfThrowsAndDoublesDialogModel = null
-                    viewModel.onUndoClicked()
-                },
+                onUndoLastMoveClicked = { numberOfThrowsAndDoublesDialogModel = null },
                 onDoneClicked = { throwsInTotal, throwsOnDouble ->
                     viewModel.onNumberOfThrowsClicked(throwsInTotal, throwsOnDouble)
                     numberOfThrowsAndDoublesDialogModel = null
@@ -147,10 +144,7 @@ internal fun GameActiveX01Screen(
         } else {
             NumberOfThrowsDialog(
                 minNumberOfThrows = model.minNumberOfThrows,
-                onUndoLastMoveClicked = {
-                    numberOfThrowsAndDoublesDialogModel = null
-                    viewModel.onUndoClicked()
-                },
+                onUndoLastMoveClicked = { numberOfThrowsAndDoublesDialogModel = null },
                 onButtonClicked = { throwsInTotal ->
                     viewModel.onNumberOfThrowsClicked(throwsInTotal)
                     numberOfThrowsAndDoublesDialogModel = null
@@ -163,10 +157,7 @@ internal fun GameActiveX01Screen(
         NumberOfDoublesDialog(
             minNumberOfDoubles = model.minNumberOfDoubles,
             maxNumberOfDoubles = model.maxNumberOfDoubles,
-            onUndoLastMoveClicked = {
-                numberOfDoublesDialogModel = null
-                viewModel.onUndoClicked()
-            },
+            onUndoLastMoveClicked = { numberOfDoublesDialogModel = null },
             onButtonClicked = {
                 viewModel.onNumberOfDoublesClicked(it)
                 numberOfDoublesDialogModel = null

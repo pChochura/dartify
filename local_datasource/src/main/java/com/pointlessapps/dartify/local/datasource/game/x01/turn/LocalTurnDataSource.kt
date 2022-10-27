@@ -68,6 +68,8 @@ internal class LocalTurnDataSource : TurnDataSource {
     override fun getWonLegs() = playerScoreHandlers.values.sumOf { it.wonLegs }
     override fun getWonLegs(playerId: Long) = getScoreHandler(playerId).wonLegs
 
+    override fun getNumberOfLegsPlayed() = playerScoreHandlers.values.sumOf { it.allWonLegs }
+
     override fun getScoreLeft(playerId: Long) = getScoreHandler(playerId).scoreLeft
 
     override fun getPlayerScores() = playerScoreHandlers.map { (id, score) ->

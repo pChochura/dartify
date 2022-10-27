@@ -30,7 +30,7 @@ internal fun SelectCpuAverageDialog(
     ComposeDialog(
         onDismissRequest = onDismissRequest,
         dialogModel = defaultComposeDialogModel().copy(
-            label = stringResource(id = R.string.cpu).uppercase(),
+            label = stringResource(id = R.string.add_a_cpu),
             icon = R.drawable.ic_robot,
         ),
     ) {

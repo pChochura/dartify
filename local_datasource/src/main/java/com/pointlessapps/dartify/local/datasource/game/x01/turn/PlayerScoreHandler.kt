@@ -28,6 +28,11 @@ internal class PlayerScoreHandler(private val startingScore: Int) {
             .filterIsInstance<InputHistoryEvent.LegFinished>()
             .count { it.won }
 
+    val allWonLegs: Int
+        get() = previousInputs
+            .filterIsInstance<InputHistoryEvent.LegFinished>()
+            .count { it.won }
+
     val doublePercentage: Float
         get() = numberOfThrowsOnDouble.takeIf { it != 0 }?.let {
             numberOfThrowsOnDoubleSucceeded.toFloat() / it

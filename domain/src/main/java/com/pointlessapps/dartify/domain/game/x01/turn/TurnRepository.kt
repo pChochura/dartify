@@ -77,8 +77,6 @@ internal class TurnRepositoryImpl(
     private var numberOfLegs = 0
     private lateinit var matchResolutionStrategy: MatchResolutionStrategy
 
-    private var startingPlayerIndex = 0
-
     private lateinit var currentPlayer: Player
     private lateinit var players: List<Player>
     private val playersById: Map<Long, Player>
@@ -105,7 +103,6 @@ internal class TurnRepositoryImpl(
             throw EmptyPlayersListException()
         }
 
-        startingPlayerIndex = 0
         this.players = players
         this.currentPlayer = players.first()
         this.startingScore = startingScore
@@ -120,7 +117,7 @@ internal class TurnRepositoryImpl(
             score = null,
             set = 1,
             leg = 1,
-            player = players[startingPlayerIndex],
+            player = players[0],
             playerScores = turnDataSource.getPlayerScores().map {
                 it.toPlayerScore(playersById)
             },
@@ -145,8 +142,11 @@ internal class TurnRepositoryImpl(
         var previousPlayer = players[currentPlayerIndex.prevPlayerIndex()]
 
         if (turnDataSource.hasNoInputs(previousPlayer.id)) {
+            turnDataSource.revertLeg(currentPlayer.id)
+            val currentPlayerInputScore = turnDataSource.popInput(currentPlayer.id)
+
             return CurrentState(
-                score = null,
+                score = currentPlayerInputScore?.toInputScore(),
                 set = turnDataSource.getWonSets() + 1,
                 leg = turnDataSource.getWonLegs() + 1,
                 player = currentPlayer,
@@ -161,7 +161,6 @@ internal class TurnRepositoryImpl(
             if (turnDataSource.hasWonPreviousLeg(currentPlayer.id)) {
                 previousPlayer = currentPlayer
             }
-            startingPlayerIndex = startingPlayerIndex.prevPlayerIndex()
 
             players.forEach {
                 if (it.id != previousPlayer.id) {
@@ -284,9 +283,7 @@ internal class TurnRepositoryImpl(
             )
         }
 
-        startingPlayerIndex = startingPlayerIndex.nextPlayerIndex()
-
-        val nextPlayer = players[startingPlayerIndex]
+        val nextPlayer = players[turnDataSource.getNumberOfLegsPlayed() % players.size]
         currentPlayer = nextPlayer
 
         return CurrentState(

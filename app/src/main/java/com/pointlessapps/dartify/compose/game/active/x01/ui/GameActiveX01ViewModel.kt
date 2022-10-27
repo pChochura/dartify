@@ -324,6 +324,7 @@ internal class GameActiveX01ViewModel(
             )
         ) {
             is WinState -> {
+                this.state = this.state.copy(currentInputScore = null)
                 viewModelScope.launch {
                     eventChannel.send(
                         GameActiveX01Event.ShowWinnerDialog(

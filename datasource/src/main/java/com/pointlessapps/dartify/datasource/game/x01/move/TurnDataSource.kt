@@ -71,14 +71,19 @@ interface TurnDataSource {
     fun getWonSets(playerId: Long): Int
 
     /**
-     * Returns the number of finished legs collectively from all the players
+     * Returns the number of finished legs collectively from all the players in the current set
      */
     fun getWonLegs(): Int
 
     /**
-     * Returns the number of won legs by the player with the [playerId]
+     * Returns the number of won legs by the player with the [playerId] in the current set
      */
     fun getWonLegs(playerId: Long): Int
+
+    /**
+     * Returns the number of finished legs collectively from all the players in the game
+     */
+    fun getNumberOfLegsPlayed(): Int
 
     /**
      * Returns the score left for the player with the [playerId]

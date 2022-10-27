@@ -56,7 +56,7 @@
 	<string name="label_selected">selected</string>
 	<string name="label_all">all</string>
 	<string name="add_a_player">add a player</string>
-	<string name="cpu">cpu</string>
+	<string name="add_a_cpu">add a CPU</string>
 	<string name="save">save</string>
 	<string name="average">average</string>
 	<string name="cpu_avg">CPU (avg. %.0f)</string>
