@@ -35,15 +35,6 @@ internal fun TurnInputScore(
     onClearClicked: () -> Unit,
 ) {
     val score = remember(currentInputScore) { currentInputScore.score() }
-    val suggestionTextFontSize by animateFloatAsState(if (score == 0) 40f else 16f)
-    val suggestionTextAlignment by animateFloatAsState(if (score == 0) 0f else -1f)
-    val currentInputScoreOpacity by animateFloatAsState(
-        if (finishSuggestion == null || score != 0) {
-            1f
-        } else {
-            0f
-        },
-    )
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -53,7 +44,7 @@ internal fun TurnInputScore(
             ),
     ) {
         AnimatedVisibility(
-            modifier = Modifier.align(BiasAlignment(suggestionTextAlignment, 0f)),
+            modifier = Modifier.align(Alignment.CenterStart),
             visible = finishSuggestion != null,
         ) {
             ComposeText(
@@ -61,16 +52,14 @@ internal fun TurnInputScore(
                 textStyle = defaultComposeTextStyle().copy(
                     textColor = MaterialTheme.colors.onSecondary,
                     typography = MaterialTheme.typography.h1.copy(
-                        fontSize = suggestionTextFontSize.scaledSp(),
+                        fontSize = 16.scaledSp(),
                         fontWeight = FontWeight.Bold,
                     ),
                 ),
             )
         }
         ComposeText(
-            modifier = Modifier
-                .align(Alignment.Center)
-                .alpha(currentInputScoreOpacity),
+            modifier = Modifier.align(Alignment.Center),
             text = "$score",
             textStyle = defaultComposeTextStyle().copy(
                 textColor = MaterialTheme.colors.onSecondary,
@@ -81,9 +70,7 @@ internal fun TurnInputScore(
             ),
         )
         Button(
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .alpha(currentInputScoreOpacity),
+            modifier = Modifier.align(Alignment.CenterEnd),
             contentPadding = PaddingValues(
                 horizontal = dimensionResource(id = R.dimen.margin_tiny),
                 vertical = dimensionResource(id = R.dimen.margin_nano),
