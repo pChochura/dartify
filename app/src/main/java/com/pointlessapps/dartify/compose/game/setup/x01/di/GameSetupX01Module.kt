@@ -6,6 +6,8 @@ import org.koin.dsl.module
 
 internal val gameSetupX01Module = module {
     viewModel {
-        GameSetupX01ViewModel()
+        GameSetupX01ViewModel(
+            vibrateUseCase = get(),
+        )
     }
 }

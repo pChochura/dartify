@@ -140,7 +140,10 @@ internal fun GameActiveX01Screen(
             NumberOfThrowsAndDoublesDialog(
                 minNumberOfThrows = model.minNumberOfThrows,
                 maxNumberOfDoubles = model.maxNumberOfDoubles,
-                onUndoLastMoveClicked = { numberOfThrowsAndDoublesDialogModel = null },
+                onUndoLastMoveClicked = {
+                    numberOfThrowsAndDoublesDialogModel = null
+                    viewModel.vibrateClick()
+                },
                 onDoneClicked = { throwsInTotal, throwsOnDouble ->
                     viewModel.onNumberOfThrowsClicked(throwsInTotal, throwsOnDouble)
                     numberOfThrowsAndDoublesDialogModel = null
@@ -149,7 +152,10 @@ internal fun GameActiveX01Screen(
         } else {
             NumberOfThrowsDialog(
                 minNumberOfThrows = model.minNumberOfThrows,
-                onUndoLastMoveClicked = { numberOfThrowsAndDoublesDialogModel = null },
+                onUndoLastMoveClicked = {
+                    numberOfThrowsAndDoublesDialogModel = null
+                    viewModel.vibrateClick()
+                },
                 onButtonClicked = { throwsInTotal ->
                     viewModel.onNumberOfThrowsClicked(throwsInTotal)
                     numberOfThrowsAndDoublesDialogModel = null
@@ -162,7 +168,10 @@ internal fun GameActiveX01Screen(
         NumberOfDoublesDialog(
             minNumberOfDoubles = model.minNumberOfDoubles,
             maxNumberOfDoubles = model.maxNumberOfDoubles,
-            onUndoLastMoveClicked = { numberOfDoublesDialogModel = null },
+            onUndoLastMoveClicked = {
+                numberOfDoublesDialogModel = null
+                viewModel.vibrateClick()
+            },
             onButtonClicked = {
                 viewModel.onNumberOfDoublesClicked(it)
                 numberOfDoublesDialogModel = null
@@ -361,10 +370,7 @@ private fun RowScope.Score(
         verticalArrangement = Arrangement.SpaceAround,
     ) {
         ScoreStatisticEntry(icon, name, "")
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(-dimensionResource(id = R.dimen.margin_nano)),
-        ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             ComposeText(
                 text = "$scoreLeft",
                 textStyle = defaultComposeTextStyle().copy(

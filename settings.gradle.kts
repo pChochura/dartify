@@ -25,4 +25,5 @@ include(
     ":errors",
     ":datasource",
     ":local_datasource",
+    ":rumble",
 )

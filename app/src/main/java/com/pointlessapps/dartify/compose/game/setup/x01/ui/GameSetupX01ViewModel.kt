@@ -12,6 +12,7 @@ import com.pointlessapps.dartify.compose.game.setup.x01.ui.GameSetupX01ViewModel
 import com.pointlessapps.dartify.compose.game.setup.x01.ui.GameSetupX01ViewModel.Companion.DEFAULT_NUMBER_OF_SETS
 import com.pointlessapps.dartify.compose.game.setup.x01.ui.GameSetupX01ViewModel.Companion.DEFAULT_STARTING_SCORE
 import com.pointlessapps.dartify.compose.ui.theme.Route
+import com.pointlessapps.dartify.domain.vibration.usecase.VibrateUseCase
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -34,7 +35,9 @@ internal data class GameSetupX01State(
     val players: List<Player> = emptyList(),
 )
 
-internal class GameSetupX01ViewModel : ViewModel() {
+internal class GameSetupX01ViewModel(
+    private val vibrateUseCase: VibrateUseCase,
+) : ViewModel() {
 
     var state by mutableStateOf(GameSetupX01State())
         private set
@@ -44,6 +47,7 @@ internal class GameSetupX01ViewModel : ViewModel() {
 
     fun onStartGameClicked() {
         if (state.players.size != 2) {
+            vibrateUseCase.error()
             viewModelScope.launch {
                 eventChannel.send(
                     GameSetupX01Event.ShowErrorSnackbar(R.string.only_two_players_game_is_supported),
@@ -79,6 +83,7 @@ internal class GameSetupX01ViewModel : ViewModel() {
 
     fun setStartingScore(score: Int?) {
         if (score == null || !validateStartingScore(score)) {
+            vibrateUseCase.error()
             viewModelScope.launch {
                 eventChannel.send(
                     GameSetupX01Event.ShowErrorSnackbar(R.string.you_can_input_x01_values),

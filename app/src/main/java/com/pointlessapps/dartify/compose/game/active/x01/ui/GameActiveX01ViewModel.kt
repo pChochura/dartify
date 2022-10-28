@@ -25,6 +25,7 @@ import com.pointlessapps.dartify.domain.game.x01.turn.model.CurrentState
 import com.pointlessapps.dartify.domain.game.x01.turn.model.DoneTurnEvent
 import com.pointlessapps.dartify.domain.game.x01.turn.model.WinState
 import com.pointlessapps.dartify.domain.game.x01.turn.usecase.*
+import com.pointlessapps.dartify.domain.vibration.usecase.VibrateUseCase
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -71,6 +72,7 @@ internal class GameActiveX01ViewModel(
     private val undoTurnUseCase: UndoTurnUseCase,
     private val finishLegUseCase: FinishLegUseCase,
     private val setupGameUseCase: SetupGameUseCase,
+    private val vibrateUseCase: VibrateUseCase,
 ) : ViewModel() {
 
     private lateinit var gameSettings: GameSettings
@@ -142,6 +144,7 @@ internal class GameActiveX01ViewModel(
     }
 
     fun onQuickScoreClicked(quickScore: Int) {
+        vibrateUseCase.tick()
         if (
             !validateScoreUseCase(quickScore) &&
             inputModes[state.currentPlayer?.id] == InputMode.PerTurn
@@ -158,6 +161,7 @@ internal class GameActiveX01ViewModel(
 
     fun onKeyClicked(key: Int, multiplier: Int = 1) {
         if (!validateKey(key, multiplier)) {
+            vibrateUseCase.tick()
             return
         }
 
@@ -165,6 +169,7 @@ internal class GameActiveX01ViewModel(
             inputModes[state.currentPlayer?.id] == InputMode.PerDart &&
             (state.currentInputScore as? InputScore.Dart)?.scores?.size == MAX_NUMBER_OF_THROWS
         ) {
+            vibrateUseCase.error()
             viewModelScope.launch {
                 eventChannel.send(
                     GameActiveX01Event.ShowErrorSnackbar(R.string.you_can_input_three_values),
@@ -174,6 +179,7 @@ internal class GameActiveX01ViewModel(
             return
         }
 
+        vibrateUseCase.tick()
         state = state.copy(
             currentInputScore = when (requireNotNull(inputModes[state.currentPlayer?.id])) {
                 InputMode.PerTurn -> InputScore.Turn(
@@ -194,6 +200,7 @@ internal class GameActiveX01ViewModel(
     }
 
     fun onUndoClicked() {
+        vibrateUseCase.click()
         if (invokeSingleUndoAction()) {
             return
         }
@@ -246,6 +253,7 @@ internal class GameActiveX01ViewModel(
         )
 
         if (!validateScoreUseCase(inputScore)) {
+            vibrateUseCase.error()
             viewModelScope.launch {
                 eventChannel.send(
                     GameActiveX01Event.ShowErrorSnackbar(R.string.score_inputted_is_incorrect),
@@ -255,6 +263,7 @@ internal class GameActiveX01ViewModel(
             return
         }
 
+        vibrateUseCase.click()
         viewModelScope.launch {
             when (val event = doneTurnUseCase(inputScore)) {
                 is DoneTurnEvent.AskForNumberOfDoubles -> eventChannel.send(
@@ -288,6 +297,7 @@ internal class GameActiveX01ViewModel(
     }
 
     fun onClearClicked() {
+        vibrateUseCase.click()
         state = state.copy(
             currentInputScore = null,
         )
@@ -298,6 +308,7 @@ internal class GameActiveX01ViewModel(
             it.player.id == state.currentPlayer?.id
         }
 
+        vibrateUseCase.click()
         val score = state.currentInputScore
         if (
             score is InputScore.Dart &&
@@ -325,6 +336,7 @@ internal class GameActiveX01ViewModel(
     }
 
     fun onNumberOfThrowsClicked(numberOfThrows: Int, numberOfThrowsOnDoubles: Int = 0) {
+        vibrateUseCase.click()
         invokeFinishLeg(numberOfThrows, numberOfThrowsOnDoubles)
     }
 
@@ -361,6 +373,7 @@ internal class GameActiveX01ViewModel(
     }
 
     fun onChangeInputModeClicked() {
+        vibrateUseCase.click()
         inputModes[requireNotNull(state.currentPlayer?.id)] =
             when (requireNotNull(inputModes[state.currentPlayer?.id])) {
                 InputMode.PerDart -> InputMode.PerTurn
@@ -388,20 +401,25 @@ internal class GameActiveX01ViewModel(
     }
 
     fun onDiscardAndCloseClicked() {
+        vibrateUseCase.click()
         viewModelScope.launch {
             eventChannel.send(GameActiveX01Event.NavigateBack)
         }
     }
 
     fun onSaveAndCloseClicked() {
+        vibrateUseCase.click()
         viewModelScope.launch {
             eventChannel.send(GameActiveX01Event.NavigateBack)
         }
     }
 
     fun onRestartClicked() {
+        vibrateUseCase.click()
         setupGame(gameSettings)
     }
+
+    fun vibrateClick() = vibrateUseCase.click()
 
     private fun validateKey(key: Int, multiplier: Int): Boolean {
         val currentPlayerScore = state.playersScores.find {

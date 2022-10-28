@@ -6,6 +6,8 @@
       <module name="Dartify.buildSrc" target="11" />
       <module name="Dartify.buildSrc.main" target="11" />
       <module name="Dartify.buildSrc.test" target="11" />
+      <module name="dartify.local_datasource" target="11" />
+      <module name="dartify.rumble" target="11" />
       <module name="darting.app" target="11" />
       <module name="Darting.buildSrc" target="11" />
       <module name="Darting.buildSrc.main" target="11" />

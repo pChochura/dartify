@@ -5,7 +5,7 @@ plugins {
 
 android {
     compileSdk = Application.targetSdk
-    namespace = "${Application.packageName}.local.datasource"
+    namespace = "${Application.packageName}.rumble"
 
     defaultConfig {
         minSdk = Application.minSdk
@@ -22,14 +22,6 @@ android {
 
 dependencies {
     implementation(Koin.core)
-    implementation(Kotlin.Coroutines.core)
 
     implementation(project(":errors"))
-    implementation(project(":datasource"))
-    implementation(project(":rumble"))
-
-    testImplementation(kotlin("test"))
-    testImplementation(Kotest.core)
-    testImplementation(Kotest.assertions)
-    testImplementation(Mockk.core)
 }

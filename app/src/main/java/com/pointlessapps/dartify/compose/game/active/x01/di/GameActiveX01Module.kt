@@ -16,6 +16,7 @@ internal val gameActiveX01Module = module {
             undoTurnUseCase = get(),
             finishLegUseCase = get(),
             setupGameUseCase = get(),
+            vibrateUseCase = get(),
         )
     }
 }
