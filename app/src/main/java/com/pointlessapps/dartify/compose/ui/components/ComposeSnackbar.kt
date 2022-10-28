@@ -62,7 +62,7 @@ internal fun ComposeSnackbar(
                         .padding(dimensionResource(id = R.dimen.margin_tiny)),
                     text = actionLabel.uppercase(),
                     textStyle = defaultComposeTextStyle().copy(
-                        textColor = MaterialTheme.colors.background,
+                        textColor = MaterialTheme.colors.secondary,
                         typography = MaterialTheme.typography.body1.copy(
                             fontWeight = FontWeight.Bold,
                         ),
