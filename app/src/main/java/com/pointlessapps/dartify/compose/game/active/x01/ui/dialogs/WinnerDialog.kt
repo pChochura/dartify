@@ -75,8 +75,9 @@ internal fun WinnerDialog(
             )
             ScoreStatisticEntry(
                 icon = R.drawable.ic_darts,
+                label = stringResource(id = R.string.statistic_label_double),
                 value = stringResource(
-                    id = R.string.statistic_double,
+                    id = R.string.statistic_value_double,
                     playerScore.doublePercentage.toPercentage(),
                 ),
             )
@@ -87,12 +88,14 @@ internal fun WinnerDialog(
             ) {
                 ScoreStatisticEntry(
                     icon = R.drawable.ic_score,
-                    value = stringResource(id = R.string.statistic_max, playerScore.maxScore),
+                    label = stringResource(id = R.string.statistic_label_max),
+                    value = stringResource(id = R.string.statistic_value_max, playerScore.maxScore),
                 )
                 ScoreStatisticEntry(
                     icon = R.drawable.ic_stats,
+                    label = stringResource(id = R.string.statistic_label_avg),
                     value = stringResource(
-                        id = R.string.statistic_avg,
+                        id = R.string.statistic_value_avg,
                         playerScore.averageScore,
                     ),
                 )

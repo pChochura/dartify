@@ -354,15 +354,16 @@ private fun RowScope.Score(
                 },
             )
             .padding(
-                horizontal = dimensionResource(id = R.dimen.margin_tiny),
-                vertical = dimensionResource(id = R.dimen.margin_medium),
+                horizontal = dimensionResource(id = R.dimen.margin_nano),
+                vertical = dimensionResource(id = R.dimen.margin_nano),
             ),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceAround,
     ) {
-        ScoreStatisticEntry(icon, name)
+        ScoreStatisticEntry(icon, name, "")
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(-dimensionResource(id = R.dimen.margin_nano)),
         ) {
             ComposeText(
                 text = "$scoreLeft",
@@ -399,14 +400,16 @@ private fun RowScope.Score(
             ) {
                 ScoreStatisticEntry(
                     R.drawable.ic_dart,
-                    stringResource(id = R.string.statistic_darts, numberOfDarts),
+                    stringResource(id = R.string.statistic_label_darts),
+                    stringResource(id = R.string.statistic_value_darts, numberOfDarts),
                     backgroundColor = MaterialTheme.colors.primary,
                 )
                 if (doublePercentage != null) {
                     ScoreStatisticEntry(
                         R.drawable.ic_darts,
+                        stringResource(id = R.string.statistic_label_double),
                         stringResource(
-                            id = R.string.statistic_double,
+                            id = R.string.statistic_value_double,
                             doublePercentage.toPercentage(),
                         ),
                     )
@@ -419,11 +422,13 @@ private fun RowScope.Score(
             ) {
                 ScoreStatisticEntry(
                     R.drawable.ic_stats,
-                    stringResource(id = R.string.statistic_avg, average),
+                    stringResource(id = R.string.statistic_label_avg),
+                    stringResource(id = R.string.statistic_value_avg, average),
                 )
                 ScoreStatisticEntry(
                     R.drawable.ic_score,
-                    stringResource(id = R.string.statistic_max, max),
+                    stringResource(id = R.string.statistic_label_max),
+                    stringResource(id = R.string.statistic_value_max, max),
                 )
             }
         }

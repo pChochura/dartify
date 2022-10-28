@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import com.pointlessapps.dartify.R
 import com.pointlessapps.dartify.compose.ui.components.ComposeText
 import com.pointlessapps.dartify.compose.ui.components.defaultComposeTextStyle
@@ -26,6 +27,7 @@ import com.pointlessapps.dartify.compose.utils.scaledSp
 @Composable
 internal fun ScoreStatisticEntry(
     @DrawableRes icon: Int,
+    label: String,
     value: String,
     backgroundColor: Color? = null,
 ) {
@@ -47,9 +49,6 @@ internal fun ScoreStatisticEntry(
                 vertical = dimensionResource(id = R.dimen.margin_nano),
             ),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(
-            dimensionResource(id = R.dimen.margin_nano),
-        ),
     ) {
         Icon(
             modifier = Modifier.size(dimensionResource(id = R.dimen.player_score_icon_size)),
@@ -58,6 +57,20 @@ internal fun ScoreStatisticEntry(
             contentDescription = null,
         )
         ComposeText(
+            modifier = Modifier.padding(start = dimensionResource(id = R.dimen.margin_nano)),
+            text = label,
+            textStyle = defaultComposeTextStyle().copy(
+                textColor = MaterialTheme.colors.onSecondary,
+                typography = MaterialTheme.typography.subtitle1.copy(
+                    fontSize = 8.scaledSp(),
+                    fontWeight = FontWeight.Bold,
+                ),
+                textOverflow = TextOverflow.Ellipsis,
+                maxLines = 1,
+            ),
+        )
+        ComposeText(
+            modifier = Modifier.padding(start = dimensionResource(id = R.dimen.margin_nano)),
             text = value,
             textStyle = defaultComposeTextStyle().copy(
                 textColor = MaterialTheme.colors.onSecondary,
@@ -65,6 +78,8 @@ internal fun ScoreStatisticEntry(
                     fontSize = 10.scaledSp(),
                     fontWeight = FontWeight.Bold,
                 ),
+                textOverflow = TextOverflow.Clip,
+                maxLines = 1,
             ),
         )
     }

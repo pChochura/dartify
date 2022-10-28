@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 
 @Composable
 internal fun ComposeText(
@@ -32,6 +33,8 @@ internal fun ComposeText(
         color = textStyle.textColor,
         textAlign = textStyle.textAlign,
     ),
+    overflow = textStyle.textOverflow,
+    maxLines = textStyle.maxLines,
 )
 
 @Composable
@@ -39,10 +42,14 @@ internal fun defaultComposeTextStyle() = ComposeTextStyle(
     textColor = MaterialTheme.colors.onPrimary,
     typography = MaterialTheme.typography.body1,
     textAlign = TextAlign.Start,
+    textOverflow = TextOverflow.Visible,
+    maxLines = Int.MAX_VALUE,
 )
 
 internal data class ComposeTextStyle(
     val textColor: Color,
     val textAlign: TextAlign,
     val typography: TextStyle,
+    val textOverflow: TextOverflow,
+    val maxLines: Int,
 )
