@@ -20,7 +20,10 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import com.pointlessapps.dartify.LocalSnackbarHostState
 import com.pointlessapps.dartify.R
+import com.pointlessapps.dartify.compose.game.model.Bot
 import com.pointlessapps.dartify.compose.game.model.Player
 import com.pointlessapps.dartify.compose.game.setup.players.ui.dialog.SelectCpuAverageDialog
 import com.pointlessapps.dartify.compose.game.setup.players.ui.dialog.SelectPlayerNameDialog
@@ -36,8 +39,10 @@ internal fun SelectPlayersScreen(
     selectedPlayers: List<Player>,
     onPlayersSelected: (List<Player>) -> Unit,
 ) {
-    var showCpuAverageDialog by remember { mutableStateOf(false) }
-    var showPlayerNameDialog by remember { mutableStateOf(false) }
+    val localSnackbarHostState = LocalSnackbarHostState.current
+
+    var cpuAverageDialogModel by remember { mutableStateOf<CpuAverageDialogModel?>(null) }
+    var playerNameDialogModel by remember { mutableStateOf<PlayerNameDialogModel?>(null) }
 
     LaunchedEffect(selectedPlayers) {
         viewModel.setSelectedPlayers(selectedPlayers)
@@ -47,8 +52,15 @@ internal fun SelectPlayersScreen(
         viewModel.events.collect {
             when (it) {
                 is SelectPlayersEvent.OnPlayersSelected -> onPlayersSelected(it.players)
-                SelectPlayersEvent.AskForCpuAverage -> showCpuAverageDialog = true
-                SelectPlayersEvent.AskForPlayerName -> showPlayerNameDialog = true
+                is SelectPlayersEvent.AskForCpuAverage ->
+                    cpuAverageDialogModel = CpuAverageDialogModel(it.bot)
+                is SelectPlayersEvent.AskForPlayerName ->
+                    playerNameDialogModel = PlayerNameDialogModel(it.player)
+                is SelectPlayersEvent.ShowActionSnackbar -> localSnackbarHostState.showSnackbar(
+                    it.message,
+                    it.actionLabel,
+                    it.actionCallback,
+                )
             }
         }
     }
@@ -80,6 +92,7 @@ internal fun SelectPlayersScreen(
                     modifier = Modifier.animateItemPlacement(),
                     label = player.name,
                     onClick = { viewModel.onPlayerClicked(player) },
+                    onLongClick = { viewModel.onPlayerLongClicked(player) },
                     playerEntryCardModel = defaultPlayerEntryCardModel().copy(
                         mainIcon = R.drawable.ic_person,
                         additionalIcon = R.drawable.ic_close,
@@ -103,35 +116,73 @@ internal fun SelectPlayersScreen(
                     modifier = Modifier.animateItemPlacement(),
                     label = player.name,
                     onClick = { viewModel.onPlayerClicked(player) },
+                    onLongClick = { viewModel.onPlayerLongClicked(player) },
                     playerEntryCardModel = defaultPlayerEntryCardModel().copy(
                         mainIcon = R.drawable.ic_person,
                         additionalIcon = R.drawable.ic_plus,
                     ),
                 )
             }
-            item(key = R.string.save_and_close) {
+            item(key = R.string.add_a_player) {
                 AddPlayerItem(onAddPlayerClicked = viewModel::onAddPlayerClicked)
+            }
+
+            item(key = R.string.long_click_to_edit_desc) {
+                Row(
+                    modifier = Modifier.padding(
+                        top = dimensionResource(id = R.dimen.margin_small),
+                    ),
+                    horizontalArrangement = Arrangement.spacedBy(
+                        dimensionResource(id = R.dimen.margin_tiny),
+                    ),
+                ) {
+                    Icon(
+                        modifier = Modifier.size(dimensionResource(id = R.dimen.caption_icon_size)),
+                        painter = painterResource(id = R.drawable.ic_help),
+                        tint = MaterialTheme.colors.onBackground,
+                        contentDescription = null,
+                    )
+                    ComposeText(
+                        text = stringResource(id = R.string.long_click_to_edit_desc),
+                        textStyle = defaultComposeTextStyle().copy(
+                            textColor = MaterialTheme.colors.onBackground,
+                            typography = MaterialTheme.typography.subtitle1.copy(
+                                fontSize = 10.sp,
+                            ),
+                        ),
+                    )
+                }
             }
         }
     }
 
-    if (showCpuAverageDialog) {
+    cpuAverageDialogModel?.let { model ->
         SelectCpuAverageDialog(
+            bot = model.bot,
+            onRemoveClicked = {
+                viewModel.onPlayerRemoved(it)
+                cpuAverageDialogModel = null
+            },
             onSaveClicked = {
                 viewModel.onPlayerAdded(it)
-                showCpuAverageDialog = false
+                cpuAverageDialogModel = null
             },
-            onDismissRequest = { showCpuAverageDialog = false },
+            onDismissRequest = { cpuAverageDialogModel = null },
         )
     }
 
-    if (showPlayerNameDialog) {
+    playerNameDialogModel?.let { model ->
         SelectPlayerNameDialog(
+            player = model.player,
+            onRemoveClicked = {
+                viewModel.onPlayerRemoved(it)
+                playerNameDialogModel = null
+            },
             onSaveClicked = {
                 viewModel.onPlayerAdded(it)
-                showPlayerNameDialog = false
+                playerNameDialogModel = null
             },
-            onDismissRequest = { showPlayerNameDialog = false },
+            onDismissRequest = { playerNameDialogModel = null },
         )
     }
 }
@@ -220,3 +271,6 @@ private fun AddPlayerItem(onAddPlayerClicked: () -> Unit) {
         )
     }
 }
+
+private data class PlayerNameDialogModel(val player: Player?)
+private data class CpuAverageDialogModel(val bot: Bot?)

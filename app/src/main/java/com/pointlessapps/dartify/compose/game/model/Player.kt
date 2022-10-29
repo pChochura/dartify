@@ -11,7 +11,12 @@ internal open class Player(
     open val outMode: GameMode? = null,
 ) : Parcelable {
 
-    fun copy(name: String = this.name, outMode: GameMode? = this.outMode) = Player(
+    fun copy(
+        id: Long = this.id,
+        name: String = this.name,
+        outMode: GameMode? = this.outMode,
+    ) = Player(
+        id = id,
         name = name,
         outMode = outMode,
     )

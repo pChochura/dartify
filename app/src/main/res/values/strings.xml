@@ -31,11 +31,11 @@
 	<string name="undo">undo</string>
 	<string name="done">done</string>
 	<string name="game_mode_straight">straight</string>
-	<string name="game_mode_straight_desc">Any score counts</string>
+	<string name="game_mode_straight_desc">any score counts</string>
 	<string name="game_mode_double">double</string>
-	<string name="game_mode_double_desc">Only double scores count</string>
+	<string name="game_mode_double_desc">only double scores count</string>
 	<string name="game_mode_master">master</string>
-	<string name="game_mode_master_desc">Only double or treble scores count</string>
+	<string name="game_mode_master_desc">only double or treble scores count</string>
 	<string name="how_many_throws">how many throws?</string>
 	<string name="how_many_throws_on_double">how many throws on double?</string>
 	<string name="how_many_throws_on_double_desc">indicates how many throws you took on double to finish the game</string>
@@ -69,4 +69,11 @@
 	<string name="you_can_input_three_values">you can input only three values in total!</string>
 	<string name="only_two_players_game_is_supported">only two players game is supported</string>
 	<string name="you_can_input_x01_values">you can only input values ending in a 01!</string>
+	<string name="edit_the_cpu">edit the CPU</string>
+	<string name="remove">remove</string>
+	<string name="edit_the_player">edit the player</string>
+	<string name="toggle_player">toggle player %s</string>
+	<string name="edit_player">edit player %s</string>
+	<string name="long_click_to_edit_desc">if you want to edit a player name or a bot average you have to perform a long click action</string>
+	<string name="player_has_been_removed">player has been removed</string>
 </resources>

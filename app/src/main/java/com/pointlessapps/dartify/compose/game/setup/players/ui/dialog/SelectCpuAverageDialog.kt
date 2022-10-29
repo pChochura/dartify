@@ -3,6 +3,7 @@ package com.pointlessapps.dartify.compose.game.setup.players.ui.dialog
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -11,7 +12,6 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import com.pointlessapps.dartify.R
 import com.pointlessapps.dartify.compose.game.model.Bot
-import com.pointlessapps.dartify.compose.game.model.Player
 import com.pointlessapps.dartify.compose.ui.components.*
 
 private const val MIN_AVERAGE = 30
@@ -21,16 +21,32 @@ private const val AVERAGE_INCREMENT = 5
 
 @Composable
 internal fun SelectCpuAverageDialog(
-    onSaveClicked: (Player) -> Unit,
+    bot: Bot? = null,
+    onRemoveClicked: (Bot) -> Unit,
+    onSaveClicked: (Bot) -> Unit,
     onDismissRequest: () -> Unit,
 ) {
     val botNameTemplate = stringResource(id = R.string.cpu_avg)
-    var average by remember { mutableStateOf(DEFAULT_AVERAGE) }
+    var average by remember { mutableStateOf(bot?.average?.toInt() ?: DEFAULT_AVERAGE) }
+
+    fun getBot() = bot?.copy(
+        average = average.toFloat(),
+        name = String.format(botNameTemplate, average.toFloat()),
+    ) ?: Bot(
+        average = average.toFloat(),
+        name = String.format(botNameTemplate, average.toFloat()),
+    )
 
     ComposeDialog(
         onDismissRequest = onDismissRequest,
         dialogModel = defaultComposeDialogModel().copy(
-            label = stringResource(id = R.string.add_a_cpu),
+            label = stringResource(
+                id = if (bot != null) {
+                    R.string.edit_the_cpu
+                } else {
+                    R.string.add_a_cpu
+                },
+            ),
             icon = R.drawable.ic_robot,
         ),
     ) {
@@ -51,23 +67,35 @@ internal fun SelectCpuAverageDialog(
                 ),
             )
 
-            ComposeSimpleButton(
-                modifier = Modifier.fillMaxWidth(),
-                label = stringResource(id = R.string.save),
-                onClick = {
-                    onSaveClicked(
-                        Bot(
-                            average = average.toFloat(),
-                            name = String.format(botNameTemplate, average.toFloat()),
+            Column(
+                verticalArrangement = Arrangement.spacedBy(
+                    dimensionResource(id = R.dimen.margin_small),
+                ),
+            ) {
+                if (bot != null) {
+                    ComposeSimpleButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        label = stringResource(id = R.string.remove),
+                        onClick = { onRemoveClicked(bot) },
+                        simpleButtonModel = defaultComposeSimpleButtonModel().copy(
+                            backgroundColor = MaterialTheme.colors.secondary,
+                            icon = R.drawable.ic_delete,
+                            orientation = ComposeSimpleButtonOrientation.Horizontal,
                         ),
                     )
-                },
-                simpleButtonModel = defaultComposeSimpleButtonModel().copy(
-                    backgroundColor = colorResource(id = R.color.red),
-                    icon = R.drawable.ic_done,
-                    orientation = ComposeSimpleButtonOrientation.Horizontal,
-                ),
-            )
+                }
+
+                ComposeSimpleButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    label = stringResource(id = R.string.save),
+                    onClick = { onSaveClicked(getBot()) },
+                    simpleButtonModel = defaultComposeSimpleButtonModel().copy(
+                        backgroundColor = colorResource(id = R.color.red),
+                        icon = R.drawable.ic_done,
+                        orientation = ComposeSimpleButtonOrientation.Horizontal,
+                    ),
+                )
+            }
         }
     }
 }

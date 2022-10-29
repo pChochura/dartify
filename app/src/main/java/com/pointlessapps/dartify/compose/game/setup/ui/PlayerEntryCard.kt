@@ -1,8 +1,9 @@
 package com.pointlessapps.dartify.compose.game.setup.ui
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Icon
@@ -14,15 +15,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import com.pointlessapps.dartify.R
 import com.pointlessapps.dartify.compose.ui.components.ComposeText
 import com.pointlessapps.dartify.compose.ui.components.defaultComposeTextStyle
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun PlayerEntryCard(
     label: String,
     onClick: () -> Unit,
+    onLongClick: (() -> Unit)? = null,
     infoCardText: String? = null,
     modifier: Modifier = Modifier,
     playerEntryCardModel: PlayerEntryCardModel = defaultPlayerEntryCardModel(),
@@ -32,7 +37,15 @@ internal fun PlayerEntryCard(
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.medium)
             .background(playerEntryCardModel.backgroundColor)
-            .clickable { onClick() }
+            .combinedClickable(
+                role = Role.Button,
+                onClickLabel = stringResource(id = R.string.toggle_player, label),
+                onClick = onClick,
+                onLongClickLabel = stringResource(id = R.string.edit_player, label).takeIf {
+                    onLongClick != null
+                },
+                onLongClick = onLongClick,
+            )
             .padding(dimensionResource(id = R.dimen.margin_small)),
         horizontalArrangement = Arrangement.spacedBy(
             dimensionResource(id = R.dimen.margin_small),

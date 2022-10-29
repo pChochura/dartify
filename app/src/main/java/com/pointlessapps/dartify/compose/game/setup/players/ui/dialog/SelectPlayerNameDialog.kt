@@ -21,15 +21,25 @@ import com.pointlessapps.dartify.compose.ui.components.*
 
 @Composable
 internal fun SelectPlayerNameDialog(
+    player: Player? = null,
+    onRemoveClicked: (Player) -> Unit,
     onSaveClicked: (Player) -> Unit,
     onDismissRequest: () -> Unit,
 ) {
-    var name by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf(player?.name.orEmpty()) }
+
+    fun getPlayer() = player?.copy(name = name) ?: Player(name = name)
 
     ComposeDialog(
         onDismissRequest = onDismissRequest,
         dialogModel = defaultComposeDialogModel().copy(
-            label = stringResource(id = R.string.add_a_player),
+            label = stringResource(
+                id = if (player != null) {
+                    R.string.edit_the_player
+                } else {
+                    R.string.add_a_player
+                },
+            ),
             icon = R.drawable.ic_person,
         ),
     ) {
@@ -52,7 +62,7 @@ internal fun SelectPlayerNameDialog(
                 onValueChange = { name = it },
                 onImeAction = {
                     if (name.isNotBlank()) {
-                        onSaveClicked(Player(name = name))
+                        onSaveClicked(getPlayer())
                     }
                 },
                 textFieldModel = defaultComposeTextFieldModel().copy(
@@ -64,20 +74,39 @@ internal fun SelectPlayerNameDialog(
                 ),
             )
 
-            ComposeSimpleButton(
-                modifier = Modifier.fillMaxWidth(),
-                label = stringResource(id = R.string.save),
-                onClick = {
-                    if (name.isNotBlank()) {
-                        onSaveClicked(Player(name = name))
-                    }
-                },
-                simpleButtonModel = defaultComposeSimpleButtonModel().copy(
-                    backgroundColor = colorResource(id = R.color.red),
-                    icon = R.drawable.ic_done,
-                    orientation = ComposeSimpleButtonOrientation.Horizontal,
+            Column(
+                verticalArrangement = Arrangement.spacedBy(
+                    dimensionResource(id = R.dimen.margin_small),
                 ),
-            )
+            ) {
+                if (player != null) {
+                    ComposeSimpleButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        label = stringResource(id = R.string.remove),
+                        onClick = { onRemoveClicked(player) },
+                        simpleButtonModel = defaultComposeSimpleButtonModel().copy(
+                            backgroundColor = MaterialTheme.colors.secondary,
+                            icon = R.drawable.ic_delete,
+                            orientation = ComposeSimpleButtonOrientation.Horizontal,
+                        ),
+                    )
+                }
+
+                ComposeSimpleButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    label = stringResource(id = R.string.save),
+                    onClick = {
+                        if (name.isNotBlank()) {
+                            onSaveClicked(getPlayer())
+                        }
+                    },
+                    simpleButtonModel = defaultComposeSimpleButtonModel().copy(
+                        backgroundColor = colorResource(id = R.color.red),
+                        icon = R.drawable.ic_done,
+                        orientation = ComposeSimpleButtonOrientation.Horizontal,
+                    ),
+                )
+            }
         }
     }
 }

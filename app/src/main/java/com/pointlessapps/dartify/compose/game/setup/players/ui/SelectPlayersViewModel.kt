@@ -1,12 +1,15 @@
 package com.pointlessapps.dartify.compose.game.setup.players.ui
 
+import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pointlessapps.dartify.R
 import com.pointlessapps.dartify.compose.game.model.Bot
 import com.pointlessapps.dartify.compose.game.model.Player
+import com.pointlessapps.dartify.domain.vibration.usecase.VibrateUseCase
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -16,8 +19,14 @@ private const val ADD_CPU_ID = 0L
 internal sealed interface SelectPlayersEvent {
     @JvmInline
     value class OnPlayersSelected(val players: List<Player>) : SelectPlayersEvent
-    object AskForCpuAverage : SelectPlayersEvent
-    object AskForPlayerName : SelectPlayersEvent
+    data class AskForCpuAverage(val bot: Bot?) : SelectPlayersEvent
+    data class AskForPlayerName(val player: Player?) : SelectPlayersEvent
+
+    data class ShowActionSnackbar(
+        @StringRes val message: Int,
+        @StringRes val actionLabel: Int,
+        val actionCallback: () -> Unit,
+    ) : SelectPlayersEvent
 }
 
 internal data class SelectPlayersState(
@@ -27,7 +36,9 @@ internal data class SelectPlayersState(
     ),
 )
 
-internal class SelectPlayersViewModel : ViewModel() {
+internal class SelectPlayersViewModel(
+    private val vibrateUseCase: VibrateUseCase,
+) : ViewModel() {
 
     var state by mutableStateOf(SelectPlayersState())
         private set
@@ -52,21 +63,13 @@ internal class SelectPlayersViewModel : ViewModel() {
     fun onPlayerClicked(player: Player) {
         if (player is Bot && player.id == ADD_CPU_ID) {
             viewModelScope.launch {
-                eventChannel.send(SelectPlayersEvent.AskForCpuAverage)
+                eventChannel.send(SelectPlayersEvent.AskForCpuAverage(null))
             }
 
             return
         }
 
         val selectedPlayer = state.selectedPlayers.find { it.id == player.id }
-        if (selectedPlayer is Bot) {
-            state = state.copy(
-                selectedPlayers = state.selectedPlayers - player,
-            )
-
-            return
-        }
-
         state = if (selectedPlayer != null) {
             state.copy(
                 selectedPlayers = state.selectedPlayers - player,
@@ -80,15 +83,60 @@ internal class SelectPlayersViewModel : ViewModel() {
         }
     }
 
+    fun onPlayerLongClicked(player: Player) {
+        if (player.id == ADD_CPU_ID) {
+            vibrateUseCase.error()
+
+            return
+        }
+
+        vibrateUseCase.click()
+        viewModelScope.launch {
+            eventChannel.send(
+                if (player is Bot) {
+                    SelectPlayersEvent.AskForCpuAverage(player)
+                } else {
+                    SelectPlayersEvent.AskForPlayerName(player)
+                },
+            )
+        }
+    }
+
     fun onAddPlayerClicked() {
         viewModelScope.launch {
-            eventChannel.send(SelectPlayersEvent.AskForPlayerName)
+            eventChannel.send(SelectPlayersEvent.AskForPlayerName(null))
         }
     }
 
     fun onPlayerAdded(player: Player) {
         state = state.copy(
-            selectedPlayers = state.selectedPlayers + player,
+            allPlayers = state.allPlayers.filter { it.id != player.id },
+            selectedPlayers = state.selectedPlayers.filter { it.id != player.id } + player,
         )
+    }
+
+    fun onPlayerRemoved(player: Player) {
+        val isSelected = state.selectedPlayers.find { it.id == player.id } != null
+        state = state.copy(
+            allPlayers = state.allPlayers - player,
+            selectedPlayers = state.selectedPlayers - player,
+        )
+
+        vibrateUseCase.error()
+        viewModelScope.launch {
+            eventChannel.send(
+                SelectPlayersEvent.ShowActionSnackbar(
+                    R.string.player_has_been_removed,
+                    R.string.undo,
+                ) {
+                    vibrateUseCase.click()
+                    state = if (isSelected) {
+                        state.copy(selectedPlayers = state.selectedPlayers + player)
+                    } else {
+                        state.copy(allPlayers = state.allPlayers + player)
+                    }
+                },
+            )
+        }
     }
 }
