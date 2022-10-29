@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.pointlessapps.dartify.R
+import com.pointlessapps.dartify.compose.ui.modifiers.repeatingClickable
 
 @Composable
 internal fun ComposeCounter(
@@ -39,8 +40,12 @@ internal fun ComposeCounter(
             horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.margin_small)),
         ) {
             ComposeButton(
+                modifier = Modifier.repeatingClickable(
+                    enabled = value > minValue,
+                    onClick = { onChange(-1) },
+                ),
                 label = null,
-                onClick = { onChange(-1) },
+                onClick = {},
                 buttonModel = defaultComposeButtonModel().copy(
                     enabled = value > minValue,
                     icon = R.drawable.ic_minus,
@@ -66,8 +71,12 @@ internal fun ComposeCounter(
                 ),
             )
             ComposeButton(
+                modifier = Modifier.repeatingClickable(
+                    enabled = value < maxValue,
+                    onClick = { onChange(1) },
+                ),
                 label = null,
-                onClick = { onChange(1) },
+                onClick = {},
                 buttonModel = defaultComposeButtonModel().copy(
                     enabled = value < maxValue,
                     icon = R.drawable.ic_plus,
