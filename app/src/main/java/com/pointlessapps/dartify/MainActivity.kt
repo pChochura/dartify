@@ -73,7 +73,7 @@ class MainActivity : ComponentActivity() {
                                 .fillMaxSize()
                                 .systemBarsPadding()
                                 .imePadding()
-                                .padding(dimensionResource(id = R.dimen.margin_big)),
+                                .padding(dimensionResource(id = R.dimen.margin_semi_big)),
                             contentAlignment = Alignment.BottomCenter,
                         ) {
                             SnackbarHost(hostState = snackbarHostState) {
