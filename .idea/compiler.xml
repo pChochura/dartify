@@ -4,7 +4,10 @@
     <bytecodeTargetLevel target="1.8">
       <module name="dartify.app" target="11" />
       <module name="Dartify.buildSrc" target="11" />
+      <module name="dartify.buildSrc" target="11" />
+      <module name="dartify.buildSrc.main" target="11" />
       <module name="Dartify.buildSrc.main" target="11" />
+      <module name="dartify.buildSrc.test" target="11" />
       <module name="Dartify.buildSrc.test" target="11" />
       <module name="dartify.local_datasource" target="11" />
       <module name="dartify.rumble" target="11" />

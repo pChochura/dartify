@@ -30,14 +30,15 @@ import com.pointlessapps.dartify.compose.game.setup.players.ui.dialog.SelectPlay
 import com.pointlessapps.dartify.compose.game.setup.ui.PlayerEntryCard
 import com.pointlessapps.dartify.compose.game.setup.ui.defaultPlayerEntryCardModel
 import com.pointlessapps.dartify.compose.ui.components.*
+import kotlinx.collections.immutable.ImmutableList
 import org.koin.androidx.compose.getViewModel
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun SelectPlayersScreen(
     viewModel: SelectPlayersViewModel = getViewModel(),
-    selectedPlayers: List<Player>,
-    onPlayersSelected: (List<Player>) -> Unit,
+    selectedPlayers: ImmutableList<Player>,
+    onPlayersSelected: (ImmutableList<Player>) -> Unit,
 ) {
     val localSnackbarHostState = LocalSnackbarHostState.current
 

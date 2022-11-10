@@ -1,9 +1,11 @@
 package com.pointlessapps.dartify.compose.game.model
 
 import android.os.Parcelable
+import androidx.compose.runtime.Stable
 import kotlinx.parcelize.Parcelize
 import java.util.*
 
+@Stable
 @Parcelize
 internal open class Player(
     open val id: Long = UUID.randomUUID().mostSignificantBits,
@@ -22,6 +24,7 @@ internal open class Player(
     )
 }
 
+@Stable
 @Parcelize
 internal data class Bot(
     val average: Float,

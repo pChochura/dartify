@@ -10,6 +10,8 @@ object Kotlin {
         const val android = "org.jetbrains.kotlinx:kotlinx-coroutines-android:$version"
         const val core = "org.jetbrains.kotlinx:kotlinx-coroutines-core:$version"
     }
+
+    const val ImmutableCollections = "org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.5"
 }
 
 object Java {

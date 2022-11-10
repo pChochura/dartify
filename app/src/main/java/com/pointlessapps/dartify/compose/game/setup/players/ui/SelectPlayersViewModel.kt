@@ -9,7 +9,10 @@ import androidx.lifecycle.viewModelScope
 import com.pointlessapps.dartify.R
 import com.pointlessapps.dartify.compose.game.model.Bot
 import com.pointlessapps.dartify.compose.game.model.Player
+import com.pointlessapps.dartify.compose.utils.emptyImmutableList
 import com.pointlessapps.dartify.domain.vibration.usecase.VibrateUseCase
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -18,7 +21,7 @@ private const val ADD_CPU_ID = 0L
 
 internal sealed interface SelectPlayersEvent {
     @JvmInline
-    value class OnPlayersSelected(val players: List<Player>) : SelectPlayersEvent
+    value class OnPlayersSelected(val players: ImmutableList<Player>) : SelectPlayersEvent
     data class AskForCpuAverage(val bot: Bot?) : SelectPlayersEvent
     data class AskForPlayerName(val player: Player?) : SelectPlayersEvent
 
@@ -30,10 +33,10 @@ internal sealed interface SelectPlayersEvent {
 }
 
 internal data class SelectPlayersState(
-    val selectedPlayers: List<Player> = emptyList(),
-    val allPlayers: List<Player> = listOf(
+    val selectedPlayers: ImmutableList<Player> = emptyImmutableList(),
+    val allPlayers: ImmutableList<Player> = listOf(
         Bot(id = ADD_CPU_ID, average = 0f, name = "CPU"),
-    ),
+    ).toImmutableList(),
 )
 
 internal class SelectPlayersViewModel(
@@ -46,11 +49,11 @@ internal class SelectPlayersViewModel(
     private val eventChannel = Channel<SelectPlayersEvent>()
     val events = eventChannel.receiveAsFlow()
 
-    fun setSelectedPlayers(selectedPlayers: List<Player>) {
+    fun setSelectedPlayers(selectedPlayers: ImmutableList<Player>) {
         val selectedPlayerIds = selectedPlayers.map(Player::id).toSet()
         state = state.copy(
             selectedPlayers = selectedPlayers,
-            allPlayers = state.allPlayers.filter { it.id !in selectedPlayerIds },
+            allPlayers = state.allPlayers.filter { it.id !in selectedPlayerIds }.toImmutableList(),
         )
     }
 
@@ -72,13 +75,13 @@ internal class SelectPlayersViewModel(
         val selectedPlayer = state.selectedPlayers.find { it.id == player.id }
         state = if (selectedPlayer != null) {
             state.copy(
-                selectedPlayers = state.selectedPlayers - player,
-                allPlayers = state.allPlayers + player,
+                selectedPlayers = (state.selectedPlayers - player).toImmutableList(),
+                allPlayers = (state.allPlayers + player).toImmutableList(),
             )
         } else {
             state.copy(
-                selectedPlayers = state.selectedPlayers + player,
-                allPlayers = state.allPlayers - player,
+                selectedPlayers = (state.selectedPlayers + player).toImmutableList(),
+                allPlayers = (state.allPlayers - player).toImmutableList(),
             )
         }
     }
@@ -110,16 +113,16 @@ internal class SelectPlayersViewModel(
 
     fun onPlayerAdded(player: Player) {
         state = state.copy(
-            allPlayers = state.allPlayers.filter { it.id != player.id },
-            selectedPlayers = state.selectedPlayers.filter { it.id != player.id } + player,
+            allPlayers = state.allPlayers.filter { it.id != player.id }.toImmutableList(),
+            selectedPlayers = (state.selectedPlayers.filter { it.id != player.id } + player).toImmutableList(),
         )
     }
 
     fun onPlayerRemoved(player: Player) {
         val isSelected = state.selectedPlayers.find { it.id == player.id } != null
         state = state.copy(
-            allPlayers = state.allPlayers - player,
-            selectedPlayers = state.selectedPlayers - player,
+            allPlayers = (state.allPlayers - player).toImmutableList(),
+            selectedPlayers = (state.selectedPlayers - player).toImmutableList(),
         )
 
         vibrateUseCase.error()
@@ -131,9 +134,9 @@ internal class SelectPlayersViewModel(
                 ) {
                     vibrateUseCase.click()
                     state = if (isSelected) {
-                        state.copy(selectedPlayers = state.selectedPlayers + player)
+                        state.copy(selectedPlayers = (state.selectedPlayers + player).toImmutableList())
                     } else {
-                        state.copy(allPlayers = state.allPlayers + player)
+                        state.copy(allPlayers = (state.allPlayers + player).toImmutableList())
                     }
                 },
             )

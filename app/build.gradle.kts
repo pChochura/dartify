@@ -102,13 +102,13 @@ dependencies {
     implementation(Compose.Material)
     implementation(Compose.Ui)
     implementation(Compose.UiToolingPreview)
+    implementation(Compose.NavigationReimagined)
+    implementation(Compose.Accompanist.SystemUIController)
     debugImplementation(Compose.UiTooling)
 
     implementation(Koin.compose)
 
-    implementation(Compose.NavigationReimagined)
-
-    implementation(Compose.Accompanist.SystemUIController)
+    implementation(Kotlin.ImmutableCollections)
 
     implementation(project(":domain"))
     implementation(project(":errors"))

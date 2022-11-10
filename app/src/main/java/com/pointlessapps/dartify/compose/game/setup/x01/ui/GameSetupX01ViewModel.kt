@@ -1,6 +1,7 @@
 package com.pointlessapps.dartify.compose.game.setup.x01.ui
 
 import androidx.annotation.StringRes
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -12,7 +13,10 @@ import com.pointlessapps.dartify.compose.game.setup.x01.ui.GameSetupX01ViewModel
 import com.pointlessapps.dartify.compose.game.setup.x01.ui.GameSetupX01ViewModel.Companion.DEFAULT_NUMBER_OF_SETS
 import com.pointlessapps.dartify.compose.game.setup.x01.ui.GameSetupX01ViewModel.Companion.DEFAULT_STARTING_SCORE
 import com.pointlessapps.dartify.compose.ui.theme.Route
+import com.pointlessapps.dartify.compose.utils.emptyImmutableList
 import com.pointlessapps.dartify.domain.vibration.usecase.VibrateUseCase
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -25,6 +29,7 @@ internal sealed interface GameSetupX01Event {
     value class ShowErrorSnackbar(@StringRes val message: Int) : GameSetupX01Event
 }
 
+@Stable
 internal data class GameSetupX01State(
     val matchResolutionStrategy: MatchResolutionStrategy = MatchResolutionStrategy.FirstTo,
     val numberOfSets: Int = DEFAULT_NUMBER_OF_SETS,
@@ -32,7 +37,7 @@ internal data class GameSetupX01State(
     val startingScore: Int = DEFAULT_STARTING_SCORE,
     val inMode: GameMode = GameMode.Straight,
     val outMode: GameMode = GameMode.Double,
-    val players: List<Player> = emptyList(),
+    val players: ImmutableList<Player> = emptyImmutableList(),
 )
 
 internal class GameSetupX01ViewModel(
@@ -118,7 +123,7 @@ internal class GameSetupX01ViewModel(
                 } else {
                     it
                 }
-            },
+            }.toImmutableList(),
         )
     }
 
@@ -183,7 +188,7 @@ internal class GameSetupX01ViewModel(
 
     private fun onPlayersSelected(players: List<Player>) {
         state = state.copy(
-            players = players,
+            players = players.toImmutableList(),
         )
     }
 
