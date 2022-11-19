@@ -35,7 +35,7 @@ fun Modifier.reorderable(reorderableListState: ReorderableListState) = composed 
                         }
                     } ?: run { overscrollJob?.cancel() }
             },
-            onDragStart = { offset -> reorderableListState.onDragStart(offset) },
+            onDragStart = { reorderableListState.onDragStart(it) },
             onDragEnd = { reorderableListState.onDragInterrupted() },
             onDragCancel = { reorderableListState.onDragInterrupted() }
         )

@@ -202,6 +202,10 @@ internal class GameSetupX01ViewModel(
         )
     }
 
+    fun onDragStarted() {
+        vibrateUseCase.click()
+    }
+
     private fun onPlayersSelected(players: List<Player>) {
         state = state.copy(
             players = players.toImmutableList(),

@@ -76,6 +76,7 @@ internal fun SelectPlayersScreen(
     ) { innerPadding ->
         val reorderableState = rememberReorderableListState(
             onMove = viewModel::onPlayersSwapped,
+            onDragStarted = viewModel::onDragStarted,
         )
 
         LazyColumn(

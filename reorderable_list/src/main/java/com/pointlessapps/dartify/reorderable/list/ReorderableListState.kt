@@ -15,13 +15,19 @@ import kotlinx.coroutines.Job
 fun rememberReorderableListState(
     lazyListState: LazyListState = rememberLazyListState(),
     onMove: (ItemInfo, ItemInfo) -> Unit,
+    onDragStarted: (() -> Unit)? = null,
 ) = remember {
-    ReorderableListState(lazyListState = lazyListState, onMove = onMove)
+    ReorderableListState(
+        lazyListState = lazyListState,
+        onMove = onMove,
+        onDragStarted = onDragStarted,
+    )
 }
 
 class ReorderableListState(
     val lazyListState: LazyListState,
     private val onMove: (ItemInfo, ItemInfo) -> Unit,
+    private val onDragStarted: (() -> Unit)? = null,
 ) {
     internal val reorderableAnchorKeys = mutableStateListOf<Any?>()
     internal val reorderableKeys = mutableStateListOf<Any?>()
@@ -49,6 +55,8 @@ class ReorderableListState(
             ?.also {
                 currentIndexOfDraggedItem = it.index
                 initiallyDraggedElement = it
+
+                onDragStarted?.invoke()
             }
     }
 

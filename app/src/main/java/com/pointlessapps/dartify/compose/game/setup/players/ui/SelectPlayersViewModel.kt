@@ -140,6 +140,10 @@ internal class SelectPlayersViewModel(
         )
     }
 
+    fun onDragStarted() {
+        vibrateUseCase.click()
+    }
+
     private fun List<Player>.indexById(id: Any?) = indexOfFirst { it.id == id }
         .takeIf { it != -1 }
 

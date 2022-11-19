@@ -65,6 +65,7 @@ internal fun GameSetupX01Screen(
     ) { innerPadding ->
         val reorderableState = rememberReorderableListState(
             onMove = viewModel::onPlayersSwapped,
+            onDragStarted = viewModel::onDragStarted,
         )
 
         LazyColumn(
