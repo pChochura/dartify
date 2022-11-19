@@ -17,6 +17,7 @@
             <option value="$PROJECT_DIR$/domain" />
             <option value="$PROJECT_DIR$/errors" />
             <option value="$PROJECT_DIR$/local_datasource" />
+            <option value="$PROJECT_DIR$/reorderable_list" />
             <option value="$PROJECT_DIR$/rumble" />
           </set>
         </option>

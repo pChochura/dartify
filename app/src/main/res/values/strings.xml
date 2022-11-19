@@ -74,6 +74,7 @@
 	<string name="edit_the_player">edit the player</string>
 	<string name="toggle_player">toggle player %s</string>
 	<string name="edit_player">edit player %s</string>
-	<string name="long_click_to_edit_desc">if you want to edit a player name or a bot average you have to perform a long click action</string>
+	<string name="long_press_to_rearrange_desc">if you want to rearrange the list of players, you have to long press and then drag the item</string>
 	<string name="player_has_been_removed">player has been removed</string>
+    <string name="cpu">CPU</string>
 </resources>

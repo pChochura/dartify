@@ -113,4 +113,5 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":errors"))
     implementation(project(":local_datasource"))
+    implementation(project(":reorderable_list"))
 }

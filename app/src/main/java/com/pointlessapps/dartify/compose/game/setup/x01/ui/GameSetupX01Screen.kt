@@ -1,8 +1,13 @@
 package com.pointlessapps.dartify.compose.game.setup.x01.ui
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.*
@@ -29,6 +34,10 @@ import com.pointlessapps.dartify.compose.game.setup.x01.ui.dialog.GameModeDialog
 import com.pointlessapps.dartify.compose.game.setup.x01.ui.dialog.StartingScoreDialog
 import com.pointlessapps.dartify.compose.ui.components.*
 import com.pointlessapps.dartify.compose.ui.theme.Route
+import com.pointlessapps.dartify.reorderable.list.ReorderableListState
+import com.pointlessapps.dartify.reorderable.list.rememberReorderableListState
+import com.pointlessapps.dartify.reorderable.list.reorderable
+import com.pointlessapps.dartify.reorderable.list.reorderableItem
 import org.koin.androidx.compose.getViewModel
 
 @Composable
@@ -45,8 +54,7 @@ internal fun GameSetupX01Screen(
         viewModel.events.collect {
             when (it) {
                 is GameSetupX01Event.Navigate -> onNavigate(it.route)
-                is GameSetupX01Event.ShowErrorSnackbar ->
-                    localSnackbarHostState.showSnackbar(it.message)
+                is GameSetupX01Event.ShowErrorSnackbar -> localSnackbarHostState.showSnackbar(it.message)
             }
         }
     }
@@ -55,36 +63,56 @@ internal fun GameSetupX01Screen(
         topBar = { Title() },
         fab = { StartGameButton(onStartGameClicked = viewModel::onStartGameClicked) },
     ) { innerPadding ->
-        Column(
+        val reorderableState = rememberReorderableListState(
+            onMove = viewModel::onPlayersSwapped,
+        )
+
+        LazyColumn(
+            state = reorderableState.lazyListState,
             modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(innerPadding)
+                .fillMaxSize()
+                .reorderable(reorderableState)
                 .padding(horizontal = dimensionResource(id = R.dimen.margin_semi_big)),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(
-                dimensionResource(id = R.dimen.margin_semi_big),
-            ),
         ) {
-            MatchSettings(
-                startingScore = viewModel.state.startingScore,
-                numberOfSets = viewModel.state.numberOfSets,
-                numberOfLegs = viewModel.state.numberOfLegs,
-                matchResolutionStrategy = viewModel.state.matchResolutionStrategy,
-                onShowStartingScoreDialog = { showStartingScoreDialog = true },
-                onMatchResolutionStrategyChanged = viewModel::onMatchResolutionStrategyChanged,
-                onNumberOfSetsChanged = viewModel::onNumberOfSetsChanged,
-                onNumberOfLegsChanged = viewModel::onNumberOfLegsChanged,
-            )
-            GameModes(
-                inMode = viewModel.state.inMode,
-                outMode = viewModel.state.outMode,
-                onInGameModeSelected = viewModel::onInGameModeSelected,
-                onOutGameModeSelected = viewModel::onOutGameModeSelected,
-                onShowGameModeDialog = { gameModeDialogModel = it },
-            )
-            Players(
+            item(key = "spacer_top") {
+                Spacer(modifier = Modifier.height(innerPadding.calculateTopPadding()))
+            }
+
+            item(key = "match_settings") {
+                MatchSettings(
+                    startingScore = viewModel.state.startingScore,
+                    numberOfSets = viewModel.state.numberOfSets,
+                    numberOfLegs = viewModel.state.numberOfLegs,
+                    matchResolutionStrategy = viewModel.state.matchResolutionStrategy,
+                    onShowStartingScoreDialog = { showStartingScoreDialog = true },
+                    onMatchResolutionStrategyChanged = viewModel::onMatchResolutionStrategyChanged,
+                    onNumberOfSetsChanged = viewModel::onNumberOfSetsChanged,
+                    onNumberOfLegsChanged = viewModel::onNumberOfLegsChanged,
+                )
+            }
+
+            item(key = "spacer_middle_1") {
+                Spacer(modifier = Modifier.height(dimensionResource(R.dimen.margin_semi_big)))
+            }
+
+            item(key = "game_modes") {
+                GameModes(
+                    inMode = viewModel.state.inMode,
+                    outMode = viewModel.state.outMode,
+                    onInGameModeSelected = viewModel::onInGameModeSelected,
+                    onOutGameModeSelected = viewModel::onOutGameModeSelected,
+                    onShowGameModeDialog = { gameModeDialogModel = it },
+                )
+            }
+
+            item(key = "spacer_middle_2") {
+                Spacer(modifier = Modifier.height(dimensionResource(R.dimen.margin_semi_big)))
+            }
+
+            players(
                 players = viewModel.state.players,
+                state = reorderableState,
                 onPlayerClicked = { player ->
                     gameModeDialogModel = GameModeDialogModel(
                         R.string.out_mode,
@@ -94,6 +122,10 @@ internal fun GameSetupX01Screen(
                 },
                 onAddPlayerClicked = viewModel::onAddPlayerClicked,
             )
+
+            item(key = "spacer_bottom") {
+                Spacer(modifier = Modifier.height(innerPadding.calculateBottomPadding()))
+            }
         }
     }
 
@@ -207,6 +239,8 @@ private fun MatchSettings(
         },
     )
 
+    Spacer(modifier = Modifier.height(dimensionResource(R.dimen.margin_semi_big)))
+
     Row(
         horizontalArrangement = Arrangement.spacedBy(
             dimensionResource(id = R.dimen.margin_small),
@@ -245,6 +279,8 @@ private fun MatchSettings(
             ),
         )
     }
+
+    Spacer(modifier = Modifier.height(dimensionResource(R.dimen.margin_semi_big)))
 
     ComposeInputButton(
         label = stringResource(id = R.string.starting_score),
@@ -310,44 +346,47 @@ private fun GameModes(
     }
 }
 
-@Composable
-private fun Players(
+private fun LazyListScope.players(
     players: List<Player>,
+    state: ReorderableListState,
     onPlayerClicked: (Player) -> Unit,
     onAddPlayerClicked: () -> Unit,
 ) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(
-            dimensionResource(id = R.dimen.margin_small),
-        ),
-    ) {
+    item(key = R.string.players) {
         ComposeText(
+            modifier = Modifier.fillMaxWidth(),
             text = stringResource(id = R.string.players),
             textStyle = defaultComposeTextStyle().copy(
                 typography = MaterialTheme.typography.h2,
                 textColor = MaterialTheme.colors.onPrimary,
             ),
         )
+    }
 
-        players.forEach { player ->
-            PlayerEntryCard(
-                label = player.name,
-                onClick = { onPlayerClicked(player) },
-                infoCardText = player.outMode?.abbrev?.let {
-                    stringResource(
-                        id = R.string.out_mode_abbrev,
-                        stringResource(id = it),
-                    ).uppercase()
-                },
-                playerEntryCardModel = defaultPlayerEntryCardModel().copy(
-                    mainIcon = R.drawable.ic_person,
-                    additionalIcon = R.drawable.ic_move_handle,
-                ),
-            )
-        }
+    items(players, { it.id }) { player ->
+        PlayerEntryCard(
+            modifier = Modifier
+                .padding(top = dimensionResource(R.dimen.margin_small))
+                .reorderableItem(player.id, state),
+            label = player.name,
+            onClick = { onPlayerClicked(player) },
+            infoCardText = player.outMode?.abbrev?.let {
+                stringResource(
+                    id = R.string.out_mode_abbrev,
+                    stringResource(id = it),
+                ).uppercase()
+            },
+            playerEntryCardModel = defaultPlayerEntryCardModel().copy(
+                mainIcon = R.drawable.ic_person,
+                additionalIcon = R.drawable.ic_move_handle,
+            ),
+        )
+    }
 
+    item(key = R.drawable.ic_plus) {
         Row(
             modifier = Modifier
+                .padding(top = dimensionResource(R.dimen.margin_small))
                 .fillMaxWidth()
                 .clip(MaterialTheme.shapes.medium)
                 .border(

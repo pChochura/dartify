@@ -11,13 +11,13 @@ import com.pointlessapps.dartify.compose.game.model.Bot
 import com.pointlessapps.dartify.compose.game.model.Player
 import com.pointlessapps.dartify.compose.utils.emptyImmutableList
 import com.pointlessapps.dartify.domain.vibration.usecase.VibrateUseCase
+import com.pointlessapps.dartify.reorderable.list.ItemInfo
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-
-private const val ADD_CPU_ID = 0L
+import kotlin.math.sign
 
 internal sealed interface SelectPlayersEvent {
     @JvmInline
@@ -33,10 +33,8 @@ internal sealed interface SelectPlayersEvent {
 }
 
 internal data class SelectPlayersState(
-    val selectedPlayers: ImmutableList<Player> = emptyImmutableList(),
-    val allPlayers: ImmutableList<Player> = listOf(
-        Bot(id = ADD_CPU_ID, average = 0f, name = "CPU"),
-    ).toImmutableList(),
+    val players: ImmutableList<Player> = emptyImmutableList(),
+    val selectedPlayersIndex: Int = 0,
 )
 
 internal class SelectPlayersViewModel(
@@ -50,49 +48,23 @@ internal class SelectPlayersViewModel(
     val events = eventChannel.receiveAsFlow()
 
     fun setSelectedPlayers(selectedPlayers: ImmutableList<Player>) {
-        val selectedPlayerIds = selectedPlayers.map(Player::id).toSet()
         state = state.copy(
-            selectedPlayers = selectedPlayers,
-            allPlayers = state.allPlayers.filter { it.id !in selectedPlayerIds }.toImmutableList(),
+            players = selectedPlayers,
+            selectedPlayersIndex = if (selectedPlayers.isEmpty()) 0 else selectedPlayers.size,
         )
     }
 
     fun onSaveClicked() {
         viewModelScope.launch {
-            eventChannel.send(SelectPlayersEvent.OnPlayersSelected(state.selectedPlayers))
+            eventChannel.send(
+                SelectPlayersEvent.OnPlayersSelected(
+                    state.players.subList(0, state.selectedPlayersIndex),
+                ),
+            )
         }
     }
 
     fun onPlayerClicked(player: Player) {
-        if (player is Bot && player.id == ADD_CPU_ID) {
-            viewModelScope.launch {
-                eventChannel.send(SelectPlayersEvent.AskForCpuAverage(null))
-            }
-
-            return
-        }
-
-        val selectedPlayer = state.selectedPlayers.find { it.id == player.id }
-        state = if (selectedPlayer != null) {
-            state.copy(
-                selectedPlayers = (state.selectedPlayers - player).toImmutableList(),
-                allPlayers = (state.allPlayers + player).toImmutableList(),
-            )
-        } else {
-            state.copy(
-                selectedPlayers = (state.selectedPlayers + player).toImmutableList(),
-                allPlayers = (state.allPlayers - player).toImmutableList(),
-            )
-        }
-    }
-
-    fun onPlayerLongClicked(player: Player) {
-        if (player.id == ADD_CPU_ID) {
-            vibrateUseCase.error()
-
-            return
-        }
-
         vibrateUseCase.click()
         viewModelScope.launch {
             eventChannel.send(
@@ -105,6 +77,12 @@ internal class SelectPlayersViewModel(
         }
     }
 
+    fun onAddCpuClicked() {
+        viewModelScope.launch {
+            eventChannel.send(SelectPlayersEvent.AskForCpuAverage(null))
+        }
+    }
+
     fun onAddPlayerClicked() {
         viewModelScope.launch {
             eventChannel.send(SelectPlayersEvent.AskForPlayerName(null))
@@ -113,16 +91,16 @@ internal class SelectPlayersViewModel(
 
     fun onPlayerAdded(player: Player) {
         state = state.copy(
-            allPlayers = state.allPlayers.filter { it.id != player.id }.toImmutableList(),
-            selectedPlayers = (state.selectedPlayers.filter { it.id != player.id } + player).toImmutableList(),
+            players = (state.players + player).toImmutableList(),
+            selectedPlayersIndex = state.selectedPlayersIndex + 1,
         )
     }
 
     fun onPlayerRemoved(player: Player) {
-        val isSelected = state.selectedPlayers.find { it.id == player.id } != null
+        val isSelected = state.players.indexOf(player) <= state.selectedPlayersIndex
         state = state.copy(
-            allPlayers = (state.allPlayers - player).toImmutableList(),
-            selectedPlayers = (state.selectedPlayers - player).toImmutableList(),
+            players = (state.players - player).toImmutableList(),
+            selectedPlayersIndex = state.selectedPlayersIndex - if (isSelected) 1 else 0,
         )
 
         vibrateUseCase.error()
@@ -133,13 +111,39 @@ internal class SelectPlayersViewModel(
                     R.string.undo,
                 ) {
                     vibrateUseCase.click()
-                    state = if (isSelected) {
-                        state.copy(selectedPlayers = (state.selectedPlayers + player).toImmutableList())
-                    } else {
-                        state.copy(allPlayers = (state.allPlayers + player).toImmutableList())
-                    }
+                    state = state.copy(
+                        players = (state.players + player).toImmutableList(),
+                        selectedPlayersIndex = state.selectedPlayersIndex + if (isSelected) 1 else 0,
+                    )
                 },
             )
         }
     }
+
+    fun onPlayersSwapped(from: ItemInfo, to: ItemInfo) {
+        vibrateUseCase.tick()
+
+        if (to.key == R.string.label_all) {
+            val direction = (from.index - to.index).sign
+            state = state.copy(
+                selectedPlayersIndex = state.selectedPlayersIndex + direction,
+            )
+
+            return
+        }
+
+        val fromIndex = state.players.indexById(from.key) ?: return
+        val toIndex = state.players.indexById(to.key) ?: return
+
+        state = state.copy(
+            players = state.players.swapped(fromIndex, toIndex),
+        )
+    }
+
+    private fun List<Player>.indexById(id: Any?) = indexOfFirst { it.id == id }
+        .takeIf { it != -1 }
+
+    private fun List<Player>.swapped(from: Int, to: Int) = toMutableList().apply {
+        add(to, removeAt(from))
+    }.toImmutableList()
 }

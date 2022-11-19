@@ -26,4 +26,5 @@ include(
     ":datasource",
     ":local_datasource",
     ":rumble",
+    ":reorderable_list",
 )

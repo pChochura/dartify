@@ -15,6 +15,7 @@ import com.pointlessapps.dartify.compose.game.setup.x01.ui.GameSetupX01ViewModel
 import com.pointlessapps.dartify.compose.ui.theme.Route
 import com.pointlessapps.dartify.compose.utils.emptyImmutableList
 import com.pointlessapps.dartify.domain.vibration.usecase.VibrateUseCase
+import com.pointlessapps.dartify.reorderable.list.ItemInfo
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.channels.Channel
@@ -25,6 +26,7 @@ import java.lang.Integer.min
 internal sealed interface GameSetupX01Event {
     @JvmInline
     value class Navigate(val route: Route) : GameSetupX01Event
+
     @JvmInline
     value class ShowErrorSnackbar(@StringRes val message: Int) : GameSetupX01Event
 }
@@ -183,6 +185,20 @@ internal class GameSetupX01ViewModel(
 
         state = state.copy(
             numberOfLegs = state.numberOfLegs + realChange,
+        )
+    }
+
+    fun onPlayersSwapped(from: ItemInfo, to: ItemInfo) {
+        vibrateUseCase.tick()
+
+        val fromIndex = state.players.indexOfFirst { it.id == from.key }
+            .takeIf { it != -1 } ?: return
+        val toIndex = state.players.indexOfFirst { it.id == to.key }
+            .takeIf { it != -1 } ?: return
+        state = state.copy(
+            players = state.players.toMutableList().apply {
+                add(toIndex, removeAt(fromIndex))
+            }.toImmutableList(),
         )
     }
 

@@ -30,6 +30,10 @@ import com.pointlessapps.dartify.compose.game.setup.players.ui.dialog.SelectPlay
 import com.pointlessapps.dartify.compose.game.setup.ui.PlayerEntryCard
 import com.pointlessapps.dartify.compose.game.setup.ui.defaultPlayerEntryCardModel
 import com.pointlessapps.dartify.compose.ui.components.*
+import com.pointlessapps.dartify.reorderable.list.rememberReorderableListState
+import com.pointlessapps.dartify.reorderable.list.reorderable
+import com.pointlessapps.dartify.reorderable.list.reorderableAnchorItem
+import com.pointlessapps.dartify.reorderable.list.reorderableItem
 import kotlinx.collections.immutable.ImmutableList
 import org.koin.androidx.compose.getViewModel
 
@@ -70,15 +74,24 @@ internal fun SelectPlayersScreen(
         topBar = { Title() },
         fab = { SaveButton(onSaveClicked = viewModel::onSaveClicked) },
     ) { innerPadding ->
+        val reorderableState = rememberReorderableListState(
+            onMove = viewModel::onPlayersSwapped,
+        )
+
         LazyColumn(
+            state = reorderableState.lazyListState,
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(innerPadding)
-                .padding(horizontal = dimensionResource(id = R.dimen.margin_semi_big)),
+                .fillMaxSize()
+                .padding(horizontal = dimensionResource(id = R.dimen.margin_semi_big))
+                .reorderable(reorderableState),
             verticalArrangement = Arrangement.spacedBy(
                 dimensionResource(id = R.dimen.margin_small),
             ),
         ) {
+            item(key = "spacer_top") {
+                Spacer(modifier = Modifier.height(innerPadding.calculateTopPadding()))
+            }
+
             item(key = R.string.label_selected) {
                 ComposeText(
                     text = stringResource(id = R.string.label_selected),
@@ -88,23 +101,28 @@ internal fun SelectPlayersScreen(
                     ),
                 )
             }
-            items(viewModel.state.selectedPlayers, key = { it.id }) { player ->
+
+            items(
+                items = viewModel.state.players.subList(0, viewModel.state.selectedPlayersIndex),
+                key = { it.id },
+            ) { player ->
                 PlayerEntryCard(
-                    modifier = Modifier.animateItemPlacement(),
+                    modifier = Modifier.reorderableItem(player.id, reorderableState),
                     label = player.name,
                     onClick = { viewModel.onPlayerClicked(player) },
-                    onLongClick = { viewModel.onPlayerLongClicked(player) },
                     playerEntryCardModel = defaultPlayerEntryCardModel().copy(
-                        mainIcon = R.drawable.ic_person,
-                        additionalIcon = R.drawable.ic_close,
+                        mainIcon = if (player is Bot) R.drawable.ic_robot else R.drawable.ic_person,
+                        additionalIcon = R.drawable.ic_filter,
                     ),
                 )
             }
+
             item(key = R.string.label_all) {
                 ComposeText(
-                    modifier = Modifier.padding(
-                        top = dimensionResource(id = R.dimen.margin_small),
-                    ),
+                    modifier = Modifier
+                        .padding(top = dimensionResource(id = R.dimen.margin_small))
+                        .animateItemPlacement()
+                        .reorderableAnchorItem(R.string.label_all, reorderableState),
                     text = stringResource(id = R.string.label_all),
                     textStyle = defaultComposeTextStyle().copy(
                         typography = MaterialTheme.typography.h2,
@@ -112,23 +130,42 @@ internal fun SelectPlayersScreen(
                     ),
                 )
             }
-            items(viewModel.state.allPlayers, key = { it.id }) { player ->
+
+            items(
+                items = viewModel.state.players.subList(
+                    viewModel.state.selectedPlayersIndex,
+                    viewModel.state.players.size,
+                ),
+                key = { it.id },
+            ) { player ->
                 PlayerEntryCard(
-                    modifier = Modifier.animateItemPlacement(),
+                    modifier = Modifier.reorderableItem(player.id, reorderableState),
                     label = player.name,
                     onClick = { viewModel.onPlayerClicked(player) },
-                    onLongClick = { viewModel.onPlayerLongClicked(player) },
+                    playerEntryCardModel = defaultPlayerEntryCardModel().copy(
+                        mainIcon = if (player is Bot) R.drawable.ic_robot else R.drawable.ic_person,
+                        additionalIcon = R.drawable.ic_filter,
+                    ),
+                )
+            }
+
+            item(key = R.string.add_a_cpu) {
+                PlayerEntryCard(
+                    modifier = Modifier.animateItemPlacement(),
+                    label = stringResource(id = R.string.cpu),
+                    onClick = viewModel::onAddCpuClicked,
                     playerEntryCardModel = defaultPlayerEntryCardModel().copy(
                         mainIcon = R.drawable.ic_person,
                         additionalIcon = R.drawable.ic_plus,
                     ),
                 )
             }
+
             item(key = R.string.add_a_player) {
                 AddPlayerItem(onAddPlayerClicked = viewModel::onAddPlayerClicked)
             }
 
-            item(key = R.string.long_click_to_edit_desc) {
+            item(key = R.string.long_press_to_rearrange_desc) {
                 Row(
                     modifier = Modifier.padding(
                         top = dimensionResource(id = R.dimen.margin_small),
@@ -144,7 +181,7 @@ internal fun SelectPlayersScreen(
                         contentDescription = null,
                     )
                     ComposeText(
-                        text = stringResource(id = R.string.long_click_to_edit_desc),
+                        text = stringResource(id = R.string.long_press_to_rearrange_desc),
                         textStyle = defaultComposeTextStyle().copy(
                             textColor = MaterialTheme.colors.onBackground,
                             typography = MaterialTheme.typography.subtitle1.copy(
@@ -153,6 +190,10 @@ internal fun SelectPlayersScreen(
                         ),
                     )
                 }
+            }
+
+            item(key = "spacer_bottom") {
+                Spacer(modifier = Modifier.height(innerPadding.calculateBottomPadding()))
             }
         }
     }
