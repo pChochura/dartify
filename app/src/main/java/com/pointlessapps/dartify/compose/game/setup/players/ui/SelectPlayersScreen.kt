@@ -1,5 +1,7 @@
 package com.pointlessapps.dartify.compose.game.setup.players.ui
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -7,12 +9,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
@@ -37,7 +39,7 @@ import com.pointlessapps.dartify.reorderable.list.reorderableItem
 import kotlinx.collections.immutable.ImmutableList
 import org.koin.androidx.compose.getViewModel
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
 @Composable
 internal fun SelectPlayersScreen(
     viewModel: SelectPlayersViewModel = getViewModel(),
@@ -107,14 +109,56 @@ internal fun SelectPlayersScreen(
                 items = viewModel.state.players.subList(0, viewModel.state.selectedPlayersIndex),
                 key = { it.id },
             ) { player ->
-                PlayerEntryCard(
-                    modifier = Modifier.reorderableItem(player.id, reorderableState),
-                    label = player.name,
-                    onClick = { viewModel.onPlayerClicked(player) },
-                    playerEntryCardModel = defaultPlayerEntryCardModel().copy(
-                        mainIcon = if (player is Bot) R.drawable.ic_robot else R.drawable.ic_person,
-                        additionalIcon = R.drawable.ic_filter,
-                    ),
+                val dismissState = rememberDismissState(
+                    confirmStateChange = {
+                        if (it != DismissValue.Default) {
+                            viewModel.onPlayerRemoved(player)
+                        }
+
+                        true
+                    },
+                )
+
+                SwipeToDismiss(
+                    state = dismissState,
+                    directions = setOf(DismissDirection.EndToStart),
+                    dismissThresholds = { FractionalThreshold(0.25f) },
+                    background = {
+                        val color by animateColorAsState(
+                            when (dismissState.targetValue) {
+                                DismissValue.Default -> MaterialTheme.colors.onBackground
+                                else -> colorResource(id = R.color.red)
+                            },
+                        )
+                        val scale by animateFloatAsState(
+                            if (dismissState.targetValue == DismissValue.Default) 0.75f else 1f,
+                        )
+
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.CenterEnd,
+                        ) {
+                            Icon(
+                                modifier = Modifier
+                                    .size(dimensionResource(id = R.dimen.dialog_icon_size))
+                                    .scale(scale),
+                                painter = painterResource(id = R.drawable.ic_delete),
+                                tint = color,
+                                contentDescription = null,
+                            )
+                        }
+                    },
+                    dismissContent = {
+                        PlayerEntryCard(
+                            modifier = Modifier.reorderableItem(player.id, reorderableState),
+                            label = player.name,
+                            onClick = { viewModel.onPlayerClicked(player) },
+                            playerEntryCardModel = defaultPlayerEntryCardModel().copy(
+                                mainIcon = if (player is Bot) R.drawable.ic_robot else R.drawable.ic_person,
+                                additionalIcon = R.drawable.ic_filter,
+                            ),
+                        )
+                    },
                 )
             }
 

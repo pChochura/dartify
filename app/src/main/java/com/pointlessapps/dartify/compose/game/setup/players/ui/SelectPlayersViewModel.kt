@@ -91,13 +91,14 @@ internal class SelectPlayersViewModel(
 
     fun onPlayerAdded(player: Player) {
         state = state.copy(
-            players = (state.players + player).toImmutableList(),
+            players = listOf(player, *state.players.toTypedArray()).toImmutableList(),
             selectedPlayersIndex = state.selectedPlayersIndex + 1,
         )
     }
 
     fun onPlayerRemoved(player: Player) {
-        val isSelected = state.players.indexOf(player) <= state.selectedPlayersIndex
+        val index = state.players.indexOf(player)
+        val isSelected = index <= state.selectedPlayersIndex
         state = state.copy(
             players = (state.players - player).toImmutableList(),
             selectedPlayersIndex = state.selectedPlayersIndex - if (isSelected) 1 else 0,
@@ -111,8 +112,21 @@ internal class SelectPlayersViewModel(
                     R.string.undo,
                 ) {
                     vibrateUseCase.click()
+                    if (state.players.isEmpty()) {
+                        state = state.copy(
+                            players = listOf(player).toImmutableList(),
+                            selectedPlayersIndex = if (isSelected) 1 else 0,
+                        )
+                        return@ShowActionSnackbar
+                    }
+
+                    val currentIndex = index.coerceIn(0, state.players.lastIndex)
                     state = state.copy(
-                        players = (state.players + player).toImmutableList(),
+                        players = (listOf(
+                            *state.players.slice(0 until currentIndex).toTypedArray(),
+                            player,
+                            *state.players.slice(currentIndex..state.players.lastIndex).toTypedArray(),
+                        )).toImmutableList(),
                         selectedPlayersIndex = state.selectedPlayersIndex + if (isSelected) 1 else 0,
                     )
                 },
