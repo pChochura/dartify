@@ -48,6 +48,8 @@ class ReorderableListState(
     private val currentElement: LazyListItemInfo?
         get() = lazyListState.getVisibleItemInfoFor(currentIndexOfDraggedItem)
 
+    fun isDragged(key: Any?) = currentElement?.key == key
+
     internal fun onDragStart(offset: Offset) {
         lazyListState.layoutInfo.visibleItemsInfo
             .filter { it.key in reorderableKeys && it.key !in reorderableAnchorKeys }

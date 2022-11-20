@@ -32,14 +32,11 @@ import com.pointlessapps.dartify.compose.game.setup.players.ui.dialog.SelectPlay
 import com.pointlessapps.dartify.compose.game.setup.ui.PlayerEntryCard
 import com.pointlessapps.dartify.compose.game.setup.ui.defaultPlayerEntryCardModel
 import com.pointlessapps.dartify.compose.ui.components.*
-import com.pointlessapps.dartify.reorderable.list.rememberReorderableListState
-import com.pointlessapps.dartify.reorderable.list.reorderable
-import com.pointlessapps.dartify.reorderable.list.reorderableAnchorItem
-import com.pointlessapps.dartify.reorderable.list.reorderableItem
+import com.pointlessapps.dartify.reorderable.list.*
 import kotlinx.collections.immutable.ImmutableList
 import org.koin.androidx.compose.getViewModel
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun SelectPlayersScreen(
     viewModel: SelectPlayersViewModel = getViewModel(),
@@ -109,56 +106,11 @@ internal fun SelectPlayersScreen(
                 items = viewModel.state.players.subList(0, viewModel.state.selectedPlayersIndex),
                 key = { it.id },
             ) { player ->
-                val dismissState = rememberDismissState(
-                    confirmStateChange = {
-                        if (it != DismissValue.Default) {
-                            viewModel.onPlayerRemoved(player)
-                        }
-
-                        true
-                    },
-                )
-
-                SwipeToDismiss(
-                    state = dismissState,
-                    directions = setOf(DismissDirection.EndToStart),
-                    dismissThresholds = { FractionalThreshold(0.25f) },
-                    background = {
-                        val color by animateColorAsState(
-                            when (dismissState.targetValue) {
-                                DismissValue.Default -> MaterialTheme.colors.onBackground
-                                else -> colorResource(id = R.color.red)
-                            },
-                        )
-                        val scale by animateFloatAsState(
-                            if (dismissState.targetValue == DismissValue.Default) 0.75f else 1f,
-                        )
-
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.CenterEnd,
-                        ) {
-                            Icon(
-                                modifier = Modifier
-                                    .size(dimensionResource(id = R.dimen.dialog_icon_size))
-                                    .scale(scale),
-                                painter = painterResource(id = R.drawable.ic_delete),
-                                tint = color,
-                                contentDescription = null,
-                            )
-                        }
-                    },
-                    dismissContent = {
-                        PlayerEntryCard(
-                            modifier = Modifier.reorderableItem(player.id, reorderableState),
-                            label = player.name,
-                            onClick = { viewModel.onPlayerClicked(player) },
-                            playerEntryCardModel = defaultPlayerEntryCardModel().copy(
-                                mainIcon = if (player is Bot) R.drawable.ic_robot else R.drawable.ic_person,
-                                additionalIcon = R.drawable.ic_filter,
-                            ),
-                        )
-                    },
+                PlayerItem(
+                    reorderableState = reorderableState,
+                    player = player,
+                    onPlayerClicked = viewModel::onPlayerClicked,
+                    onPlayerRemoved = viewModel::onPlayerRemoved,
                 )
             }
 
@@ -166,7 +118,6 @@ internal fun SelectPlayersScreen(
                 ComposeText(
                     modifier = Modifier
                         .padding(top = dimensionResource(id = R.dimen.margin_small))
-                        .animateItemPlacement()
                         .reorderableAnchorItem(R.string.label_all, reorderableState),
                     text = stringResource(id = R.string.label_all),
                     textStyle = defaultComposeTextStyle().copy(
@@ -183,14 +134,11 @@ internal fun SelectPlayersScreen(
                 ),
                 key = { it.id },
             ) { player ->
-                PlayerEntryCard(
-                    modifier = Modifier.reorderableItem(player.id, reorderableState),
-                    label = player.name,
-                    onClick = { viewModel.onPlayerClicked(player) },
-                    playerEntryCardModel = defaultPlayerEntryCardModel().copy(
-                        mainIcon = if (player is Bot) R.drawable.ic_robot else R.drawable.ic_person,
-                        additionalIcon = R.drawable.ic_filter,
-                    ),
+                PlayerItem(
+                    reorderableState = reorderableState,
+                    player = player,
+                    onPlayerClicked = viewModel::onPlayerClicked,
+                    onPlayerRemoved = viewModel::onPlayerRemoved,
                 )
             }
 
@@ -357,6 +305,71 @@ private fun AddPlayerItem(onAddPlayerClicked: () -> Unit) {
             ),
         )
     }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+private fun PlayerItem(
+    reorderableState: ReorderableListState,
+    player: Player,
+    onPlayerClicked: (Player) -> Unit,
+    onPlayerRemoved: (Player) -> Unit,
+) {
+    val dismissState = rememberDismissState(
+        confirmStateChange = {
+            if (it != DismissValue.Default) {
+                onPlayerRemoved(player)
+            }
+
+            true
+        },
+    )
+
+    SwipeToDismiss(
+        modifier = Modifier.reorderableItem(player.id, reorderableState),
+        state = dismissState,
+        directions = setOf(DismissDirection.EndToStart),
+        dismissThresholds = { FractionalThreshold(0.25f) },
+        background = background@{
+            if (reorderableState.isDragged(player.id)) {
+                return@background
+            }
+
+            val color by animateColorAsState(
+                when (dismissState.targetValue) {
+                    DismissValue.Default -> MaterialTheme.colors.onBackground
+                    else -> colorResource(id = R.color.red)
+                },
+            )
+            val scale by animateFloatAsState(
+                if (dismissState.targetValue == DismissValue.Default) 0.75f else 1f,
+            )
+
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.CenterEnd,
+            ) {
+                Icon(
+                    modifier = Modifier
+                        .size(dimensionResource(id = R.dimen.dialog_icon_size))
+                        .scale(scale),
+                    painter = painterResource(id = R.drawable.ic_delete),
+                    tint = color,
+                    contentDescription = null,
+                )
+            }
+        },
+        dismissContent = {
+            PlayerEntryCard(
+                label = player.name,
+                onClick = { onPlayerClicked(player) },
+                playerEntryCardModel = defaultPlayerEntryCardModel().copy(
+                    mainIcon = if (player is Bot) R.drawable.ic_robot else R.drawable.ic_person,
+                    additionalIcon = R.drawable.ic_filter,
+                ),
+            )
+        },
+    )
 }
 
 private data class PlayerNameDialogModel(val player: Player?)

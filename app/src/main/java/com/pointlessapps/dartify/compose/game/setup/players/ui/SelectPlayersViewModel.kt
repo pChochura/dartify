@@ -10,9 +10,13 @@ import com.pointlessapps.dartify.R
 import com.pointlessapps.dartify.compose.game.model.Bot
 import com.pointlessapps.dartify.compose.game.model.Player
 import com.pointlessapps.dartify.compose.utils.emptyImmutableList
+import com.pointlessapps.dartify.compose.utils.swapped
+import com.pointlessapps.dartify.compose.utils.withInsertedAt
+import com.pointlessapps.dartify.compose.utils.withReplacedOrInserted
 import com.pointlessapps.dartify.domain.vibration.usecase.VibrateUseCase
 import com.pointlessapps.dartify.reorderable.list.ItemInfo
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -90,15 +94,16 @@ internal class SelectPlayersViewModel(
     }
 
     fun onPlayerAdded(player: Player) {
+        val newlyAdded = state.players.find { it.id == player.id } == null
         state = state.copy(
-            players = listOf(player, *state.players.toTypedArray()).toImmutableList(),
-            selectedPlayersIndex = state.selectedPlayersIndex + 1,
+            players = state.players.withReplacedOrInserted({ it.id == player.id }, player),
+            selectedPlayersIndex = state.selectedPlayersIndex + if (newlyAdded) 1 else 0,
         )
     }
 
     fun onPlayerRemoved(player: Player) {
         val index = state.players.indexOf(player)
-        val isSelected = index <= state.selectedPlayersIndex
+        val isSelected = index < state.selectedPlayersIndex
         state = state.copy(
             players = (state.players - player).toImmutableList(),
             selectedPlayersIndex = state.selectedPlayersIndex - if (isSelected) 1 else 0,
@@ -114,7 +119,7 @@ internal class SelectPlayersViewModel(
                     vibrateUseCase.click()
                     if (state.players.isEmpty()) {
                         state = state.copy(
-                            players = listOf(player).toImmutableList(),
+                            players = persistentListOf(player),
                             selectedPlayersIndex = if (isSelected) 1 else 0,
                         )
                         return@ShowActionSnackbar
@@ -122,11 +127,7 @@ internal class SelectPlayersViewModel(
 
                     val currentIndex = index.coerceIn(0, state.players.lastIndex)
                     state = state.copy(
-                        players = (listOf(
-                            *state.players.slice(0 until currentIndex).toTypedArray(),
-                            player,
-                            *state.players.slice(currentIndex..state.players.lastIndex).toTypedArray(),
-                        )).toImmutableList(),
+                        players = state.players.withInsertedAt(currentIndex, player),
                         selectedPlayersIndex = state.selectedPlayersIndex + if (isSelected) 1 else 0,
                     )
                 },
@@ -160,8 +161,4 @@ internal class SelectPlayersViewModel(
 
     private fun List<Player>.indexById(id: Any?) = indexOfFirst { it.id == id }
         .takeIf { it != -1 }
-
-    private fun List<Player>.swapped(from: Int, to: Int) = toMutableList().apply {
-        add(to, removeAt(from))
-    }.toImmutableList()
 }
