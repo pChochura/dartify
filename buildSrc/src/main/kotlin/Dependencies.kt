@@ -63,10 +63,9 @@ object AndroidGitVersion {
 }
 
 object Koin {
-    private const val version = "3.2.0"
-    const val compose = "io.insert-koin:koin-androidx-compose:$version"
-    const val android = "io.insert-koin:koin-android:$version"
-    const val core = "io.insert-koin:koin-core:$version"
+    const val compose = "io.insert-koin:koin-androidx-compose:3.3.0"
+    const val android = "io.insert-koin:koin-android:3.3.0"
+    const val core = "io.insert-koin:koin-core:3.2.2"
 }
 
 object Kotest {

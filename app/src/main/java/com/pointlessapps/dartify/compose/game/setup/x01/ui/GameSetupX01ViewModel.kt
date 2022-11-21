@@ -5,6 +5,8 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.os.bundleOf
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pointlessapps.dartify.R
@@ -43,14 +45,27 @@ internal data class GameSetupX01State(
 )
 
 internal class GameSetupX01ViewModel(
+    savedStateHandle: SavedStateHandle,
     private val vibrateUseCase: VibrateUseCase,
 ) : ViewModel() {
 
-    var state by mutableStateOf(GameSetupX01State())
+    var state by mutableStateOf(savedStateHandle[STATE_KEY] ?: GameSetupX01State())
         private set
 
     private val eventChannel = Channel<GameSetupX01Event>()
     val events = eventChannel.receiveAsFlow()
+
+    init {
+        savedStateHandle.setSavedStateProvider(STATE_HANDLE_KEY) {
+            bundleOf(STATE_KEY to state)
+        }
+    }
+
+    fun setSelectedPlayers(players: List<Player>) {
+        state = state.copy(
+            players = players.toImmutableList(),
+        )
+    }
 
     fun onStartGameClicked() {
         if (state.players.size != 2) {
@@ -131,14 +146,7 @@ internal class GameSetupX01ViewModel(
 
     fun onAddPlayerClicked() {
         viewModelScope.launch {
-            eventChannel.send(
-                GameSetupX01Event.Navigate(
-                    Route.Players(
-                        selectedPlayers = state.players,
-                        callback = ::onPlayersSelected,
-                    ),
-                ),
-            )
+            eventChannel.send(GameSetupX01Event.Navigate(Route.Players(state.players)))
         }
     }
 
@@ -206,12 +214,6 @@ internal class GameSetupX01ViewModel(
         vibrateUseCase.click()
     }
 
-    private fun onPlayersSelected(players: List<Player>) {
-        state = state.copy(
-            players = players.toImmutableList(),
-        )
-    }
-
     @Suppress("MagicNumber")
     private fun validateStartingScore(score: Int) =
         score in MIN_STARTING_SCORE..MAX_STARTING_SCORE &&
@@ -232,5 +234,8 @@ internal class GameSetupX01ViewModel(
         const val MAX_NUMBER_OF_LEGS = 9
         const val DEFAULT_NUMBER_OF_SETS = 1
         const val DEFAULT_NUMBER_OF_LEGS = 3
+
+        private const val STATE_HANDLE_KEY = "GameSetupX01State_Handle"
+        private const val STATE_KEY = "GameSetupX01State"
     }
 }

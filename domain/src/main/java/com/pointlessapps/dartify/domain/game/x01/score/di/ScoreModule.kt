@@ -2,31 +2,18 @@ package com.pointlessapps.dartify.domain.game.x01.score.di
 
 import com.pointlessapps.dartify.domain.game.x01.score.ScoreRepository
 import com.pointlessapps.dartify.domain.game.x01.score.ScoreRepositoryImpl
-import com.pointlessapps.dartify.domain.game.x01.score.usecase.*
+import com.pointlessapps.dartify.domain.game.x01.score.usecase.IsCheckoutPossibleUseCase
+import com.pointlessapps.dartify.domain.game.x01.score.usecase.ValidateScoreUseCase
+import com.pointlessapps.dartify.domain.game.x01.score.usecase.ValidateSingleThrowUseCase
+import org.koin.core.module.dsl.factoryOf
+import org.koin.core.module.dsl.singleOf
+import org.koin.dsl.bind
 import org.koin.dsl.module
 
 internal val scoreModule = module {
-    single<ScoreRepository> {
-        ScoreRepositoryImpl(
-            scoreDataSource = get(),
-        )
-    }
+    factoryOf(::ValidateSingleThrowUseCase)
+    factoryOf(::ValidateScoreUseCase)
+    factoryOf(::IsCheckoutPossibleUseCase)
 
-    factory {
-        ValidateSingleThrowUseCase(
-            scoreRepository = get(),
-            turnRepository = get(),
-        )
-    }
-    factory {
-        ValidateScoreUseCase(
-            scoreRepository = get(),
-            turnRepository = get(),
-        )
-    }
-    factory {
-        IsCheckoutPossibleUseCase(
-            scoreRepository = get(),
-        )
-    }
+    singleOf(::ScoreRepositoryImpl).bind(ScoreRepository::class)
 }

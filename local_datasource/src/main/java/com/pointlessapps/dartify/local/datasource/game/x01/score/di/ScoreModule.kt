@@ -5,27 +5,13 @@ import com.pointlessapps.dartify.local.datasource.game.x01.score.LocalScoreDataS
 import com.pointlessapps.dartify.local.datasource.game.x01.score.OneThrowPossibleScoresCalculator
 import com.pointlessapps.dartify.local.datasource.game.x01.score.ThreeThrowsPossibleScoresCalculator
 import com.pointlessapps.dartify.local.datasource.game.x01.score.TwoThrowsPossibleScoresCalculator
+import org.koin.core.module.dsl.singleOf
+import org.koin.dsl.bind
 import org.koin.dsl.module
 
 internal val scoreModule = module {
-    single<ScoreDataSource> {
-        LocalScoreDataSource(
-            oneThrowPossibleScoresCalculator = get(),
-            twoThrowsPossibleScoresCalculator = get(),
-            threeThrowsPossibleScoresCalculator = get(),
-        )
-    }
-
-    single { OneThrowPossibleScoresCalculator() }
-    single {
-        TwoThrowsPossibleScoresCalculator(
-            oneThrowPossibleScoresCalculator = get(),
-        )
-    }
-    single {
-        ThreeThrowsPossibleScoresCalculator(
-            oneThrowPossibleScoresCalculator = get(),
-            twoThrowsPossibleScoresCalculator = get(),
-        )
-    }
+    singleOf(::LocalScoreDataSource).bind(ScoreDataSource::class)
+    singleOf(::OneThrowPossibleScoresCalculator)
+    singleOf(::TwoThrowsPossibleScoresCalculator)
+    singleOf(::ThreeThrowsPossibleScoresCalculator)
 }
