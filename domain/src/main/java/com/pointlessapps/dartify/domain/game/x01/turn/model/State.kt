@@ -1,9 +1,9 @@
 package com.pointlessapps.dartify.domain.game.x01.turn.model
 
 import com.pointlessapps.dartify.domain.game.x01.model.InputScore
-import com.pointlessapps.dartify.domain.game.x01.model.Player
+import com.pointlessapps.dartify.domain.model.Player
 import com.pointlessapps.dartify.domain.game.x01.model.PlayerScore
-import com.pointlessapps.dartify.domain.game.x01.score.model.GameMode
+import com.pointlessapps.dartify.domain.model.GameMode
 
 data class GameState(
     val inMode: GameMode,

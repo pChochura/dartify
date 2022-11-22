@@ -6,7 +6,6 @@
         <option value="$PROJECT_DIR$/config/detekt.yml" />
       </set>
     </option>
-    <option name="enableFormatting" value="true" />
     <option name="treatAsErrors" value="true" />
   </component>
 </project>

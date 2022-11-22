@@ -1,6 +1,7 @@
 plugins {
     id(Kotlin.gradlePlugin)
     id(Android.libraryPlugin)
+    id(KSP.gradlePlugin)
 }
 
 android {
@@ -11,10 +12,18 @@ android {
         minSdk = Application.minSdk
         targetSdk = Application.targetSdk
     }
+
+    ksp {
+        arg("room.schemaLocation", "$projectDir/schemas")
+        arg("room.incremental", "true")
+        arg("room.expandProjection", "true")
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
@@ -23,6 +32,10 @@ android {
 dependencies {
     implementation(Koin.core)
     implementation(Kotlin.Coroutines.core)
+
+    implementation(RoomDB.ktx)
+    implementation(RoomDB.runtime)
+    ksp(RoomDB.compiler)
 
     implementation(project(":errors"))
     implementation(project(":datasource"))

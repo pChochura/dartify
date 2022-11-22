@@ -39,6 +39,7 @@ class MainActivity : ComponentActivity() {
                             message: Int,
                             actionLabel: Int?,
                             actionCallback: (() -> Unit)?,
+                            dismissCallback: (() -> Unit)?,
                             duration: SnackbarDuration,
                         ) {
                             coroutineScope.launch {
@@ -47,8 +48,9 @@ class MainActivity : ComponentActivity() {
                                     actionLabel = actionLabel?.let { context.getString(it) },
                                     duration = duration,
                                 )
-                                if (result == SnackbarResult.ActionPerformed) {
-                                    actionCallback?.invoke()
+                                when (result) {
+                                    SnackbarResult.ActionPerformed -> actionCallback?.invoke()
+                                    SnackbarResult.Dismissed -> dismissCallback?.invoke()
                                 }
                             }
                         }

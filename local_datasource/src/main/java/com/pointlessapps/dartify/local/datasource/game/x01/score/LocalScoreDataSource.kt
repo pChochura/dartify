@@ -2,7 +2,6 @@ package com.pointlessapps.dartify.local.datasource.game.x01.score
 
 import com.pointlessapps.dartify.datasource.game.x01.score.ScoreDataSource
 
-@Suppress("MagicNumber")
 internal class LocalScoreDataSource(
     private val oneThrowPossibleScoresCalculator: OneThrowPossibleScoresCalculator,
     private val twoThrowsPossibleScoresCalculator: TwoThrowsPossibleScoresCalculator,

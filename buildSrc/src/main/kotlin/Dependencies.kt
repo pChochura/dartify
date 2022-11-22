@@ -1,5 +1,5 @@
 object Kotlin {
-    const val version = "1.7.10"
+    const val version = "1.7.20"
     const val gradlePlugin = "org.jetbrains.kotlin.android"
     const val parcelizePlugin = "kotlin-parcelize"
     const val androidPlugin = "kotlin-android"
@@ -10,6 +10,11 @@ object Kotlin {
         const val android = "org.jetbrains.kotlinx:kotlinx-coroutines-android:$version"
         const val core = "org.jetbrains.kotlinx:kotlinx-coroutines-core:$version"
     }
+}
+
+object KSP {
+    const val version = "1.7.20-1.0.8"
+    const val gradlePlugin = "com.google.devtools.ksp"
 }
 
 object Java {
@@ -28,7 +33,7 @@ object AndroidX {
 }
 
 object Compose {
-    const val compilerVersion = "1.3.0"
+    const val compilerVersion = "1.3.2"
     private const val version = "1.2.1"
 
     const val ActivityCompose = "androidx.activity:activity-compose:1.5.1"
@@ -79,6 +84,7 @@ object Mockk {
 
 object RoomDB {
     private const val version = "2.4.3"
+    const val ktx = "androidx.room:room-ktx:$version"
     const val runtime = "androidx.room:room-runtime:$version"
     const val compiler = "androidx.room:room-compiler:$version"
 }

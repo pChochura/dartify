@@ -77,4 +77,5 @@
 	<string name="long_press_to_rearrange_desc">if you want to rearrange the list of players, you have to long press and then drag the item</string>
 	<string name="player_has_been_removed">player has been removed</string>
     <string name="cpu">CPU</string>
+    <string name="something_went_wrong">something went wrong</string>
 </resources>

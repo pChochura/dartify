@@ -1,7 +1,7 @@
 package com.pointlessapps.dartify.domain.game.x01.turn.usecase
 
-import com.pointlessapps.dartify.domain.game.x01.model.Player
-import com.pointlessapps.dartify.domain.game.x01.score.model.GameMode
+import com.pointlessapps.dartify.domain.model.Player
+import com.pointlessapps.dartify.domain.model.GameMode
 import com.pointlessapps.dartify.domain.game.x01.turn.TurnRepository
 import com.pointlessapps.dartify.domain.game.x01.turn.model.MatchResolutionStrategy
 

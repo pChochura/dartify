@@ -12,6 +12,7 @@ internal data class Player(
     val name: String,
     val outMode: GameMode? = null,
     val botOptions: BotOptions? = null,
+    val deleted: Boolean = false,
 ) : Parcelable
 
 @Parcelize

@@ -1,21 +1,29 @@
 package com.pointlessapps.dartify.compose.game.setup.players.ui
 
+import android.os.Parcelable
 import androidx.annotation.StringRes
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.Immutable
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pointlessapps.dartify.R
+import com.pointlessapps.dartify.compose.game.mappers.fromPlayer
+import com.pointlessapps.dartify.compose.game.mappers.toPlayer
 import com.pointlessapps.dartify.compose.game.model.Player
 import com.pointlessapps.dartify.compose.utils.extensions.swapped
-import com.pointlessapps.dartify.compose.utils.extensions.withInsertedAt
-import com.pointlessapps.dartify.compose.utils.extensions.withReplacedOrInserted
+import com.pointlessapps.dartify.compose.utils.mutableStateOf
+import com.pointlessapps.dartify.domain.database.players.usecase.DeletePlayerUseCase
+import com.pointlessapps.dartify.domain.database.players.usecase.GetAllPlayersUseCase
+import com.pointlessapps.dartify.domain.database.players.usecase.SavePlayerUseCase
 import com.pointlessapps.dartify.domain.vibration.usecase.VibrateUseCase
 import com.pointlessapps.dartify.reorderable.list.ItemInfo
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.parcelize.Parcelize
 import kotlin.math.sign
 
 internal sealed interface SelectPlayersEvent {
@@ -24,27 +32,55 @@ internal sealed interface SelectPlayersEvent {
     data class AskForCpuAverage(val bot: Player?) : SelectPlayersEvent
     data class AskForPlayerName(val player: Player?) : SelectPlayersEvent
 
-    data class ShowActionSnackbar(
+    data class ShowSnackbar(
         @StringRes val message: Int,
-        @StringRes val actionLabel: Int,
-        val actionCallback: () -> Unit,
+        @StringRes val actionLabel: Int? = null,
+        val actionCallback: (() -> Unit)? = null,
+        val dismissCallback: (() -> Unit)? = null,
     ) : SelectPlayersEvent
 }
 
+@Immutable
+@Parcelize
 internal data class SelectPlayersState(
+    val isLoading: Boolean = true,
     val players: List<Player> = emptyList(),
     val selectedPlayersIndex: Int = 0,
-)
+) : Parcelable
 
 internal class SelectPlayersViewModel(
+    savedStateHandle: SavedStateHandle,
     private val vibrateUseCase: VibrateUseCase,
+    private val savePlayerUseCase: SavePlayerUseCase,
+    private val deletePlayerUseCase: DeletePlayerUseCase,
+    private val getAllPlayersUseCase: GetAllPlayersUseCase,
 ) : ViewModel() {
 
-    var state by mutableStateOf(SelectPlayersState())
+    var state by savedStateHandle.mutableStateOf(SelectPlayersState())
         private set
+
+    private val removePlayersJobs = mutableMapOf<Long, Deferred<*>>()
 
     private val eventChannel = Channel<SelectPlayersEvent>()
     val events = eventChannel.receiveAsFlow()
+
+    fun refreshPlayers() {
+        getAllPlayersUseCase()
+            .onStart {
+                state = state.copy(isLoading = true)
+            }
+            .onEach { players ->
+                state = state.copy(
+                    isLoading = false,
+                    players = players.map { it.fromPlayer() },
+                )
+            }
+            .catch {
+                eventChannel.send(SelectPlayersEvent.ShowSnackbar(R.string.something_went_wrong))
+                state = state.copy(isLoading = false)
+            }
+            .launchIn(viewModelScope)
+    }
 
     fun setSelectedPlayers(selectedPlayers: List<Player>) {
         state = state.copy(
@@ -89,43 +125,62 @@ internal class SelectPlayersViewModel(
     }
 
     fun onPlayerAdded(player: Player) {
-        val newlyAdded = state.players.find { it.id == player.id } == null
-        state = state.copy(
-            players = state.players.withReplacedOrInserted({ it.id == player.id }, player),
-            selectedPlayersIndex = state.selectedPlayersIndex + if (newlyAdded) 1 else 0,
-        )
+        val isNewlyAdded = state.players.find { it.id == player.id } == null
+        savePlayerUseCase(player.toPlayer())
+            .take(1)
+            .onStart {
+                state = state.copy(isLoading = true)
+            }
+            .onEach {
+                state = state.copy(
+                    isLoading = false,
+                    selectedPlayersIndex = state.selectedPlayersIndex + if (isNewlyAdded) 1 else 0,
+                )
+            }
+            .catch {
+                eventChannel.send(SelectPlayersEvent.ShowSnackbar(R.string.something_went_wrong))
+                state = state.copy(isLoading = false)
+            }
+            .launchIn(viewModelScope)
     }
 
     fun onPlayerRemoved(player: Player) {
         val index = state.players.indexOf(player)
         val isSelected = index < state.selectedPlayersIndex
-        state = state.copy(
-            players = (state.players - player),
-            selectedPlayersIndex = state.selectedPlayersIndex - if (isSelected) 1 else 0,
-        )
-
+        val removePlayerJob = viewModelScope.async(start = CoroutineStart.LAZY) {
+            deletePlayerUseCase(player.toPlayer())
+                .take(1)
+                .onEach {
+                    state = state.copy(
+                        selectedPlayersIndex = state.selectedPlayersIndex - if (isSelected) 1 else 0,
+                    )
+                }
+                .catch {
+                    eventChannel.send(SelectPlayersEvent.ShowSnackbar(R.string.something_went_wrong))
+                }
+                .launchIn(viewModelScope)
+        }
+        removePlayersJobs[player.id] = removePlayerJob
+        state = state.copy(players = state.players.withMarkedAsDeleted(player.id))
         vibrateUseCase.error()
+
         viewModelScope.launch {
             eventChannel.send(
-                SelectPlayersEvent.ShowActionSnackbar(
-                    R.string.player_has_been_removed,
-                    R.string.undo,
-                ) {
-                    vibrateUseCase.click()
-                    if (state.players.isEmpty()) {
+                SelectPlayersEvent.ShowSnackbar(
+                    message = R.string.player_has_been_removed,
+                    actionLabel = R.string.undo,
+                    actionCallback = {
+                        removePlayersJobs.remove(player.id)?.cancel()
                         state = state.copy(
-                            players = listOf(player),
-                            selectedPlayersIndex = if (isSelected) 1 else 0,
+                            players = state.players.withMarkedAsDeleted(player.id, false),
                         )
-                        return@ShowActionSnackbar
-                    }
+                        vibrateUseCase.click()
 
-                    val currentIndex = index.coerceIn(0, state.players.lastIndex)
-                    state = state.copy(
-                        players = state.players.withInsertedAt(currentIndex, player),
-                        selectedPlayersIndex = state.selectedPlayersIndex + if (isSelected) 1 else 0,
-                    )
-                },
+                    },
+                    dismissCallback = {
+                        removePlayersJobs.remove(player.id)?.start()
+                    },
+                ),
             )
         }
     }
@@ -156,4 +211,12 @@ internal class SelectPlayersViewModel(
 
     private fun List<Player>.indexById(id: Any?) = indexOfFirst { it.id == id }
         .takeIf { it != -1 }
+
+    private fun List<Player>.withMarkedAsDeleted(id: Long, deleted: Boolean = true) = map {
+        if (it.id == id) {
+            it.copy(deleted = deleted)
+        } else {
+            it
+        }
+    }
 }

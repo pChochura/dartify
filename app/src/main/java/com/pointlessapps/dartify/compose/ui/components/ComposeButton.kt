@@ -27,7 +27,6 @@ internal fun ComposeButton(
     modifier: Modifier = Modifier,
     buttonModel: ComposeButtonModel = defaultComposeButtonModel(),
 ) {
-    @Suppress("MagicNumber")
     val shapeWidthMultiplier = when (buttonModel.shape) {
         ComposeButtonShape.Circle -> 1f
         ComposeButtonShape.Pill -> 1.5f

@@ -82,7 +82,6 @@ internal fun ColumnScope.DartInputKeyboard(
     )
 }
 
-@Suppress("MagicNumber")
 @Composable
 private fun ColumnScope.Keyboard(
     keyModifier: Int?,
@@ -191,7 +190,6 @@ private fun ColumnScope.Keyboard(
     }
 }
 
-@Suppress("MagicNumber")
 @Composable
 private fun ColumnScope.BottomKeys(
     keyModifier: Int?,
@@ -409,10 +407,8 @@ private data class PopupSelection(val show: Boolean, val selection: Selection = 
     }
 }
 
-@Suppress("MagicNumber")
 private fun Int.double() = this * 2
 
-@Suppress("MagicNumber")
 private fun Int.triple() = this * 3
 
 private fun keyValue(x: Int, y: Int) = y * KEYBOARD_COLUMNS + x + 1

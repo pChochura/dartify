@@ -1,6 +1,7 @@
 plugins {
     id(Android.applicationPlugin).version(Android.gradlePluginVersion).apply(false)
     id(Kotlin.gradlePlugin).version(Kotlin.version).apply(false)
+    id(KSP.gradlePlugin).version(KSP.version).apply(false)
     id(Detekt.gradlePlugin).version(Detekt.version)
 }
 

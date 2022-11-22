@@ -2,7 +2,7 @@ package com.pointlessapps.dartify.domain.game.x01.score.usecase
 
 import com.pointlessapps.dartify.domain.game.x01.DEFAULT_NUMBER_OF_THROWS
 import com.pointlessapps.dartify.domain.game.x01.score.ScoreRepository
-import com.pointlessapps.dartify.domain.game.x01.score.model.GameMode
+import com.pointlessapps.dartify.domain.model.GameMode
 
 class IsCheckoutPossibleUseCase(
     private val scoreRepository: ScoreRepository,

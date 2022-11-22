@@ -1,12 +1,16 @@
 package com.pointlessapps.dartify.compose.game.setup.x01.ui
 
+import android.os.Parcelable
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pointlessapps.dartify.R
-import com.pointlessapps.dartify.compose.game.model.*
+import com.pointlessapps.dartify.compose.game.model.GameMode
+import com.pointlessapps.dartify.compose.game.model.GameSettings
+import com.pointlessapps.dartify.compose.game.model.MatchResolutionStrategy
+import com.pointlessapps.dartify.compose.game.model.Player
 import com.pointlessapps.dartify.compose.game.setup.x01.ui.GameSetupX01ViewModel.Companion.DEFAULT_NUMBER_OF_LEGS
 import com.pointlessapps.dartify.compose.game.setup.x01.ui.GameSetupX01ViewModel.Companion.DEFAULT_NUMBER_OF_SETS
 import com.pointlessapps.dartify.compose.game.setup.x01.ui.GameSetupX01ViewModel.Companion.DEFAULT_STARTING_SCORE
@@ -17,6 +21,7 @@ import com.pointlessapps.dartify.reorderable.list.ItemInfo
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import kotlinx.parcelize.Parcelize
 import java.lang.Integer.min
 
 internal sealed interface GameSetupX01Event {
@@ -28,6 +33,7 @@ internal sealed interface GameSetupX01Event {
 }
 
 @Immutable
+@Parcelize
 internal data class GameSetupX01State(
     val matchResolutionStrategy: MatchResolutionStrategy = MatchResolutionStrategy.FirstTo,
     val numberOfSets: Int = DEFAULT_NUMBER_OF_SETS,
@@ -36,7 +42,7 @@ internal data class GameSetupX01State(
     val inMode: GameMode = GameMode.Straight,
     val outMode: GameMode = GameMode.Double,
     val players: List<Player> = emptyList(),
-)
+) : Parcelable
 
 internal class GameSetupX01ViewModel(
     savedStateHandle: SavedStateHandle,
@@ -130,7 +136,7 @@ internal class GameSetupX01ViewModel(
         )
     }
 
-    fun onAddPlayerClicked() {
+    fun onSelectPlayersClicked() {
         viewModelScope.launch {
             eventChannel.send(GameSetupX01Event.Navigate(Route.Players(state.players)))
         }
@@ -200,7 +206,6 @@ internal class GameSetupX01ViewModel(
         vibrateUseCase.click()
     }
 
-    @Suppress("MagicNumber")
     private fun validateStartingScore(score: Int) =
         score in MIN_STARTING_SCORE..MAX_STARTING_SCORE &&
                 (score - 1) % 100 == 0

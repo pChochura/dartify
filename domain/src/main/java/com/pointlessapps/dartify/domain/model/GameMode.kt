@@ -1,4 +1,4 @@
-package com.pointlessapps.dartify.domain.game.x01.score.model
+package com.pointlessapps.dartify.domain.model
 
 enum class GameMode {
     Straight, Double, Master;

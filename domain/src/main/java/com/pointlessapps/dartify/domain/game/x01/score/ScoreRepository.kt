@@ -3,7 +3,7 @@ package com.pointlessapps.dartify.domain.game.x01.score
 import com.pointlessapps.dartify.datasource.game.x01.score.ScoreDataSource
 import com.pointlessapps.dartify.domain.game.x01.SCORE_TO_ASK_FOR_DOUBLES
 import com.pointlessapps.dartify.domain.game.x01.model.InputScore
-import com.pointlessapps.dartify.domain.game.x01.score.model.GameMode
+import com.pointlessapps.dartify.domain.model.GameMode
 
 interface ScoreRepository {
     /**
@@ -82,7 +82,6 @@ interface ScoreRepository {
     ): Boolean
 }
 
-@Suppress("MagicNumber")
 internal class ScoreRepositoryImpl(
     private val scoreDataSource: ScoreDataSource,
 ) : ScoreRepository {

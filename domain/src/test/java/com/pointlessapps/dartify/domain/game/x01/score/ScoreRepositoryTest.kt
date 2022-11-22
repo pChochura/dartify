@@ -2,7 +2,7 @@ package com.pointlessapps.dartify.domain.game.x01.score
 
 import com.pointlessapps.dartify.datasource.game.x01.score.ScoreDataSource
 import com.pointlessapps.dartify.domain.game.x01.DEFAULT_NUMBER_OF_THROWS
-import com.pointlessapps.dartify.domain.game.x01.score.model.GameMode
+import com.pointlessapps.dartify.domain.model.GameMode
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.maps.shouldContainExactly

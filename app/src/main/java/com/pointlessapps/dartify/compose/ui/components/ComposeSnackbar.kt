@@ -79,11 +79,13 @@ internal class ComposeSnackbarHostState(private val onShowSnackbarListener: Snac
         @StringRes message: Int,
         @StringRes actionLabel: Int? = null,
         actionCallback: (() -> Unit)? = null,
+        dismissCallback: (() -> Unit)? = null,
         duration: SnackbarDuration = SnackbarDuration.Short,
     ) = onShowSnackbarListener.showSnackbar(
         message = message,
         actionLabel = actionLabel,
         actionCallback = actionCallback,
+        dismissCallback = dismissCallback,
         duration = duration,
     )
 
@@ -92,6 +94,7 @@ internal class ComposeSnackbarHostState(private val onShowSnackbarListener: Snac
             @StringRes message: Int,
             @StringRes actionLabel: Int?,
             actionCallback: (() -> Unit)?,
+            dismissCallback: (() -> Unit)?,
             duration: SnackbarDuration,
         )
     }

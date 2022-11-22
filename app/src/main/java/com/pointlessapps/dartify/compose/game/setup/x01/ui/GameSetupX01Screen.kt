@@ -126,7 +126,7 @@ internal fun GameSetupX01Screen(
                         callback = { viewModel.onOutGameModeSelectedForPlayer(it, player) },
                     )
                 },
-                onAddPlayerClicked = viewModel::onAddPlayerClicked,
+                onSelectPlayersClicked = viewModel::onSelectPlayersClicked,
             )
 
             item(key = "spacer_bottom") {
@@ -356,7 +356,7 @@ private fun LazyListScope.players(
     players: List<Player>,
     state: ReorderableListState,
     onPlayerClicked: (Player) -> Unit,
-    onAddPlayerClicked: () -> Unit,
+    onSelectPlayersClicked: () -> Unit,
 ) {
     item(key = R.string.players) {
         ComposeText(
@@ -390,40 +390,45 @@ private fun LazyListScope.players(
     }
 
     item(key = R.drawable.ic_plus) {
-        Row(
-            modifier = Modifier
-                .padding(top = dimensionResource(R.dimen.margin_small))
-                .fillMaxWidth()
-                .clip(MaterialTheme.shapes.medium)
-                .border(
-                    width = dimensionResource(id = R.dimen.input_button_border_width),
-                    color = MaterialTheme.colors.secondary,
-                    shape = MaterialTheme.shapes.medium,
-                )
-                .clickable(onClick = onAddPlayerClicked)
-                .padding(dimensionResource(id = R.dimen.margin_medium)),
-            horizontalArrangement = Arrangement.spacedBy(
-                dimensionResource(id = R.dimen.margin_small),
-                Alignment.CenterHorizontally,
-            ),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                modifier = Modifier.size(dimensionResource(id = R.dimen.player_entry_card_icon_size)),
-                painter = painterResource(id = R.drawable.ic_players),
-                tint = MaterialTheme.colors.onSecondary,
-                contentDescription = null,
+        SelectPlayersItem(onSelectPlayersClicked)
+    }
+}
+
+@Composable
+private fun SelectPlayersItem(onSelectPlayersClicked: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .padding(top = dimensionResource(R.dimen.margin_small))
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.medium)
+            .border(
+                width = dimensionResource(id = R.dimen.input_button_border_width),
+                color = MaterialTheme.colors.secondary,
+                shape = MaterialTheme.shapes.medium,
             )
-            ComposeText(
-                text = stringResource(id = R.string.select_players),
-                textStyle = defaultComposeTextStyle().copy(
-                    typography = MaterialTheme.typography.h2.copy(
-                        fontWeight = FontWeight.Normal,
-                    ),
-                    textColor = MaterialTheme.colors.onPrimary,
+            .clickable(onClick = onSelectPlayersClicked)
+            .padding(dimensionResource(id = R.dimen.margin_medium)),
+        horizontalArrangement = Arrangement.spacedBy(
+            dimensionResource(id = R.dimen.margin_small),
+            Alignment.CenterHorizontally,
+        ),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            modifier = Modifier.size(dimensionResource(id = R.dimen.player_entry_card_icon_size)),
+            painter = painterResource(id = R.drawable.ic_players),
+            tint = MaterialTheme.colors.onSecondary,
+            contentDescription = null,
+        )
+        ComposeText(
+            text = stringResource(id = R.string.select_players),
+            textStyle = defaultComposeTextStyle().copy(
+                typography = MaterialTheme.typography.h2.copy(
+                    fontWeight = FontWeight.Normal,
                 ),
-            )
-        }
+                textColor = MaterialTheme.colors.onPrimary,
+            ),
+        )
     }
 }
 

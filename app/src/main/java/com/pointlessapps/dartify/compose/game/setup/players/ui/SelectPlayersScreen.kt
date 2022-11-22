@@ -17,12 +17,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.pointlessapps.dartify.LocalSnackbarHostState
 import com.pointlessapps.dartify.R
 import com.pointlessapps.dartify.compose.game.model.Player
@@ -42,9 +45,24 @@ internal fun SelectPlayersScreen(
     onPlayersSelected: (List<Player>) -> Unit,
 ) {
     val localSnackbarHostState = LocalSnackbarHostState.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     var cpuAverageDialogModel by remember { mutableStateOf<CpuAverageDialogModel?>(null) }
     var playerNameDialogModel by remember { mutableStateOf<PlayerNameDialogModel?>(null) }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.refreshPlayers()
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     LaunchedEffect(selectedPlayers) {
         viewModel.setSelectedPlayers(selectedPlayers)
@@ -58,14 +76,17 @@ internal fun SelectPlayersScreen(
                     cpuAverageDialogModel = CpuAverageDialogModel(it.bot)
                 is SelectPlayersEvent.AskForPlayerName ->
                     playerNameDialogModel = PlayerNameDialogModel(it.player)
-                is SelectPlayersEvent.ShowActionSnackbar -> localSnackbarHostState.showSnackbar(
+                is SelectPlayersEvent.ShowSnackbar -> localSnackbarHostState.showSnackbar(
                     it.message,
                     it.actionLabel,
                     it.actionCallback,
+                    it.dismissCallback,
                 )
             }
         }
     }
+
+    ComposeLoader(enabled = viewModel.state.isLoading)
 
     ComposeScaffoldLayout(
         topBar = { Title() },
@@ -101,7 +122,10 @@ internal fun SelectPlayersScreen(
             }
 
             items(
-                items = viewModel.state.players.subList(0, viewModel.state.selectedPlayersIndex),
+                items = viewModel.state.players.subList(
+                    0,
+                    viewModel.state.selectedPlayersIndex,
+                ).filterNot(Player::deleted),
                 key = { it.id },
             ) { player ->
                 PlayerItem(
@@ -129,7 +153,7 @@ internal fun SelectPlayersScreen(
                 items = viewModel.state.players.subList(
                     viewModel.state.selectedPlayersIndex,
                     viewModel.state.players.size,
-                ),
+                ).filterNot(Player::deleted),
                 key = { it.id },
             ) { player ->
                 PlayerItem(
