@@ -81,6 +81,8 @@ internal class GameActiveX01ViewModel(
     var inputModes = mutableStateMapOf<Long, InputMode>()
         private set
 
+    private var undoPerformed = false
+
     private val eventChannel = Channel<GameActiveX01Event>()
     val events = eventChannel.receiveAsFlow()
 
@@ -150,6 +152,7 @@ internal class GameActiveX01ViewModel(
             return
         }
 
+        undoPerformed = false
         state = state.copy(
             currentInputScore = InputScore.Turn(quickScore),
         )
@@ -177,18 +180,21 @@ internal class GameActiveX01ViewModel(
             return
         }
 
+        val currentScore = if (undoPerformed) InputScore.Turn(0) else state.currentInputScore
+        undoPerformed = false
+
         vibrateUseCase.tick()
         state = state.copy(
             currentInputScore = when (requireNotNull(inputModes[state.currentPlayer?.id])) {
                 InputMode.PerTurn -> InputScore.Turn(
-                    state.currentInputScore.score().addDecimal(key),
+                    currentScore.score().addDecimal(key),
                 )
                 InputMode.PerDart -> {
-                    val score = state.currentInputScore
                     InputScore.Dart(
                         when {
-                            score is InputScore.Dart -> score.scores
-                            score is InputScore.Turn && score.score != 0 -> listOf(score.score)
+                            currentScore is InputScore.Dart -> currentScore.scores
+                            currentScore is InputScore.Turn && currentScore.score != 0 ->
+                                listOf(currentScore.score)
                             else -> emptyList()
                         } + key,
                     )
@@ -198,6 +204,7 @@ internal class GameActiveX01ViewModel(
     }
 
     fun onUndoClicked() {
+        undoPerformed = true
         vibrateUseCase.click()
         if (invokeSingleUndoAction()) {
             return
@@ -261,6 +268,7 @@ internal class GameActiveX01ViewModel(
             return
         }
 
+        undoPerformed = false
         vibrateUseCase.click()
         viewModelScope.launch {
             when (val event = doneTurnUseCase(inputScore)) {
@@ -295,6 +303,7 @@ internal class GameActiveX01ViewModel(
     }
 
     fun onClearClicked() {
+        undoPerformed = false
         vibrateUseCase.click()
         state = state.copy(
             currentInputScore = null,
@@ -420,6 +429,8 @@ internal class GameActiveX01ViewModel(
     fun vibrateClick() = vibrateUseCase.click()
 
     private fun validateKey(key: Int, multiplier: Int): Boolean {
+        val currentScore = if (undoPerformed) InputScore.Turn(0) else state.currentInputScore
+
         val currentPlayerScore = state.playersScores.find {
             it.player.id == state.currentPlayer?.id
         } ?: return false
@@ -429,10 +440,10 @@ internal class GameActiveX01ViewModel(
                 validateSingleThrowUseCase(
                     key,
                     multiplier,
-                    currentPlayerScore.scoreLeft - state.currentInputScore.score(),
-                ) && state.currentInputScore.score() + key <= currentPlayerScore.scoreLeft
+                    currentPlayerScore.scoreLeft - currentScore.score(),
+                ) && currentScore.score() + key <= currentPlayerScore.scoreLeft
             }
-            InputMode.PerTurn -> state.currentInputScore.score()
+            InputMode.PerTurn -> currentScore.score()
                 .addDecimal(key) <= currentPlayerScore.scoreLeft
         }
     }
