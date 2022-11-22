@@ -1,7 +1,6 @@
 package com.pointlessapps.dartify.compose.game.active.x01.ui.input.turn
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,12 +10,9 @@ import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
@@ -26,7 +22,7 @@ import com.pointlessapps.dartify.compose.game.active.x01.model.InputScore
 import com.pointlessapps.dartify.compose.game.active.x01.model.score
 import com.pointlessapps.dartify.compose.ui.components.ComposeText
 import com.pointlessapps.dartify.compose.ui.components.defaultComposeTextStyle
-import com.pointlessapps.dartify.compose.utils.scaledSp
+import com.pointlessapps.dartify.compose.utils.extensions.scaledSp
 
 @Composable
 internal fun TurnInputScore(

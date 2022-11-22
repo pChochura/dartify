@@ -21,7 +21,7 @@ import com.pointlessapps.dartify.R
 import com.pointlessapps.dartify.compose.game.active.x01.model.InputScore
 import com.pointlessapps.dartify.compose.ui.components.ComposeText
 import com.pointlessapps.dartify.compose.ui.components.defaultComposeTextStyle
-import com.pointlessapps.dartify.compose.utils.scaledSp
+import com.pointlessapps.dartify.compose.utils.extensions.scaledSp
 
 @Composable
 internal fun DartInputScore(

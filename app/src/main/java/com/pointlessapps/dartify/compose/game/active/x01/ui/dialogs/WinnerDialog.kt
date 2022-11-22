@@ -18,9 +18,8 @@ import androidx.compose.ui.text.style.TextAlign
 import com.pointlessapps.dartify.R
 import com.pointlessapps.dartify.compose.game.active.x01.model.PlayerScore
 import com.pointlessapps.dartify.compose.game.active.x01.ui.ScoreStatisticEntry
-import com.pointlessapps.dartify.compose.game.model.Bot
 import com.pointlessapps.dartify.compose.ui.components.*
-import com.pointlessapps.dartify.compose.utils.toPercentage
+import com.pointlessapps.dartify.compose.utils.extensions.toPercentage
 
 @Composable
 internal fun WinnerDialog(
@@ -53,7 +52,7 @@ internal fun WinnerDialog(
                 Icon(
                     modifier = Modifier.size(dimensionResource(id = R.dimen.winner_card_icon_size)),
                     painter = painterResource(
-                        id = if (playerScore.player is Bot) {
+                        id = if (playerScore.player.botOptions != null) {
                             R.drawable.ic_robot
                         } else {
                             R.drawable.ic_person

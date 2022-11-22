@@ -3,7 +3,6 @@ package com.pointlessapps.dartify.compose.game.active.x01.ui
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -22,7 +21,7 @@ import com.pointlessapps.dartify.R
 import com.pointlessapps.dartify.compose.ui.components.ComposeText
 import com.pointlessapps.dartify.compose.ui.components.defaultComposeTextStyle
 import com.pointlessapps.dartify.compose.utils.conditional
-import com.pointlessapps.dartify.compose.utils.scaledSp
+import com.pointlessapps.dartify.compose.utils.extensions.scaledSp
 
 @Composable
 internal fun ScoreStatisticEntry(

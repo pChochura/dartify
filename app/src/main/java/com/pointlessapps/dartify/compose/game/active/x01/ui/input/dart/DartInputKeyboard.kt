@@ -35,8 +35,8 @@ import com.pointlessapps.dartify.compose.ui.modifiers.dragAfterLongPress
 import com.pointlessapps.dartify.compose.ui.modifiers.rectBorder
 import com.pointlessapps.dartify.compose.ui.utils.AbovePositionProvider
 import com.pointlessapps.dartify.compose.utils.conditional
-import com.pointlessapps.dartify.compose.utils.distance
-import com.pointlessapps.dartify.compose.utils.scaledSp
+import com.pointlessapps.dartify.compose.utils.extensions.distance
+import com.pointlessapps.dartify.compose.utils.extensions.scaledSp
 import kotlin.math.floor
 
 private const val MAX_POPUP_LONG_PRESS_DISTANCE = 300

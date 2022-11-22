@@ -43,12 +43,17 @@ import org.koin.androidx.compose.getViewModel
 @Composable
 internal fun GameSetupX01Screen(
     viewModel: GameSetupX01ViewModel = getViewModel(),
+    selectedPlayers: List<Player>,
     onNavigate: (Route?) -> Unit,
 ) {
     val localSnackbarHostState = LocalSnackbarHostState.current
 
     var showStartingScoreDialog by remember { mutableStateOf(false) }
     var gameModeDialogModel by remember { mutableStateOf<GameModeDialogModel?>(null) }
+
+    LaunchedEffect(selectedPlayers) {
+        viewModel.setSelectedPlayers(selectedPlayers)
+    }
 
     LaunchedEffect(Unit) {
         viewModel.events.collect {
@@ -405,7 +410,7 @@ private fun LazyListScope.players(
         ) {
             Icon(
                 modifier = Modifier.size(dimensionResource(id = R.dimen.player_entry_card_icon_size)),
-                painter = painterResource(id = R.drawable.ic_plus),
+                painter = painterResource(id = R.drawable.ic_players),
                 tint = MaterialTheme.colors.onSecondary,
                 contentDescription = null,
             )

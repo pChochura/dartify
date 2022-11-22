@@ -25,7 +25,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.pointlessapps.dartify.LocalSnackbarHostState
 import com.pointlessapps.dartify.R
-import com.pointlessapps.dartify.compose.game.model.Bot
 import com.pointlessapps.dartify.compose.game.model.Player
 import com.pointlessapps.dartify.compose.game.setup.players.ui.dialog.SelectCpuAverageDialog
 import com.pointlessapps.dartify.compose.game.setup.players.ui.dialog.SelectPlayerNameDialog
@@ -33,15 +32,14 @@ import com.pointlessapps.dartify.compose.game.setup.ui.PlayerEntryCard
 import com.pointlessapps.dartify.compose.game.setup.ui.defaultPlayerEntryCardModel
 import com.pointlessapps.dartify.compose.ui.components.*
 import com.pointlessapps.dartify.reorderable.list.*
-import kotlinx.collections.immutable.ImmutableList
 import org.koin.androidx.compose.getViewModel
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun SelectPlayersScreen(
     viewModel: SelectPlayersViewModel = getViewModel(),
-    selectedPlayers: ImmutableList<Player>,
-    onPlayersSelected: (ImmutableList<Player>) -> Unit,
+    selectedPlayers: List<Player>,
+    onPlayersSelected: (List<Player>) -> Unit,
 ) {
     val localSnackbarHostState = LocalSnackbarHostState.current
 
@@ -364,7 +362,11 @@ private fun PlayerItem(
                 label = player.name,
                 onClick = { onPlayerClicked(player) },
                 playerEntryCardModel = defaultPlayerEntryCardModel().copy(
-                    mainIcon = if (player is Bot) R.drawable.ic_robot else R.drawable.ic_person,
+                    mainIcon = if (player.botOptions != null) {
+                        R.drawable.ic_robot
+                    } else {
+                        R.drawable.ic_person
+                    },
                     additionalIcon = R.drawable.ic_filter,
                 ),
             )
@@ -373,4 +375,4 @@ private fun PlayerItem(
 }
 
 private data class PlayerNameDialogModel(val player: Player?)
-private data class CpuAverageDialogModel(val bot: Bot?)
+private data class CpuAverageDialogModel(val bot: Player?)

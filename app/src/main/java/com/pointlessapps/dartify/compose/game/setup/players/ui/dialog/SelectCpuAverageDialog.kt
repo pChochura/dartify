@@ -11,7 +11,8 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import com.pointlessapps.dartify.R
-import com.pointlessapps.dartify.compose.game.model.Bot
+import com.pointlessapps.dartify.compose.game.model.BotOptions
+import com.pointlessapps.dartify.compose.game.model.Player
 import com.pointlessapps.dartify.compose.ui.components.*
 
 private const val MIN_AVERAGE = 30
@@ -21,20 +22,19 @@ private const val AVERAGE_INCREMENT = 5
 
 @Composable
 internal fun SelectCpuAverageDialog(
-    bot: Bot? = null,
-    onRemoveClicked: (Bot) -> Unit,
-    onSaveClicked: (Bot) -> Unit,
+    bot: Player? = null,
+    onRemoveClicked: (Player) -> Unit,
+    onSaveClicked: (Player) -> Unit,
     onDismissRequest: () -> Unit,
 ) {
     val botNameTemplate = stringResource(id = R.string.cpu_avg)
-    var average by remember { mutableStateOf(bot?.average?.toInt() ?: DEFAULT_AVERAGE) }
+    var average by remember { mutableStateOf(bot?.botOptions?.average?.toInt() ?: DEFAULT_AVERAGE) }
 
-    fun getBot() = bot?.copy(
-        average = average.toFloat(),
+    fun getBot() = (bot ?: Player(name = "")).copy(
         name = String.format(botNameTemplate, average.toFloat()),
-    ) ?: Bot(
-        average = average.toFloat(),
-        name = String.format(botNameTemplate, average.toFloat()),
+        botOptions = BotOptions(
+            average = average.toFloat(),
+        ),
     )
 
     ComposeDialog(

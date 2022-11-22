@@ -7,32 +7,14 @@ import java.util.*
 
 @Stable
 @Parcelize
-internal open class Player(
-    open val id: Long = UUID.randomUUID().mostSignificantBits,
-    open val name: String,
-    open val outMode: GameMode? = null,
-) : Parcelable {
+internal data class Player(
+    val id: Long = UUID.randomUUID().mostSignificantBits,
+    val name: String,
+    val outMode: GameMode? = null,
+    val botOptions: BotOptions? = null,
+) : Parcelable
 
-    fun copy(
-        id: Long = this.id,
-        name: String = this.name,
-        outMode: GameMode? = this.outMode,
-    ) = Player(
-        id = id,
-        name = name,
-        outMode = outMode,
-    )
-}
-
-@Stable
 @Parcelize
-internal data class Bot(
+internal data class BotOptions(
     val average: Float,
-    override val id: Long = UUID.randomUUID().mostSignificantBits,
-    override val name: String,
-    override val outMode: GameMode? = null,
-) : Player(
-    id = id,
-    name = name,
-    outMode = outMode,
-)
+) : Parcelable

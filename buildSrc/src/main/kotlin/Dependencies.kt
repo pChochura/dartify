@@ -10,8 +10,6 @@ object Kotlin {
         const val android = "org.jetbrains.kotlinx:kotlinx-coroutines-android:$version"
         const val core = "org.jetbrains.kotlinx:kotlinx-coroutines-core:$version"
     }
-
-    const val ImmutableCollections = "org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.5"
 }
 
 object Java {
@@ -77,4 +75,10 @@ object Kotest {
 object Mockk {
     private const val version = "1.13.2"
     const val core = "io.mockk:mockk:$version"
+}
+
+object RoomDB {
+    private const val version = "2.4.3"
+    const val runtime = "androidx.room:room-runtime:$version"
+    const val compiler = "androidx.room:room-compiler:$version"
 }

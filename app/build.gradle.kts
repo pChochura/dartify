@@ -108,8 +108,6 @@ dependencies {
 
     implementation(Koin.compose)
 
-    implementation(Kotlin.ImmutableCollections)
-
     implementation(project(":domain"))
     implementation(project(":errors"))
     implementation(project(":local_datasource"))

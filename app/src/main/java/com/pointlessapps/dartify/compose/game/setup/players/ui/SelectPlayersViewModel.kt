@@ -7,17 +7,12 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pointlessapps.dartify.R
-import com.pointlessapps.dartify.compose.game.model.Bot
 import com.pointlessapps.dartify.compose.game.model.Player
-import com.pointlessapps.dartify.compose.utils.emptyImmutableList
-import com.pointlessapps.dartify.compose.utils.swapped
-import com.pointlessapps.dartify.compose.utils.withInsertedAt
-import com.pointlessapps.dartify.compose.utils.withReplacedOrInserted
+import com.pointlessapps.dartify.compose.utils.extensions.swapped
+import com.pointlessapps.dartify.compose.utils.extensions.withInsertedAt
+import com.pointlessapps.dartify.compose.utils.extensions.withReplacedOrInserted
 import com.pointlessapps.dartify.domain.vibration.usecase.VibrateUseCase
 import com.pointlessapps.dartify.reorderable.list.ItemInfo
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -25,8 +20,8 @@ import kotlin.math.sign
 
 internal sealed interface SelectPlayersEvent {
     @JvmInline
-    value class OnPlayersSelected(val players: ImmutableList<Player>) : SelectPlayersEvent
-    data class AskForCpuAverage(val bot: Bot?) : SelectPlayersEvent
+    value class OnPlayersSelected(val players: List<Player>) : SelectPlayersEvent
+    data class AskForCpuAverage(val bot: Player?) : SelectPlayersEvent
     data class AskForPlayerName(val player: Player?) : SelectPlayersEvent
 
     data class ShowActionSnackbar(
@@ -37,7 +32,7 @@ internal sealed interface SelectPlayersEvent {
 }
 
 internal data class SelectPlayersState(
-    val players: ImmutableList<Player> = emptyImmutableList(),
+    val players: List<Player> = emptyList(),
     val selectedPlayersIndex: Int = 0,
 )
 
@@ -51,7 +46,7 @@ internal class SelectPlayersViewModel(
     private val eventChannel = Channel<SelectPlayersEvent>()
     val events = eventChannel.receiveAsFlow()
 
-    fun setSelectedPlayers(selectedPlayers: ImmutableList<Player>) {
+    fun setSelectedPlayers(selectedPlayers: List<Player>) {
         state = state.copy(
             players = selectedPlayers,
             selectedPlayersIndex = if (selectedPlayers.isEmpty()) 0 else selectedPlayers.size,
@@ -72,7 +67,7 @@ internal class SelectPlayersViewModel(
         vibrateUseCase.click()
         viewModelScope.launch {
             eventChannel.send(
-                if (player is Bot) {
+                if (player.botOptions != null) {
                     SelectPlayersEvent.AskForCpuAverage(player)
                 } else {
                     SelectPlayersEvent.AskForPlayerName(player)
@@ -105,7 +100,7 @@ internal class SelectPlayersViewModel(
         val index = state.players.indexOf(player)
         val isSelected = index < state.selectedPlayersIndex
         state = state.copy(
-            players = (state.players - player).toImmutableList(),
+            players = (state.players - player),
             selectedPlayersIndex = state.selectedPlayersIndex - if (isSelected) 1 else 0,
         )
 
@@ -119,7 +114,7 @@ internal class SelectPlayersViewModel(
                     vibrateUseCase.click()
                     if (state.players.isEmpty()) {
                         state = state.copy(
-                            players = persistentListOf(player),
+                            players = listOf(player),
                             selectedPlayersIndex = if (isSelected) 1 else 0,
                         )
                         return@ShowActionSnackbar

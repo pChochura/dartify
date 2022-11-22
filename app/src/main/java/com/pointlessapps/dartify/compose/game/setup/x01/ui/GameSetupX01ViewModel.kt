@@ -1,11 +1,7 @@
 package com.pointlessapps.dartify.compose.game.setup.x01.ui
 
 import androidx.annotation.StringRes
-import androidx.compose.runtime.Stable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.core.os.bundleOf
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,11 +11,9 @@ import com.pointlessapps.dartify.compose.game.setup.x01.ui.GameSetupX01ViewModel
 import com.pointlessapps.dartify.compose.game.setup.x01.ui.GameSetupX01ViewModel.Companion.DEFAULT_NUMBER_OF_SETS
 import com.pointlessapps.dartify.compose.game.setup.x01.ui.GameSetupX01ViewModel.Companion.DEFAULT_STARTING_SCORE
 import com.pointlessapps.dartify.compose.ui.theme.Route
-import com.pointlessapps.dartify.compose.utils.emptyImmutableList
+import com.pointlessapps.dartify.compose.utils.mutableStateOf
 import com.pointlessapps.dartify.domain.vibration.usecase.VibrateUseCase
 import com.pointlessapps.dartify.reorderable.list.ItemInfo
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -33,7 +27,7 @@ internal sealed interface GameSetupX01Event {
     value class ShowErrorSnackbar(@StringRes val message: Int) : GameSetupX01Event
 }
 
-@Stable
+@Immutable
 internal data class GameSetupX01State(
     val matchResolutionStrategy: MatchResolutionStrategy = MatchResolutionStrategy.FirstTo,
     val numberOfSets: Int = DEFAULT_NUMBER_OF_SETS,
@@ -41,7 +35,7 @@ internal data class GameSetupX01State(
     val startingScore: Int = DEFAULT_STARTING_SCORE,
     val inMode: GameMode = GameMode.Straight,
     val outMode: GameMode = GameMode.Double,
-    val players: ImmutableList<Player> = emptyImmutableList(),
+    val players: List<Player> = emptyList(),
 )
 
 internal class GameSetupX01ViewModel(
@@ -49,22 +43,14 @@ internal class GameSetupX01ViewModel(
     private val vibrateUseCase: VibrateUseCase,
 ) : ViewModel() {
 
-    var state by mutableStateOf(savedStateHandle[STATE_KEY] ?: GameSetupX01State())
+    var state by savedStateHandle.mutableStateOf(GameSetupX01State())
         private set
 
     private val eventChannel = Channel<GameSetupX01Event>()
     val events = eventChannel.receiveAsFlow()
 
-    init {
-        savedStateHandle.setSavedStateProvider(STATE_HANDLE_KEY) {
-            bundleOf(STATE_KEY to state)
-        }
-    }
-
     fun setSelectedPlayers(players: List<Player>) {
-        state = state.copy(
-            players = players.toImmutableList(),
-        )
+        state = state.copy(players = players)
     }
 
     fun onStartGameClicked() {
@@ -140,7 +126,7 @@ internal class GameSetupX01ViewModel(
                 } else {
                     it
                 }
-            }.toImmutableList(),
+            },
         )
     }
 
@@ -206,7 +192,7 @@ internal class GameSetupX01ViewModel(
         state = state.copy(
             players = state.players.toMutableList().apply {
                 add(toIndex, removeAt(fromIndex))
-            }.toImmutableList(),
+            },
         )
     }
 
@@ -234,8 +220,5 @@ internal class GameSetupX01ViewModel(
         const val MAX_NUMBER_OF_LEGS = 9
         const val DEFAULT_NUMBER_OF_SETS = 1
         const val DEFAULT_NUMBER_OF_LEGS = 3
-
-        private const val STATE_HANDLE_KEY = "GameSetupX01State_Handle"
-        private const val STATE_KEY = "GameSetupX01State"
     }
 }

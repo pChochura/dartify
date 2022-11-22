@@ -14,8 +14,7 @@ import com.pointlessapps.dartify.compose.game.mappers.*
 import com.pointlessapps.dartify.compose.game.model.GameSettings
 import com.pointlessapps.dartify.compose.game.model.Player
 import com.pointlessapps.dartify.compose.ui.theme.Route
-import com.pointlessapps.dartify.compose.utils.addDecimal
-import com.pointlessapps.dartify.compose.utils.emptyImmutableList
+import com.pointlessapps.dartify.compose.utils.extensions.addDecimal
 import com.pointlessapps.dartify.domain.game.x01.score.usecase.IsCheckoutPossibleUseCase
 import com.pointlessapps.dartify.domain.game.x01.score.usecase.ValidateScoreUseCase
 import com.pointlessapps.dartify.domain.game.x01.score.usecase.ValidateSingleThrowUseCase
@@ -24,8 +23,6 @@ import com.pointlessapps.dartify.domain.game.x01.turn.model.DoneTurnEvent
 import com.pointlessapps.dartify.domain.game.x01.turn.model.WinState
 import com.pointlessapps.dartify.domain.game.x01.turn.usecase.*
 import com.pointlessapps.dartify.domain.vibration.usecase.VibrateUseCase
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -54,11 +51,11 @@ internal sealed interface GameActiveX01Event {
     value class ShowErrorSnackbar(@StringRes val message: Int) : GameActiveX01Event
 }
 
-@Stable
+@Immutable
 internal data class GameActiveX01State(
     val currentSet: Int = 1,
     val currentLeg: Int = 1,
-    val playersScores: ImmutableList<PlayerScore> = emptyImmutableList(),
+    val playersScores: List<PlayerScore> = emptyList(),
     val currentPlayer: Player? = null,
     val currentInputScore: InputScore? = null,
 )
@@ -111,8 +108,7 @@ internal class GameActiveX01ViewModel(
             currentSet = currentState.set,
             currentLeg = currentState.leg,
             currentPlayer = currentState.player.fromPlayer(),
-            playersScores = currentState.playerScores.map { it.fromPlayerScore() }
-                .toImmutableList(),
+            playersScores = currentState.playerScores.map { it.fromPlayerScore() },
         )
     }
 
@@ -213,8 +209,7 @@ internal class GameActiveX01ViewModel(
             currentSet = currentState.set,
             currentLeg = currentState.leg,
             currentPlayer = currentState.player.fromPlayer(),
-            playersScores = currentState.playerScores.map { it.fromPlayerScore() }
-                .toImmutableList(),
+            playersScores = currentState.playerScores.map { it.fromPlayerScore() },
         )
     }
 
@@ -292,8 +287,7 @@ internal class GameActiveX01ViewModel(
                         currentSet = currentState.set,
                         currentLeg = currentState.leg,
                         currentPlayer = currentState.player.fromPlayer(),
-                        playersScores = currentState.playerScores.map { it.fromPlayerScore() }
-                            .toImmutableList(),
+                        playersScores = currentState.playerScores.map { it.fromPlayerScore() },
                     )
                 }
             }
@@ -335,8 +329,7 @@ internal class GameActiveX01ViewModel(
             currentSet = currentState.set,
             currentLeg = currentState.leg,
             currentPlayer = currentState.player.fromPlayer(),
-            playersScores = currentState.playerScores.map { it.fromPlayerScore() }
-                .toImmutableList(),
+            playersScores = currentState.playerScores.map { it.fromPlayerScore() },
         )
     }
 
@@ -371,8 +364,7 @@ internal class GameActiveX01ViewModel(
                     currentSet = state.set,
                     currentLeg = state.leg,
                     currentPlayer = state.player.fromPlayer(),
-                    playersScores = state.playerScores.map { it.fromPlayerScore() }
-                        .toImmutableList(),
+                    playersScores = state.playerScores.map { it.fromPlayerScore() },
                 )
             }
         }

@@ -26,7 +26,6 @@ import com.pointlessapps.dartify.compose.game.active.x01.ui.input.dart.DartInput
 import com.pointlessapps.dartify.compose.game.active.x01.ui.input.dart.DartInputScore
 import com.pointlessapps.dartify.compose.game.active.x01.ui.input.turn.TurnInputKeyboard
 import com.pointlessapps.dartify.compose.game.active.x01.ui.input.turn.TurnInputScore
-import com.pointlessapps.dartify.compose.game.model.Bot
 import com.pointlessapps.dartify.compose.game.model.GameMode
 import com.pointlessapps.dartify.compose.game.model.GameSettings
 import com.pointlessapps.dartify.compose.game.model.Player
@@ -35,8 +34,8 @@ import com.pointlessapps.dartify.compose.ui.components.ComposeText
 import com.pointlessapps.dartify.compose.ui.components.defaultComposeTextStyle
 import com.pointlessapps.dartify.compose.ui.modifiers.rectBorder
 import com.pointlessapps.dartify.compose.ui.theme.Route
-import com.pointlessapps.dartify.compose.utils.scaledSp
-import com.pointlessapps.dartify.compose.utils.toPercentage
+import com.pointlessapps.dartify.compose.utils.extensions.scaledSp
+import com.pointlessapps.dartify.compose.utils.extensions.toPercentage
 import org.koin.androidx.compose.getViewModel
 
 @Composable
@@ -290,9 +289,9 @@ private fun Scores(
             playersScores.forEach { score ->
                 Score(
                     name = score.player.name,
-                    icon = when (score.player) {
-                        is Bot -> R.drawable.ic_robot
-                        else -> R.drawable.ic_person
+                    icon = when (score.player.botOptions) {
+                        null -> R.drawable.ic_person
+                        else -> R.drawable.ic_robot
                     },
                     scoreLeft = onScoreLeftRequested(score.player),
                     lastScore = score.lastScore,

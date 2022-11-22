@@ -1,5 +1,6 @@
 package com.pointlessapps.dartify.compose.home.ui
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pointlessapps.dartify.compose.ui.theme.Route
@@ -21,7 +22,11 @@ internal class HomeViewModel : ViewModel() {
 
     fun onPlayClicked() {
         viewModelScope.launch {
-            eventChannel.send(HomeEvent.Navigate(Route.GameSetup.X01))
+            eventChannel.send(
+                HomeEvent.Navigate(
+                    Route.GameSetup.X01(players = mutableStateOf(emptyList())),
+                ),
+            )
         }
     }
 
