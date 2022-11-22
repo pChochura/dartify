@@ -8,6 +8,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -329,9 +330,9 @@ private fun AddPlayerItem(onAddPlayerClicked: () -> Unit) {
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalFoundationApi::class)
 @Composable
-private fun PlayerItem(
+private fun LazyItemScope.PlayerItem(
     reorderableState: ReorderableListState,
     player: Player,
     onPlayerClicked: (Player) -> Unit,
@@ -348,7 +349,11 @@ private fun PlayerItem(
     )
 
     SwipeToDismiss(
-        modifier = Modifier.reorderableItem(player.id, reorderableState),
+        modifier = Modifier.reorderableItem(
+            key = player.id,
+            reorderableListState = reorderableState,
+            nonDraggedModifier = Modifier.animateItemPlacement(),
+        ),
         state = dismissState,
         directions = setOf(DismissDirection.EndToStart),
         dismissThresholds = { FractionalThreshold(0.25f) },

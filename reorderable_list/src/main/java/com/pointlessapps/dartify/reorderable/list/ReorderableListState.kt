@@ -4,42 +4,51 @@
 
 package com.pointlessapps.dartify.reorderable.list
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.*
 import androidx.compose.ui.geometry.Offset
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 @Composable
 fun rememberReorderableListState(
     lazyListState: LazyListState = rememberLazyListState(),
+    coroutineScope: CoroutineScope = rememberCoroutineScope(),
     onMove: (ItemInfo, ItemInfo) -> Unit,
     onDragStarted: (() -> Unit)? = null,
 ) = remember {
     ReorderableListState(
         lazyListState = lazyListState,
+        coroutineScope = coroutineScope,
         onMove = onMove,
         onDragStarted = onDragStarted,
     )
 }
 
-class ReorderableListState(
+class ReorderableListState internal constructor(
     val lazyListState: LazyListState,
+    private val coroutineScope: CoroutineScope,
     private val onMove: (ItemInfo, ItemInfo) -> Unit,
     private val onDragStarted: (() -> Unit)? = null,
 ) {
     internal val reorderableAnchorKeys = mutableStateListOf<Any?>()
     internal val reorderableKeys = mutableStateListOf<Any?>()
     internal var currentIndexOfDraggedItem by mutableStateOf<Int?>(null)
+    internal var previousIndexOfDraggedItem by mutableStateOf<Int?>(null)
 
     private var overscrollJob by mutableStateOf<Job?>(null)
     private var draggedDistance by mutableStateOf(0f)
     private var initiallyDraggedElement by mutableStateOf<LazyListItemInfo?>(null)
 
     private val initialOffsets: Pair<Int, Int>?
-        get() = initiallyDraggedElement?.let { Pair(it.offset, it.offsetEnd) }
+        get() = initiallyDraggedElement?.let { it.offset to it.offsetEnd }
 
+    internal val itemOffsetAnimation = Animatable(0f)
     internal val elementDisplacement: Float?
         get() = currentElement?.let { item ->
             (initiallyDraggedElement?.offset ?: 0f).toFloat() + draggedDistance - item.offset
@@ -63,6 +72,14 @@ class ReorderableListState(
     }
 
     internal fun onDragInterrupted() {
+        elementDisplacement?.let {
+            previousIndexOfDraggedItem = currentIndexOfDraggedItem
+            coroutineScope.launch {
+                itemOffsetAnimation.snapTo(it)
+                itemOffsetAnimation.animateTo(0f)
+            }
+        }
+
         draggedDistance = 0f
         currentIndexOfDraggedItem = null
         initiallyDraggedElement = null
@@ -102,8 +119,10 @@ class ReorderableListState(
         val endOffset = it.offsetEnd + draggedDistance
 
         return@let when {
-            draggedDistance > 0 -> (endOffset - lazyListState.layoutInfo.viewportEndOffset).takeIf { diff -> diff > 0 }
-            draggedDistance < 0 -> (startOffset - lazyListState.layoutInfo.viewportStartOffset).takeIf { diff -> diff < 0 }
+            draggedDistance > 0 -> (endOffset - lazyListState.layoutInfo.viewportEndOffset)
+                .takeIf { diff -> diff > 0 }
+            draggedDistance < 0 -> (startOffset - lazyListState.layoutInfo.viewportStartOffset)
+                .takeIf { diff -> diff < 0 }
             else -> null
         }
     } ?: 0f

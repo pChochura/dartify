@@ -1,6 +1,7 @@
 package com.pointlessapps.dartify.compose.game.setup.x01.ui
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -352,6 +353,7 @@ private fun GameModes(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 private fun LazyListScope.players(
     players: List<Player>,
     state: ReorderableListState,
@@ -373,7 +375,11 @@ private fun LazyListScope.players(
         PlayerEntryCard(
             modifier = Modifier
                 .padding(top = dimensionResource(R.dimen.margin_small))
-                .reorderableItem(player.id, state),
+                .reorderableItem(
+                    key = player.id,
+                    reorderableListState = state,
+                    nonDraggedModifier = Modifier.animateItemPlacement(),
+                ),
             label = player.name,
             onClick = { onPlayerClicked(player) },
             infoCardText = player.outMode?.abbrev?.let {

@@ -49,17 +49,22 @@ fun Modifier.reorderable(reorderableListState: ReorderableListState) = composed 
 fun Modifier.reorderableItem(
     key: Any?,
     reorderableListState: ReorderableListState,
-): Modifier {
-    reorderableListState.reorderableKeys.add(key)
+    nonDraggedModifier: Modifier = this,
+) = composed {
+    remember(key) { reorderableListState.reorderableKeys.add(key) }
 
-    val offsetOrNull = reorderableListState.elementDisplacement.takeIf {
-        val index = reorderableListState.lazyListState.getVisibleItemIndexFor(key)
-        index == reorderableListState.currentIndexOfDraggedItem
+    val index = reorderableListState.lazyListState.getVisibleItemIndexFor(key)
+
+    val currentOffset = reorderableListState.elementDisplacement ?: 0f
+    val animationOffset by reorderableListState.itemOffsetAnimation.asState()
+
+    return@composed when {
+        index == reorderableListState.currentIndexOfDraggedItem ->
+            zIndex(2f).graphicsLayer { translationY = currentOffset }
+        index == reorderableListState.previousIndexOfDraggedItem && animationOffset != 0f ->
+            zIndex(1f).graphicsLayer { translationY = animationOffset }
+        else -> nonDraggedModifier
     }
-
-    return if (offsetOrNull != null) {
-        zIndex(1f).graphicsLayer { translationY = offsetOrNull }
-    } else this
 }
 
 /**
