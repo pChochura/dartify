@@ -13,10 +13,10 @@ internal fun ViewPlayer.toPlayer() = Player(
     average = botOptions?.average,
 )
 
-internal fun Player.fromPlayer() = ViewPlayer(
+internal fun Player.fromPlayer(ignoreDefaultOutMode: Boolean = false) = ViewPlayer(
     id = id,
     name = name,
-    outMode = outMode.fromOutMode(),
+    outMode = outMode.fromOutMode(ignoreDefaultOutMode),
     botOptions = average?.let(::BotOptions),
 )
 

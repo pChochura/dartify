@@ -17,9 +17,14 @@ internal fun ViewGameMode?.toInMode() = when (this) {
     else -> GameMode.DEFAULT_IN_MODE
 }
 
-internal fun GameMode.fromOutMode() = when (this) {
-    GameMode.DEFAULT_OUT_MODE -> null
-    GameMode.Straight -> ViewGameMode.Straight
-    GameMode.Double -> ViewGameMode.Double
-    GameMode.Master -> ViewGameMode.Master
+internal fun GameMode.fromOutMode(ignoreDefault: Boolean): ViewGameMode? {
+    if (ignoreDefault && this == GameMode.DEFAULT_OUT_MODE) {
+        return null
+    }
+
+    return when (this) {
+        GameMode.Straight -> ViewGameMode.Straight
+        GameMode.Double -> ViewGameMode.Double
+        GameMode.Master -> ViewGameMode.Master
+    }
 }

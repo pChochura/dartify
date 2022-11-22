@@ -1,13 +1,11 @@
 package com.pointlessapps.dartify.compose.game.active.x01.ui.dialogs
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -22,8 +20,10 @@ internal fun NumberOfDoublesDialog(
     minNumberOfDoubles: Int,
     maxNumberOfDoubles: Int,
     onUndoLastMoveClicked: () -> Unit,
-    onButtonClicked: (Int) -> Unit,
+    onDoneClicked: (Int) -> Unit,
 ) {
+    var numberOfDoubles by remember { mutableStateOf(minNumberOfDoubles) }
+
     ComposeDialog(
         onDismissRequest = onUndoLastMoveClicked,
         dialogModel = defaultComposeDialogModel().copy(
@@ -41,9 +41,13 @@ internal fun NumberOfDoublesDialog(
                 ComposeSimpleButton(
                     modifier = Modifier.weight(1f),
                     label = "$it",
-                    onClick = { onButtonClicked(it) },
+                    onClick = { numberOfDoubles = it },
                     simpleButtonModel = defaultComposeSimpleButtonModel().copy(
-                        backgroundColor = MaterialTheme.colors.secondary,
+                        backgroundColor = if (numberOfDoubles == it) {
+                            colorResource(id = R.color.red)
+                        } else {
+                            MaterialTheme.colors.secondary
+                        },
                         icon = null,
                         orientation = ComposeSimpleButtonOrientation.Horizontal,
                         textStyle = defaultComposeTextStyle().copy(
@@ -82,15 +86,47 @@ internal fun NumberOfDoublesDialog(
             )
         }
 
-        ComposeSimpleButton(
-            modifier = Modifier.fillMaxWidth(),
-            label = stringResource(id = R.string.undo_last_move),
-            onClick = onUndoLastMoveClicked,
-            simpleButtonModel = defaultComposeSimpleButtonModel().copy(
-                backgroundColor = MaterialTheme.colors.secondary,
-                icon = R.drawable.ic_undo,
-                orientation = ComposeSimpleButtonOrientation.Horizontal,
+        Column(
+            verticalArrangement = Arrangement.spacedBy(
+                dimensionResource(id = R.dimen.margin_tiny),
             ),
-        )
+        ) {
+            ComposeSimpleButton(
+                modifier = Modifier.fillMaxWidth(),
+                label = stringResource(id = R.string.undo_last_move),
+                onClick = onUndoLastMoveClicked,
+                simpleButtonModel = defaultComposeSimpleButtonModel().copy(
+                    backgroundColor = MaterialTheme.colors.secondary,
+                    icon = R.drawable.ic_undo,
+                    orientation = ComposeSimpleButtonOrientation.Horizontal,
+                ),
+            )
+            ComposeSimpleButton(
+                modifier = Modifier.fillMaxWidth(),
+                label = stringResource(id = R.string.done),
+                onClick = {
+                    if (
+                        validateNumberOfDoubles(
+                            minNumberOfDoubles,
+                            maxNumberOfDoubles,
+                            numberOfDoubles,
+                        )
+                    ) {
+                        onDoneClicked(numberOfDoubles)
+                    }
+                },
+                simpleButtonModel = defaultComposeSimpleButtonModel().copy(
+                    backgroundColor = colorResource(id = R.color.red),
+                    icon = R.drawable.ic_done,
+                    orientation = ComposeSimpleButtonOrientation.Horizontal,
+                ),
+            )
+        }
     }
 }
+
+private fun validateNumberOfDoubles(
+    minNumberOfDoubles: Int,
+    maxNumberOfDoubles: Int,
+    numberOfDoubles: Int,
+) = numberOfDoubles in minNumberOfDoubles..maxNumberOfDoubles

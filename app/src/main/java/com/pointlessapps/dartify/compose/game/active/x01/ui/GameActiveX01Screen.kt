@@ -155,8 +155,8 @@ internal fun GameActiveX01Screen(
                     numberOfThrowsAndDoublesDialogModel = null
                     viewModel.vibrateClick()
                 },
-                onButtonClicked = { throwsInTotal ->
-                    viewModel.onNumberOfThrowsClicked(throwsInTotal)
+                onDoneClicked = {
+                    viewModel.onNumberOfThrowsClicked(it)
                     numberOfThrowsAndDoublesDialogModel = null
                 },
             )
@@ -171,7 +171,7 @@ internal fun GameActiveX01Screen(
                 numberOfDoublesDialogModel = null
                 viewModel.vibrateClick()
             },
-            onButtonClicked = {
+            onDoneClicked = {
                 viewModel.onNumberOfDoublesClicked(it)
                 numberOfDoublesDialogModel = null
             },
