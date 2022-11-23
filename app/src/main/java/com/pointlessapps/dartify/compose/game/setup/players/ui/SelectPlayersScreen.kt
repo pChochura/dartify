@@ -1,5 +1,6 @@
 package com.pointlessapps.dartify.compose.game.setup.players.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -44,12 +45,15 @@ internal fun SelectPlayersScreen(
     viewModel: SelectPlayersViewModel = getViewModel(),
     selectedPlayers: List<Player>,
     onPlayersSelected: (List<Player>) -> Unit,
+    onDismissed: (List<Player>) -> Unit,
 ) {
     val localSnackbarHostState = LocalSnackbarHostState.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
     var cpuAverageDialogModel by remember { mutableStateOf<CpuAverageDialogModel?>(null) }
     var playerNameDialogModel by remember { mutableStateOf<PlayerNameDialogModel?>(null) }
+
+    BackHandler { onDismissed(selectedPlayers) }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->

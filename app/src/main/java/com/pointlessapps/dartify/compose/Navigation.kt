@@ -34,6 +34,13 @@ internal fun NavHost(
                     }
                     navController.pop()
                 },
+                onDismissed = { selectedPlayers ->
+                    val previousDestination = navController.previousDestination()
+                    if (previousDestination is Route.Players.PlayersListCallback) {
+                        previousDestination.players.value = selectedPlayers
+                    }
+                    navController.pop()
+                },
             )
             is Route.GameSetup.X01 -> {
                 val selectedPlayers by destination.players

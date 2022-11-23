@@ -72,7 +72,9 @@ internal class SelectPlayersViewModel(
             .onEach { players ->
                 state = state.copy(
                     isLoading = false,
-                    players = players.map { it.fromPlayer(ignoreDefaultOutMode = true) },
+                    players = (state.players + players.map {
+                        it.fromPlayer(ignoreDefaultOutMode = true)
+                    }).distinctBy { it.id },
                 )
             }
             .catch {
