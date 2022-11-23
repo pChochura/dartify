@@ -9,5 +9,17 @@ sealed interface InputScore {
 
     data class Dart(val scores: List<Int>) : InputScore {
         override fun score() = scores.sum()
+
+        fun withFixedSize(size: Int): InputScore {
+            if (scores.size == size) {
+                return this
+            }
+
+            return copy(
+                scores = (0 until size).map {
+                    scores.getOrElse(it) { 0 }
+                },
+            )
+        }
     }
 }

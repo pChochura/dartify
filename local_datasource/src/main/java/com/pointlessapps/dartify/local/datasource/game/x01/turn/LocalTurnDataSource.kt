@@ -32,8 +32,7 @@ internal class LocalTurnDataSource : TurnDataSource {
             )
         }
 
-        val handler = getScoreHandler(playerId)
-        handler.addInput(score, numberOfThrows, numberOfThrowsOnDouble)
+        getScoreHandler(playerId).addInput(score, numberOfThrows, numberOfThrowsOnDouble)
     }
 
     override fun hasWonPreviousLeg(playerId: Long) =

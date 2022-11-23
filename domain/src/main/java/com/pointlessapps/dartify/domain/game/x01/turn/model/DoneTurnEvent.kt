@@ -1,7 +1,9 @@
 package com.pointlessapps.dartify.domain.game.x01.turn.model
 
+import com.pointlessapps.dartify.domain.game.x01.model.InputScore
+
 sealed interface DoneTurnEvent {
-    object AddInput : DoneTurnEvent
+    data class AddInput(val inputScore: InputScore) : DoneTurnEvent
 
     data class AskForNumberOfThrows(val minNumberOfThrows: Int) : DoneTurnEvent
 
