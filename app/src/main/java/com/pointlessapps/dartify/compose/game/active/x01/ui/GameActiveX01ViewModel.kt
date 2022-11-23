@@ -1,5 +1,6 @@
 package com.pointlessapps.dartify.compose.game.active.x01.ui
 
+import android.os.Parcelable
 import androidx.annotation.StringRes
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
@@ -21,11 +22,15 @@ import com.pointlessapps.dartify.domain.game.x01.score.usecase.ValidateSingleThr
 import com.pointlessapps.dartify.domain.game.x01.turn.model.CurrentState
 import com.pointlessapps.dartify.domain.game.x01.turn.model.DoneTurnEvent
 import com.pointlessapps.dartify.domain.game.x01.turn.model.WinState
-import com.pointlessapps.dartify.domain.game.x01.turn.usecase.*
+import com.pointlessapps.dartify.domain.game.x01.turn.usecase.AddInputUseCase
+import com.pointlessapps.dartify.domain.game.x01.turn.usecase.FinishLegUseCase
+import com.pointlessapps.dartify.domain.game.x01.turn.usecase.SetupGameUseCase
+import com.pointlessapps.dartify.domain.game.x01.turn.usecase.TurnUseCases
 import com.pointlessapps.dartify.domain.vibration.usecase.VibrateUseCase
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import kotlinx.parcelize.Parcelize
 
 internal sealed interface GameActiveX01Event {
     @JvmInline
@@ -52,22 +57,21 @@ internal sealed interface GameActiveX01Event {
 }
 
 @Immutable
+@Parcelize
 internal data class GameActiveX01State(
     val currentSet: Int = 1,
     val currentLeg: Int = 1,
     val playersScores: List<PlayerScore> = emptyList(),
     val currentPlayer: Player? = null,
     val currentInputScore: InputScore? = null,
-)
+) : Parcelable
 
 internal class GameActiveX01ViewModel(
     private val validateSingleThrowUseCase: ValidateSingleThrowUseCase,
     private val validateScoreUseCase: ValidateScoreUseCase,
     private val isCheckoutPossibleUseCase: IsCheckoutPossibleUseCase,
-    private val nextTurnUseCase: NextTurnUseCase,
-    private val doneTurnUseCase: DoneTurnUseCase,
+    private val turnUseCases: TurnUseCases,
     private val addInputUseCase: AddInputUseCase,
-    private val undoTurnUseCase: UndoTurnUseCase,
     private val finishLegUseCase: FinishLegUseCase,
     private val setupGameUseCase: SetupGameUseCase,
     private val vibrateUseCase: VibrateUseCase,
@@ -214,7 +218,7 @@ internal class GameActiveX01ViewModel(
         }
 
         startOverAfterFurtherInput = true
-        val currentState = undoTurnUseCase()
+        val currentState = turnUseCases.undoTurn()
         state = state.copy(
             currentInputScore = currentState.score?.fromInputScore(),
             currentSet = currentState.set,
@@ -282,7 +286,7 @@ internal class GameActiveX01ViewModel(
         startOverAfterFurtherInput = false
         vibrateUseCase.click()
         viewModelScope.launch {
-            when (val event = doneTurnUseCase(inputScore)) {
+            when (val event = turnUseCases.doneTurn(inputScore)) {
                 is DoneTurnEvent.AskForNumberOfDoubles -> eventChannel.send(
                     GameActiveX01Event.AskForNumberOfDoubles(
                         minNumberOfDoubles = event.minNumberOfDoubles,
@@ -300,7 +304,7 @@ internal class GameActiveX01ViewModel(
                 )
                 is DoneTurnEvent.AddInput -> {
                     addInputUseCase(event.inputScore)
-                    val currentState = nextTurnUseCase()
+                    val currentState = turnUseCases.nextTurn()
                     state = state.copy(
                         currentInputScore = currentState.score?.fromInputScore(),
                         currentSet = currentState.set,
@@ -343,7 +347,7 @@ internal class GameActiveX01ViewModel(
             ),
             numberOfThrowsOnDouble = numberOfDoubles,
         )
-        val currentState = nextTurnUseCase()
+        val currentState = turnUseCases.nextTurn()
         state = state.copy(
             currentInputScore = currentState.score?.fromInputScore(),
             currentSet = currentState.set,

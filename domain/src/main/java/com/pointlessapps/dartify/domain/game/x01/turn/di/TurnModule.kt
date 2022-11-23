@@ -12,6 +12,8 @@ internal val turnModule = module {
     factoryOf(::UndoTurnUseCase)
     factoryOf(::NextTurnUseCase)
     factoryOf(::DoneTurnUseCase)
+    factoryOf(::TurnUseCases)
+
     factoryOf(::AddInputUseCase)
     factoryOf(::FinishLegUseCase)
     factoryOf(::SetupGameUseCase)
