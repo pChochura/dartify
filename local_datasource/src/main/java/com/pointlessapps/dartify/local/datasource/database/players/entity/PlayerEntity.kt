@@ -1,13 +1,14 @@
-package com.pointlessapps.dartify.local.datasource.database.players.models
+package com.pointlessapps.dartify.local.datasource.database.players.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.pointlessapps.dartify.datasource.database.players.model.GameMode
+import com.pointlessapps.dartify.datasource.database.model.GameMode
 
 @Entity(tableName = "players")
-data class PlayerEntity(
+internal data class PlayerEntity(
     @PrimaryKey
+    @ColumnInfo(name = "id")
     val id: Long,
     @ColumnInfo(name = "name")
     val name: String,

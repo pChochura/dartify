@@ -16,6 +16,7 @@ import com.pointlessapps.dartify.compose.game.model.GameSettings
 import com.pointlessapps.dartify.compose.game.model.Player
 import com.pointlessapps.dartify.compose.ui.theme.Route
 import com.pointlessapps.dartify.compose.utils.extensions.addDecimal
+import com.pointlessapps.dartify.domain.database.game.x01.usecase.SaveCurrentGameUseCase
 import com.pointlessapps.dartify.domain.game.x01.score.usecase.IsCheckoutPossibleUseCase
 import com.pointlessapps.dartify.domain.game.x01.score.usecase.ValidateScoreUseCase
 import com.pointlessapps.dartify.domain.game.x01.score.usecase.ValidateSingleThrowUseCase
@@ -28,7 +29,7 @@ import com.pointlessapps.dartify.domain.game.x01.turn.usecase.SetupGameUseCase
 import com.pointlessapps.dartify.domain.game.x01.turn.usecase.TurnUseCases
 import com.pointlessapps.dartify.domain.vibration.usecase.VibrateUseCase
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 
@@ -53,12 +54,13 @@ internal sealed interface GameActiveX01Event {
     data class ShowWinnerDialog(val playerScore: PlayerScore) : GameActiveX01Event
 
     @JvmInline
-    value class ShowErrorSnackbar(@StringRes val message: Int) : GameActiveX01Event
+    value class ShowSnackbar(@StringRes val message: Int) : GameActiveX01Event
 }
 
 @Immutable
 @Parcelize
 internal data class GameActiveX01State(
+    val isLoading: Boolean = false,
     val currentSet: Int = 1,
     val currentLeg: Int = 1,
     val playersScores: List<PlayerScore> = emptyList(),
@@ -75,6 +77,7 @@ internal class GameActiveX01ViewModel(
     private val finishLegUseCase: FinishLegUseCase,
     private val setupGameUseCase: SetupGameUseCase,
     private val vibrateUseCase: VibrateUseCase,
+    private val saveCurrentGameUseCase: SaveCurrentGameUseCase,
 ) : ViewModel() {
 
     private lateinit var gameSettings: GameSettings
@@ -184,7 +187,7 @@ internal class GameActiveX01ViewModel(
             vibrateUseCase.error()
             viewModelScope.launch {
                 eventChannel.send(
-                    GameActiveX01Event.ShowErrorSnackbar(R.string.you_can_input_three_values),
+                    GameActiveX01Event.ShowSnackbar(R.string.you_can_input_three_values),
                 )
             }
 
@@ -276,7 +279,7 @@ internal class GameActiveX01ViewModel(
             vibrateUseCase.error()
             viewModelScope.launch {
                 eventChannel.send(
-                    GameActiveX01Event.ShowErrorSnackbar(R.string.score_inputted_is_incorrect),
+                    GameActiveX01Event.ShowSnackbar(R.string.score_inputted_is_incorrect),
                 )
             }
 
@@ -432,9 +435,21 @@ internal class GameActiveX01ViewModel(
 
     fun onSaveAndCloseClicked() {
         vibrateUseCase.click()
-        viewModelScope.launch {
-            eventChannel.send(GameActiveX01Event.NavigateBack)
-        }
+        saveCurrentGameUseCase()
+            .take(1)
+            .onStart {
+                state = state.copy(isLoading = true)
+            }
+            .onEach {
+                state = state.copy(isLoading = false)
+                eventChannel.send(GameActiveX01Event.NavigateBack)
+            }
+            .catch {
+                it.printStackTrace()
+                eventChannel.send(GameActiveX01Event.ShowSnackbar(R.string.something_went_wrong))
+                state = state.copy(isLoading = true)
+            }
+            .launchIn(viewModelScope)
     }
 
     fun onRestartClicked() {

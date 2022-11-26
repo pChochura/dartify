@@ -1,7 +1,7 @@
 package com.pointlessapps.dartify.local.datasource.database.players.mappers
 
 import com.pointlessapps.dartify.datasource.database.players.model.Player
-import com.pointlessapps.dartify.local.datasource.database.players.models.PlayerEntity
+import com.pointlessapps.dartify.local.datasource.database.players.entity.PlayerEntity
 
 internal fun Player.toPlayerEntity() = PlayerEntity(
     id = id,

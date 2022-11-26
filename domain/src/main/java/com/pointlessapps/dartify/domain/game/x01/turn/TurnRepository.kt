@@ -1,5 +1,6 @@
 package com.pointlessapps.dartify.domain.game.x01.turn
 
+import com.pointlessapps.dartify.datasource.database.game.x01.model.GameX01Input
 import com.pointlessapps.dartify.datasource.game.x01.move.TurnDataSource
 import com.pointlessapps.dartify.domain.game.x01.DEFAULT_NUMBER_OF_THROWS
 import com.pointlessapps.dartify.domain.game.x01.model.InputScore
@@ -85,6 +86,8 @@ internal class TurnRepositoryImpl(
     override fun getGameState() = GameState(
         inMode = inMode,
         startingScore = startingScore,
+        numberOfSets = numberOfSets,
+        numberOfLegs = numberOfLegs,
         player = currentPlayer,
         playerScores = turnDataSource.getPlayerScores().map {
             it.toPlayerScore(playersById)
@@ -305,4 +308,6 @@ internal class TurnRepositoryImpl(
 
     private fun Int.nextPlayerIndex() = (this + 1) % players.size
     private fun Int.prevPlayerIndex() = (this + players.size - 1) % players.size
+
+    fun getAllInputsHistory() = turnDataSource.getAllInputsHistory()
 }

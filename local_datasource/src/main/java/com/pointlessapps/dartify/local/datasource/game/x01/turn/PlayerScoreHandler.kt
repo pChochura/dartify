@@ -20,8 +20,13 @@ internal class PlayerScoreHandler(private val startingScore: Int) {
             .filterIsInstance<InputHistoryEvent.LegFinished>()
             .count { it.won }
 
+    val inputsHistory: List<InputHistoryEvent>
+        get() = previousInputs + InputHistoryEvent.CurrentLeg(inputs)
+
     val wonSets: Int
-        get() = previousInputs.filterIsInstance<InputHistoryEvent.SetFinished>().count { it.won }
+        get() = previousInputs
+            .filterIsInstance<InputHistoryEvent.SetFinished>()
+            .count { it.won }
     val wonLegs: Int
         get() = previousInputs
             .takeLastWhile { it !is InputHistoryEvent.SetFinished }
@@ -79,6 +84,7 @@ internal class PlayerScoreHandler(private val startingScore: Int) {
                     is InputHistoryEvent.SetFinished ->
                         (this.previousInputs.removeLast() as InputHistoryEvent.LegFinished).inputs
                     is InputHistoryEvent.LegFinished -> previousInputs.inputs
+                    else -> throw IllegalStateException("Ongoing legs cannot be stored in history")
                 },
             )
 

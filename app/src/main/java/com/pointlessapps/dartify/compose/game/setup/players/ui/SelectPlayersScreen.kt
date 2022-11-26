@@ -127,10 +127,9 @@ internal fun SelectPlayersScreen(
             }
 
             items(
-                items = viewModel.state.players.subList(
-                    0,
-                    viewModel.state.selectedPlayersIndex,
-                ).filterNot(Player::deleted),
+                items = viewModel.state.players
+                    .take(viewModel.state.selectedPlayersIndex)
+                    .filterNot(Player::deleted),
                 key = { it.id },
             ) { player ->
                 PlayerItem(
@@ -155,10 +154,9 @@ internal fun SelectPlayersScreen(
             }
 
             items(
-                items = viewModel.state.players.subList(
-                    viewModel.state.selectedPlayersIndex,
-                    viewModel.state.players.size,
-                ).filterNot(Player::deleted),
+                items = viewModel.state.players
+                    .drop(viewModel.state.selectedPlayersIndex)
+                    .filterNot(Player::deleted),
                 key = { it.id },
             ) { player ->
                 PlayerItem(

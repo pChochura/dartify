@@ -78,6 +78,7 @@ internal class SelectPlayersViewModel(
                 )
             }
             .catch {
+                it.printStackTrace()
                 eventChannel.send(SelectPlayersEvent.ShowSnackbar(R.string.something_went_wrong))
                 state = state.copy(isLoading = false)
             }
@@ -140,6 +141,7 @@ internal class SelectPlayersViewModel(
                 )
             }
             .catch {
+                it.printStackTrace()
                 eventChannel.send(SelectPlayersEvent.ShowSnackbar(R.string.something_went_wrong))
                 state = state.copy(isLoading = false)
             }
@@ -158,6 +160,7 @@ internal class SelectPlayersViewModel(
                     )
                 }
                 .catch {
+                    it.printStackTrace()
                     eventChannel.send(SelectPlayersEvent.ShowSnackbar(R.string.something_went_wrong))
                 }
                 .launchIn(viewModelScope)

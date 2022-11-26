@@ -4,6 +4,7 @@ import com.pointlessapps.dartify.datasource.game.x01.move.TurnDataSource
 import com.pointlessapps.dartify.datasource.game.x01.move.model.InputScore
 import com.pointlessapps.dartify.datasource.game.x01.move.model.PlayerScore
 import com.pointlessapps.dartify.errors.game.x01.move.NotExistentPlayerException
+import com.pointlessapps.dartify.local.datasource.game.x01.turn.mappers.toInputs
 
 internal class LocalTurnDataSource : TurnDataSource {
 
@@ -83,5 +84,9 @@ internal class LocalTurnDataSource : TurnDataSource {
             lastScore = score.lastScore,
             playerId = id,
         )
+    }
+
+    override fun getAllInputsHistory() = playerScoreHandlers.flatMap { (id, score) ->
+        score.inputsHistory.toInputs(id)
     }
 }

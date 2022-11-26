@@ -1,6 +1,6 @@
 package com.pointlessapps.dartify.domain.mappers
 
-import com.pointlessapps.dartify.datasource.database.players.model.GameMode
+import com.pointlessapps.dartify.datasource.database.model.GameMode
 import com.pointlessapps.dartify.domain.model.GameMode as RemoteGameMode
 
 internal fun GameMode.toGameMode() = when (this) {

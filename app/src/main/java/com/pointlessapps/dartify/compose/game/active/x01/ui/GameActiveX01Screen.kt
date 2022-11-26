@@ -29,6 +29,7 @@ import com.pointlessapps.dartify.compose.game.active.x01.ui.input.turn.TurnInput
 import com.pointlessapps.dartify.compose.game.model.GameMode
 import com.pointlessapps.dartify.compose.game.model.GameSettings
 import com.pointlessapps.dartify.compose.game.model.Player
+import com.pointlessapps.dartify.compose.ui.components.ComposeLoader
 import com.pointlessapps.dartify.compose.ui.components.ComposeScaffoldLayout
 import com.pointlessapps.dartify.compose.ui.components.ComposeText
 import com.pointlessapps.dartify.compose.ui.components.defaultComposeTextStyle
@@ -80,11 +81,13 @@ internal fun GameActiveX01Screen(
                     )
                 is GameActiveX01Event.ShowWinnerDialog ->
                     winnerDialogModel = WinnerDialogModel(it.playerScore)
-                is GameActiveX01Event.ShowErrorSnackbar ->
+                is GameActiveX01Event.ShowSnackbar ->
                     localSnackbarHostState.showSnackbar(it.message)
             }
         }
     }
+
+    ComposeLoader(enabled = viewModel.state.isLoading)
 
     ComposeScaffoldLayout(
         topBar = {

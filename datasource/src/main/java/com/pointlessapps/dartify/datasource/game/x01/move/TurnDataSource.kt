@@ -1,5 +1,6 @@
 package com.pointlessapps.dartify.datasource.game.x01.move
 
+import com.pointlessapps.dartify.datasource.database.game.x01.model.GameX01Input
 import com.pointlessapps.dartify.datasource.game.x01.move.model.InputScore
 import com.pointlessapps.dartify.datasource.game.x01.move.model.PlayerScore
 
@@ -94,4 +95,9 @@ interface TurnDataSource {
      * Returns the scores for all of the players
      */
     fun getPlayerScores(): List<PlayerScore>
+
+    /**
+     * Returns the inputs for all of the players
+     */
+    fun getAllInputsHistory(): List<GameX01Input>
 }

@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface PlayersDataSource {
     /**
-     * Writes a player data into a database. If the player with a [player.id] already exists, it
+     * Writes a player data into the database. If the player with a [player.id] already exists, it
      * will be replaced
      */
     suspend fun insertPlayer(player: Player)

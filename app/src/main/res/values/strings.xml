@@ -44,7 +44,7 @@
 	<string name="undo_last_move">undo last move</string>
 	<string name="show_game_stats">show game stats</string>
 	<string name="save_and_close">save and close</string>
-	<string name="sets_legs">sets: %d | legs: %d</string>
+	<string name="sets_legs">sets: %1$d | legs: %2$d</string>
 	<string name="last_score">last: %d</string>
 	<string name="miss">miss</string>
 	<string name="modifier_double">double</string>

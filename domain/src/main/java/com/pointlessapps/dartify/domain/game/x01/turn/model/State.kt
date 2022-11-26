@@ -8,6 +8,8 @@ import com.pointlessapps.dartify.domain.model.GameMode
 data class GameState(
     val inMode: GameMode,
     val startingScore: Int,
+    val numberOfSets: Int,
+    val numberOfLegs: Int,
     val player: Player,
     val playerScores: List<PlayerScore>,
 )
