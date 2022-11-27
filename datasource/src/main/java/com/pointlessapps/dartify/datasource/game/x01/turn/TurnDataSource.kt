@@ -1,10 +1,15 @@
-package com.pointlessapps.dartify.datasource.game.x01.move
+package com.pointlessapps.dartify.datasource.game.x01.turn
 
 import com.pointlessapps.dartify.datasource.database.game.x01.model.GameX01Input
-import com.pointlessapps.dartify.datasource.game.x01.move.model.InputScore
-import com.pointlessapps.dartify.datasource.game.x01.move.model.PlayerScore
+import com.pointlessapps.dartify.datasource.game.x01.turn.model.InputScore
+import com.pointlessapps.dartify.datasource.game.x01.turn.model.PlayerScore
 
 interface TurnDataSource {
+    /**
+     * Sets up the score handlers for the players and loads all previous inputs
+     */
+    fun load(startingScore: Int, playerIds: List<Long>, inputs: List<GameX01Input>)
+
     /**
      * Sets up the score handlers for the players
      */

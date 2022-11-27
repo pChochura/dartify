@@ -1,4 +1,4 @@
-package com.pointlessapps.dartify.datasource.game.x01.move.model
+package com.pointlessapps.dartify.datasource.game.x01.turn.model
 
 data class PlayerScore(
     val numberOfWonSets: Int,

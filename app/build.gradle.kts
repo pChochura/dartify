@@ -104,6 +104,7 @@ dependencies {
     implementation(Compose.UiToolingPreview)
     implementation(Compose.NavigationReimagined)
     implementation(Compose.Accompanist.SystemUIController)
+    implementation(Compose.Accompanist.Pager)
     debugImplementation(Compose.UiTooling)
 
     implementation(Koin.compose)

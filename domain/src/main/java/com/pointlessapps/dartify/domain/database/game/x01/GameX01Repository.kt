@@ -1,10 +1,12 @@
 package com.pointlessapps.dartify.domain.database.game.x01
 
+import com.pointlessapps.dartify.datasource.database.game.GameDataSource
 import com.pointlessapps.dartify.datasource.database.game.x01.GameX01DataSource
 import com.pointlessapps.dartify.datasource.database.game.x01.model.GameX01
+import com.pointlessapps.dartify.domain.database.game.mappers.toActiveGame
 import com.pointlessapps.dartify.domain.game.x01.turn.TurnRepositoryImpl
-import com.pointlessapps.dartify.domain.mappers.fromGameMode
-import com.pointlessapps.dartify.domain.mappers.fromPlayer
+import com.pointlessapps.dartify.domain.game.x01.turn.model.CurrentState
+import com.pointlessapps.dartify.domain.mappers.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
@@ -15,19 +17,17 @@ interface GameX01Repository {
     fun saveCurrentGame(): Flow<Long>
 
     /**
-     * Returns all saved x01 game objects stored in the database
+     * Retrieves a game with the given [gameId] from the database and saves its state as the
+     * currently ongoing game
      */
-    fun getAllGames(): Flow<List<GameX01>>
+    fun loadGame(gameId: Long): Flow<CurrentState>
 }
 
 internal class GameX01RepositoryImpl(
+    private val gameDataSource: GameDataSource,
     private val gameX01DataSource: GameX01DataSource,
     private val turnRepository: TurnRepositoryImpl,
 ) : GameX01Repository {
-
-    override fun getAllGames() = flow {
-        emit(gameX01DataSource.getAllGames())
-    }
 
     override fun saveCurrentGame() = flow {
         val inputsHistory = turnRepository.getAllInputsHistory()
@@ -40,7 +40,27 @@ internal class GameX01RepositoryImpl(
             numberOfSets = gameState.numberOfSets,
             numberOfLegs = gameState.numberOfLegs,
             inMode = gameState.inMode.fromGameMode(),
+            matchResolutionStrategy = gameState.matchResolutionStrategy.fromMatchResolutionStrategy(),
         )
-        emit(gameX01DataSource.insertGame(game))
+        val gameId = gameX01DataSource.insertGame(game)
+        gameDataSource.insertActiveGame(game.toActiveGame(gameId))
+        emit(gameId)
+    }
+
+    override fun loadGame(gameId: Long) = flow {
+        val game = gameX01DataSource.getGame(gameId)
+        gameX01DataSource.deleteGame(gameId)
+        emit(
+            turnRepository.load(
+                players = game.players.map { it.toPlayer() },
+                currentPlayer = game.currentPlayer.toPlayer(),
+                startingScore = game.startingScore,
+                inMode = game.inMode.toGameMode(),
+                numberOfSets = game.numberOfSets,
+                numberOfLegs = game.numberOfLegs,
+                matchResolutionStrategy = game.matchResolutionStrategy.toMatchResolutionStrategy(),
+                inputsHistory = game.inputs,
+            ),
+        )
     }
 }

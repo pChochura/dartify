@@ -25,11 +25,8 @@ import kotlinx.parcelize.Parcelize
 import java.lang.Integer.min
 
 internal sealed interface GameSetupX01Event {
-    @JvmInline
-    value class Navigate(val route: Route) : GameSetupX01Event
-
-    @JvmInline
-    value class ShowErrorSnackbar(@StringRes val message: Int) : GameSetupX01Event
+    data class Navigate(val route: Route) : GameSetupX01Event
+    data class ShowErrorSnackbar(@StringRes val message: Int) : GameSetupX01Event
 }
 
 @Immutable
@@ -75,7 +72,7 @@ internal class GameSetupX01ViewModel(
             eventChannel.send(
                 GameSetupX01Event.Navigate(
                     Route.GameActive.X01(
-                        GameSettings(
+                        GameSettings.NewGame(
                             startingScore = state.startingScore,
                             numberOfSets = state.numberOfSets,
                             numberOfLegs = state.numberOfLegs,

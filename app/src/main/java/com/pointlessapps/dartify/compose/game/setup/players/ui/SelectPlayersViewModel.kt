@@ -27,8 +27,7 @@ import kotlinx.parcelize.Parcelize
 import kotlin.math.sign
 
 internal sealed interface SelectPlayersEvent {
-    @JvmInline
-    value class OnPlayersSelected(val players: List<Player>) : SelectPlayersEvent
+    data class OnPlayersSelected(val players: List<Player>) : SelectPlayersEvent
     data class AskForCpuAverage(val bot: Player?) : SelectPlayersEvent
     data class AskForPlayerName(val player: Player?) : SelectPlayersEvent
 

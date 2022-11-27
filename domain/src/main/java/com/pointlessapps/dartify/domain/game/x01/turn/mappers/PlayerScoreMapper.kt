@@ -1,6 +1,6 @@
 package com.pointlessapps.dartify.domain.game.x01.turn.mappers
 
-import com.pointlessapps.dartify.datasource.game.x01.move.model.PlayerScore
+import com.pointlessapps.dartify.datasource.game.x01.turn.model.PlayerScore
 import com.pointlessapps.dartify.domain.model.Player
 import com.pointlessapps.dartify.domain.game.x01.model.PlayerScore as RemotePlayerScore
 

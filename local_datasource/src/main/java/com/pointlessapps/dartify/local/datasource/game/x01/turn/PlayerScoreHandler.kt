@@ -1,10 +1,23 @@
 package com.pointlessapps.dartify.local.datasource.game.x01.turn
 
-import com.pointlessapps.dartify.datasource.game.x01.move.model.InputScore
+import com.pointlessapps.dartify.datasource.game.x01.turn.model.InputScore
 import com.pointlessapps.dartify.local.datasource.game.x01.turn.model.Input
 import com.pointlessapps.dartify.local.datasource.game.x01.turn.model.InputHistoryEvent
 
 internal class PlayerScoreHandler(private val startingScore: Int) {
+
+    constructor(
+        startingScore: Int,
+        inputHistoryEvents: List<InputHistoryEvent>,
+    ) : this(startingScore) {
+        val currentLegInputs = inputHistoryEvents.lastOrNull()
+        if (currentLegInputs is InputHistoryEvent.CurrentLeg) {
+            inputs.addAll(currentLegInputs.inputs)
+            previousInputs.addAll(inputHistoryEvents.dropLast(1))
+        } else {
+            previousInputs.addAll(inputHistoryEvents)
+        }
+    }
 
     private val previousInputs = mutableListOf<InputHistoryEvent>()
     private val inputs: MutableList<Input> = mutableListOf()
@@ -111,7 +124,7 @@ internal class PlayerScoreHandler(private val startingScore: Int) {
 
     fun markSetAsFinished(won: Boolean) {
         previousInputs.add(InputHistoryEvent.LegFinished(ArrayList(inputs), won))
-        previousInputs.add(InputHistoryEvent.SetFinished(wonLegs, won))
+        previousInputs.add(InputHistoryEvent.SetFinished(won))
         inputs.clear()
     }
 }

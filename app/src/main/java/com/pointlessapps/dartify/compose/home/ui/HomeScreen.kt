@@ -2,15 +2,23 @@ package com.pointlessapps.dartify.compose.home.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import com.google.accompanist.pager.ExperimentalPagerApi
+import com.google.accompanist.pager.HorizontalPager
+import com.pointlessapps.dartify.LocalSnackbarHostState
 import com.pointlessapps.dartify.R
+import com.pointlessapps.dartify.compose.home.model.ActiveGame
 import com.pointlessapps.dartify.compose.ui.components.*
 import com.pointlessapps.dartify.compose.ui.theme.Route
 import org.koin.androidx.compose.getViewModel
@@ -20,13 +28,33 @@ internal fun HomeScreen(
     viewModel: HomeViewModel = getViewModel(),
     onNavigate: (Route?) -> Unit,
 ) {
+    val localSnackbarHostState = LocalSnackbarHostState.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.refreshFavouriteGames()
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     LaunchedEffect(Unit) {
         viewModel.events.collect {
             when (it) {
                 is HomeEvent.Navigate -> onNavigate(it.route)
+                is HomeEvent.ShowSnackbar -> localSnackbarHostState.showSnackbar(it.message)
             }
         }
     }
+
+    ComposeLoader(enabled = viewModel.state.isLoading)
 
     ComposeScaffoldLayout { innerPadding ->
         Column(
@@ -51,6 +79,7 @@ internal fun HomeScreen(
                 onPlayClicked = viewModel::onPlayClicked,
             )
             FavouriteGames(
+                favouriteGames = viewModel.state.favouriteGames,
                 onPlayClicked = viewModel::onPlayClicked,
             )
             BottomButtons(
@@ -114,20 +143,24 @@ private fun MainButtons(
     }
 }
 
+@OptIn(ExperimentalPagerApi::class)
 @Composable
 private fun FavouriteGames(
-    onPlayClicked: () -> Unit,
+    favouriteGames: List<ActiveGame>,
+    onPlayClicked: (ActiveGame) -> Unit,
 ) {
-    ComposeButton(
-        label = stringResource(id = R.string.play),
-        buttonModel = defaultComposeButtonModel().copy(
-            icon = R.drawable.ic_play,
-            size = ComposeButtonSize.Big,
-            shape = ComposeButtonShape.Pill,
-            backgroundColor = colorResource(id = R.color.red),
-        ),
-        onClick = onPlayClicked,
-    )
+    HorizontalPager(count = favouriteGames.size) {
+        ComposeButton(
+            label = favouriteGames[currentPage].title,
+            buttonModel = defaultComposeButtonModel().copy(
+                icon = R.drawable.ic_play,
+                size = ComposeButtonSize.Big,
+                shape = ComposeButtonShape.Pill,
+                backgroundColor = colorResource(id = R.color.red),
+            ),
+            onClick = { onPlayClicked(favouriteGames[currentPage]) },
+        )
+    }
 }
 
 @Composable

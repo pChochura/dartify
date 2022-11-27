@@ -4,6 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
+import com.pointlessapps.dartify.datasource.database.game.model.MatchResolutionStrategy
 import com.pointlessapps.dartify.datasource.database.model.GameMode
 import com.pointlessapps.dartify.local.datasource.database.players.entity.PlayerEntity
 
@@ -33,4 +34,6 @@ internal data class GameX01Entity(
     val numberOfLegs: Int,
     @ColumnInfo(name = "in_mode")
     val inMode: GameMode,
+    @ColumnInfo(name = "match_resolution_strategy")
+    val matchResolutionStrategy: MatchResolutionStrategy,
 )

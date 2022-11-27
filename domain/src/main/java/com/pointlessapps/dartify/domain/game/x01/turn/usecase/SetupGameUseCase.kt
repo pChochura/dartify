@@ -1,15 +1,18 @@
 package com.pointlessapps.dartify.domain.game.x01.turn.usecase
 
-import com.pointlessapps.dartify.domain.model.Player
-import com.pointlessapps.dartify.domain.model.GameMode
+import com.pointlessapps.dartify.domain.database.game.model.ActiveGame
+import com.pointlessapps.dartify.domain.database.game.usecase.LoadGameUseCase
 import com.pointlessapps.dartify.domain.game.x01.turn.TurnRepository
 import com.pointlessapps.dartify.domain.game.x01.turn.model.MatchResolutionStrategy
+import com.pointlessapps.dartify.domain.model.GameMode
+import com.pointlessapps.dartify.domain.model.Player
 
 class SetupGameUseCase(
     private val turnRepository: TurnRepository,
+    private val loadGameUseCase: LoadGameUseCase,
 ) {
 
-    operator fun invoke(
+    fun setupNewGame(
         players: List<Player>,
         startingScore: Int,
         inMode: GameMode,
@@ -24,4 +27,8 @@ class SetupGameUseCase(
         numberOfLegs,
         matchResolutionStrategy,
     )
+
+    fun loadGame(gameId: Long, gameType: ActiveGame.Type) = loadGameUseCase(gameId, gameType)
+
+    fun resetGame() = turnRepository.reset()
 }

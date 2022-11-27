@@ -1,8 +1,8 @@
 package com.pointlessapps.dartify.domain.game.x01.turn
 
-import com.pointlessapps.dartify.datasource.game.x01.move.TurnDataSource
-import com.pointlessapps.dartify.datasource.game.x01.move.model.InputScore
-import com.pointlessapps.dartify.datasource.game.x01.move.model.PlayerScore
+import com.pointlessapps.dartify.datasource.game.x01.turn.TurnDataSource
+import com.pointlessapps.dartify.datasource.game.x01.turn.model.InputScore
+import com.pointlessapps.dartify.datasource.game.x01.turn.model.PlayerScore
 import com.pointlessapps.dartify.domain.game.x01.DEFAULT_NUMBER_OF_THROWS
 import com.pointlessapps.dartify.domain.model.Player
 import com.pointlessapps.dartify.domain.model.GameMode

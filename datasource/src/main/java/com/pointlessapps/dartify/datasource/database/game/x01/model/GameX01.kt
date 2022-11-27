@@ -1,5 +1,6 @@
 package com.pointlessapps.dartify.datasource.database.game.x01.model
 
+import com.pointlessapps.dartify.datasource.database.game.model.MatchResolutionStrategy
 import com.pointlessapps.dartify.datasource.database.model.GameMode
 import com.pointlessapps.dartify.datasource.database.players.model.Player
 
@@ -11,4 +12,5 @@ data class GameX01(
     val numberOfSets: Int,
     val numberOfLegs: Int,
     val inMode: GameMode,
+    val matchResolutionStrategy: MatchResolutionStrategy,
 )

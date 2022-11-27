@@ -22,7 +22,7 @@ object Java {
 }
 
 object Android {
-    const val gradlePluginVersion = "7.1.3"
+    const val gradlePluginVersion = "7.3.0"
     const val applicationPlugin = "com.android.application"
     const val libraryPlugin = "com.android.library"
 }
@@ -48,9 +48,10 @@ object Compose {
     const val NavigationReimagined = "dev.olshevski.navigation:reimagined:1.2.0"
 
     object Accompanist {
-        private const val version = "0.25.1"
+        private const val version = "0.27.1"
         const val SystemUIController =
             "com.google.accompanist:accompanist-systemuicontroller:$version"
+        const val Pager ="com.google.accompanist:accompanist-pager:$version"
     }
 }
 

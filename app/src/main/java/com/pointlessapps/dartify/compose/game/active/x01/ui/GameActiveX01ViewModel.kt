@@ -34,8 +34,7 @@ import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 
 internal sealed interface GameActiveX01Event {
-    @JvmInline
-    value class Navigate(val route: Route) : GameActiveX01Event
+    data class Navigate(val route: Route) : GameActiveX01Event
     object NavigateBack : GameActiveX01Event
 
     data class AskForNumberOfThrowsAndDoubles(
@@ -43,8 +42,7 @@ internal sealed interface GameActiveX01Event {
         val maxNumberOfDoubles: Map<Int, Int>,
     ) : GameActiveX01Event
 
-    @JvmInline
-    value class AskForNumberOfThrows(val minNumberOfThrows: Int) : GameActiveX01Event
+    data class AskForNumberOfThrows(val minNumberOfThrows: Int) : GameActiveX01Event
 
     data class AskForNumberOfDoubles(
         val minNumberOfDoubles: Int,
@@ -53,8 +51,7 @@ internal sealed interface GameActiveX01Event {
 
     data class ShowWinnerDialog(val playerScore: PlayerScore) : GameActiveX01Event
 
-    @JvmInline
-    value class ShowSnackbar(@StringRes val message: Int) : GameActiveX01Event
+    data class ShowSnackbar(@StringRes val message: Int) : GameActiveX01Event
 }
 
 @Immutable
@@ -95,11 +92,14 @@ internal class GameActiveX01ViewModel(
 
     fun setGameSettings(gameSettings: GameSettings) {
         this.gameSettings = gameSettings
-        setupGame(gameSettings)
+        when (gameSettings) {
+            is GameSettings.NewGame -> setupGame(gameSettings)
+            is GameSettings.LoadGame -> loadGame(gameSettings)
+        }
     }
 
-    private fun setupGame(gameSettings: GameSettings) {
-        val currentState = setupGameUseCase(
+    private fun setupGame(gameSettings: GameSettings.NewGame) {
+        val currentState = setupGameUseCase.setupNewGame(
             gameSettings.players.map(Player::toPlayer),
             gameSettings.startingScore,
             gameSettings.inMode.toInMode(),
@@ -119,6 +119,35 @@ internal class GameActiveX01ViewModel(
             currentPlayer = currentState.player.fromPlayer(),
             playersScores = currentState.playerScores.map { it.fromPlayerScore() },
         )
+    }
+
+    private fun loadGame(gameSettings: GameSettings.LoadGame) {
+        setupGameUseCase.loadGame(gameSettings.id, gameSettings.type.toActiveGameType())
+            .take(1)
+            .onStart {
+                state = state.copy(isLoading = true)
+            }
+            .onEach { currentState ->
+                inputModes.putAll(
+                    currentState.playerScores
+                        .map { it.player }
+                        .associate { it.id to InputMode.PerTurn },
+                )
+                state = state.copy(
+                    isLoading = false,
+                    currentInputScore = currentState.score?.fromInputScore(),
+                    currentSet = currentState.set,
+                    currentLeg = currentState.leg,
+                    currentPlayer = currentState.player.fromPlayer(),
+                    playersScores = currentState.playerScores.map { it.fromPlayerScore() },
+                )
+            }
+            .catch {
+                it.printStackTrace()
+                eventChannel.send(GameActiveX01Event.ShowSnackbar(R.string.something_went_wrong))
+                state = state.copy(isLoading = false)
+            }
+            .launchIn(viewModelScope)
     }
 
     fun onPossibleCheckoutRequested(): Int? {
@@ -447,14 +476,22 @@ internal class GameActiveX01ViewModel(
             .catch {
                 it.printStackTrace()
                 eventChannel.send(GameActiveX01Event.ShowSnackbar(R.string.something_went_wrong))
-                state = state.copy(isLoading = true)
+                state = state.copy(isLoading = false)
             }
             .launchIn(viewModelScope)
     }
 
     fun onRestartClicked() {
         vibrateUseCase.click()
-        setupGame(gameSettings)
+        val currentState = setupGameUseCase.resetGame()
+
+        state = state.copy(
+            currentInputScore = currentState.score?.fromInputScore(),
+            currentSet = currentState.set,
+            currentLeg = currentState.leg,
+            currentPlayer = currentState.player.fromPlayer(),
+            playersScores = currentState.playerScores.map { it.fromPlayerScore() },
+        )
     }
 
     fun vibrateClick() = vibrateUseCase.click()

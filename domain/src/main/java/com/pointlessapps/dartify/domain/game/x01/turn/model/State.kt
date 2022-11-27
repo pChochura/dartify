@@ -12,6 +12,7 @@ data class GameState(
     val numberOfLegs: Int,
     val player: Player,
     val playerScores: List<PlayerScore>,
+    val matchResolutionStrategy: MatchResolutionStrategy,
 )
 
 sealed interface State

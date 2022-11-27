@@ -1,6 +1,6 @@
 package com.pointlessapps.dartify.local.datasource.game.x01.turn
 
-import com.pointlessapps.dartify.datasource.game.x01.move.model.InputScore
+import com.pointlessapps.dartify.datasource.game.x01.turn.model.InputScore
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.floats.shouldBeExactly
 import io.kotest.matchers.ints.shouldBeExactly
@@ -8,7 +8,6 @@ import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
-import io.kotest.matchers.types.shouldBeSameInstanceAs
 
 internal class PlayerScoreHandlerTest : AnnotationSpec() {
 

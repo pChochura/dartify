@@ -19,7 +19,7 @@ import com.pointlessapps.dartify.local.datasource.database.players.entity.Player
             parentColumns = ["id"],
             childColumns = ["game_id"],
             onUpdate = ForeignKey.CASCADE,
-            onDelete = ForeignKey.NO_ACTION,
+            onDelete = ForeignKey.CASCADE,
         ),
     ],
 )
@@ -41,4 +41,8 @@ internal data class GameX01InputEntity(
     val type: GameX01Input.Type,
     @ColumnInfo(name = "won")
     val won: Boolean,
+    @ColumnInfo(name = "leg_index")
+    val legIndex: Int,
+    @ColumnInfo(name = "order")
+    val order: Int,
 )

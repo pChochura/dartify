@@ -9,7 +9,12 @@ interface GameX01DataSource {
     suspend fun insertGame(game: GameX01): Long
 
     /**
-     * Returns all saved game objects
+     * Returns saved game object with the given [gameId]
      */
-    suspend fun getAllGames(): List<GameX01>
+    suspend fun getGame(gameId: Long): GameX01
+
+    /**
+     * Deletes saved game object with the given [gameId]
+     */
+    suspend fun deleteGame(gameId: Long)
 }

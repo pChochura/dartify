@@ -1,9 +1,11 @@
 package com.pointlessapps.dartify.local.datasource.game.x01.turn
 
-import com.pointlessapps.dartify.datasource.game.x01.move.TurnDataSource
-import com.pointlessapps.dartify.datasource.game.x01.move.model.InputScore
-import com.pointlessapps.dartify.datasource.game.x01.move.model.PlayerScore
+import com.pointlessapps.dartify.datasource.database.game.x01.model.GameX01Input
+import com.pointlessapps.dartify.datasource.game.x01.turn.TurnDataSource
+import com.pointlessapps.dartify.datasource.game.x01.turn.model.InputScore
+import com.pointlessapps.dartify.datasource.game.x01.turn.model.PlayerScore
 import com.pointlessapps.dartify.errors.game.x01.move.NotExistentPlayerException
+import com.pointlessapps.dartify.local.datasource.game.x01.turn.mappers.toInputHistoryEvent
 import com.pointlessapps.dartify.local.datasource.game.x01.turn.mappers.toInputs
 
 internal class LocalTurnDataSource : TurnDataSource {
@@ -12,6 +14,18 @@ internal class LocalTurnDataSource : TurnDataSource {
 
     private fun getScoreHandler(playerId: Long) =
         playerScoreHandlers[playerId] ?: throw NotExistentPlayerException(playerId)
+
+    override fun load(startingScore: Int, playerIds: List<Long>, inputs: List<GameX01Input>) {
+        val inputsByPlayerId = inputs.groupBy { it.playerId }
+
+        playerScoreHandlers.clear()
+        playerIds.forEach {
+            playerScoreHandlers[it] = PlayerScoreHandler(
+                startingScore = startingScore,
+                inputHistoryEvents = requireNotNull(inputsByPlayerId[it]).toInputHistoryEvent(),
+            )
+        }
+    }
 
     override fun setup(startingScore: Int, playerIds: List<Long>) {
         playerScoreHandlers.clear()

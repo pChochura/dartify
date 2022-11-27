@@ -1,7 +1,7 @@
 package com.pointlessapps.dartify.domain.game.x01.turn
 
 import com.pointlessapps.dartify.datasource.database.game.x01.model.GameX01Input
-import com.pointlessapps.dartify.datasource.game.x01.move.TurnDataSource
+import com.pointlessapps.dartify.datasource.game.x01.turn.TurnDataSource
 import com.pointlessapps.dartify.domain.game.x01.DEFAULT_NUMBER_OF_THROWS
 import com.pointlessapps.dartify.domain.game.x01.model.InputScore
 import com.pointlessapps.dartify.domain.game.x01.turn.mappers.fromInputScore
@@ -65,6 +65,11 @@ interface TurnRepository {
         minNumberOfThrows: Int,
         maxNumberOfDoubles: Map<Int, Int>,
     ): DoneTurnEvent
+
+    /**
+     * Resets the state of the game to the state after the [setup] function call
+     */
+    fun reset(): CurrentState
 }
 
 internal class TurnRepositoryImpl(
@@ -92,7 +97,41 @@ internal class TurnRepositoryImpl(
         playerScores = turnDataSource.getPlayerScores().map {
             it.toPlayerScore(playersById)
         },
+        matchResolutionStrategy = matchResolutionStrategy,
     )
+
+    fun load(
+        players: List<Player>,
+        currentPlayer: Player,
+        startingScore: Int,
+        inMode: GameMode,
+        numberOfSets: Int,
+        numberOfLegs: Int,
+        matchResolutionStrategy: MatchResolutionStrategy,
+        inputsHistory: List<GameX01Input>,
+    ): CurrentState {
+        setup(
+            players,
+            startingScore,
+            inMode,
+            numberOfSets,
+            numberOfLegs,
+            matchResolutionStrategy,
+        )
+        this.currentPlayer = currentPlayer
+
+        turnDataSource.load(startingScore, players.map(Player::id), inputsHistory)
+
+        return CurrentState(
+            score = null,
+            set = turnDataSource.getWonSets() + 1,
+            leg = turnDataSource.getWonLegs() + 1,
+            player = currentPlayer,
+            playerScores = turnDataSource.getPlayerScores().map {
+                it.toPlayerScore(playersById)
+            },
+        )
+    }
 
     override fun setup(
         players: List<Player>,
@@ -114,6 +153,21 @@ internal class TurnRepositoryImpl(
         this.numberOfLegs = numberOfLegs
         this.matchResolutionStrategy = matchResolutionStrategy
 
+        turnDataSource.setup(startingScore, players.map(Player::id))
+
+        return CurrentState(
+            score = null,
+            set = 1,
+            leg = 1,
+            player = players[0],
+            playerScores = turnDataSource.getPlayerScores().map {
+                it.toPlayerScore(playersById)
+            },
+        )
+    }
+
+    override fun reset(): CurrentState {
+        this.currentPlayer = players.first()
         turnDataSource.setup(startingScore, players.map(Player::id))
 
         return CurrentState(
