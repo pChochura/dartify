@@ -151,7 +151,7 @@ private fun FavouriteGames(
 ) {
     HorizontalPager(count = favouriteGames.size) {
         ComposeButton(
-            label = favouriteGames[currentPage].title,
+            label = favouriteGames[it].title,
             buttonModel = defaultComposeButtonModel().copy(
                 icon = R.drawable.ic_play,
                 size = ComposeButtonSize.Big,
