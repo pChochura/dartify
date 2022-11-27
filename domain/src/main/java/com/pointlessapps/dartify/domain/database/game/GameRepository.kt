@@ -20,7 +20,7 @@ interface GameRepository {
 
 internal class GameRepositoryImpl(
     private val gameDataSource: GameDataSource,
-): GameRepository {
+) : GameRepository {
 
     override fun getAllActiveGames() = flow {
         emit(gameDataSource.getAllActiveGames().map { it.toActiveGame() })

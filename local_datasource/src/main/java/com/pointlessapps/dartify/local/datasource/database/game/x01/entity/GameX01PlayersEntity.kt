@@ -24,7 +24,7 @@ import com.pointlessapps.dartify.local.datasource.database.players.entity.Player
             onUpdate = ForeignKey.CASCADE,
             onDelete = ForeignKey.NO_ACTION,
         ),
-    ]
+    ],
 )
 internal data class GameX01PlayersEntity(
     @ColumnInfo(name = "game_id", index = true)

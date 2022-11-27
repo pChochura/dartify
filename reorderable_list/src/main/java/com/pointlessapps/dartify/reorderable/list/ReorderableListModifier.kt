@@ -24,8 +24,9 @@ fun Modifier.reorderable(reorderableListState: ReorderableListState) = composed 
                 change.consume()
                 reorderableListState.onDrag(offset)
 
-                if (overscrollJob?.isActive == true)
+                if (overscrollJob?.isActive == true) {
                     return@detectDragGesturesAfterLongPress
+                }
 
                 reorderableListState.checkForOverScroll()
                     .takeIf { it != 0f }
@@ -37,7 +38,7 @@ fun Modifier.reorderable(reorderableListState: ReorderableListState) = composed 
             },
             onDragStart = { reorderableListState.onDragStart(it) },
             onDragEnd = { reorderableListState.onDragInterrupted() },
-            onDragCancel = { reorderableListState.onDragInterrupted() }
+            onDragCancel = { reorderableListState.onDragInterrupted() },
         )
     }
 }

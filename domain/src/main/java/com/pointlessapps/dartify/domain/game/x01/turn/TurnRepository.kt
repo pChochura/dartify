@@ -304,7 +304,7 @@ internal class TurnRepositoryImpl(
                 inputScore is InputScore.Dart && inputScore.scores.size != DEFAULT_NUMBER_OF_THROWS ->
                     inputScore.withFixedSize(DEFAULT_NUMBER_OF_THROWS)
                 else -> inputScore
-            }
+            },
         )
     }
 
