@@ -19,11 +19,14 @@ internal class LocalTurnDataSource : TurnDataSource {
         val inputsByPlayerId = inputs.groupBy { it.playerId }
 
         playerScoreHandlers.clear()
-        playerIds.forEach {
-            playerScoreHandlers[it] = PlayerScoreHandler(
-                startingScore = startingScore,
-                inputHistoryEvents = requireNotNull(inputsByPlayerId[it]).toInputHistoryEvent(),
-            )
+        playerIds.forEach { playerId ->
+            when (val inputHistoryEvents = inputsByPlayerId[playerId]?.toInputHistoryEvent()) {
+                null -> playerScoreHandlers[playerId] = PlayerScoreHandler(startingScore)
+                else -> playerScoreHandlers[playerId] = PlayerScoreHandler(
+                    startingScore = startingScore,
+                    inputHistoryEvents = inputHistoryEvents,
+                )
+            }
         }
     }
 
