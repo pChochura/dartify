@@ -4,12 +4,12 @@ import com.pointlessapps.dartify.datasource.game.x01.turn.TurnDataSource
 import com.pointlessapps.dartify.datasource.game.x01.turn.model.InputScore
 import com.pointlessapps.dartify.datasource.game.x01.turn.model.PlayerScore
 import com.pointlessapps.dartify.domain.game.x01.DEFAULT_NUMBER_OF_THROWS
-import com.pointlessapps.dartify.domain.model.Player
-import com.pointlessapps.dartify.domain.model.GameMode
 import com.pointlessapps.dartify.domain.game.x01.turn.mappers.toInputScore
 import com.pointlessapps.dartify.domain.game.x01.turn.model.CurrentState
 import com.pointlessapps.dartify.domain.game.x01.turn.model.DoneTurnEvent
 import com.pointlessapps.dartify.domain.game.x01.turn.model.MatchResolutionStrategy
+import com.pointlessapps.dartify.domain.model.GameMode
+import com.pointlessapps.dartify.domain.model.Player
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.nulls.beNull
@@ -129,16 +129,19 @@ internal class TurnRepositoryTest : AnnotationSpec() {
         )
         val currentPlayer = players.first()
         val previousPlayer = players[0.prevPlayerIndex(players.size)]
+        val poppedInput = InputScore.Turn(0)
         every { dataSource.getPlayerScores() } returns emptyList()
         setupRepository(players, 501, GameMode.Straight)
 
         every { dataSource.hasNoInputs(previousPlayer.id) } returns true
+        every { dataSource.revertLeg(currentPlayer.id) } just Runs
+        every { dataSource.popInput(currentPlayer.id) } returns poppedInput
         every { dataSource.getWonSets() } returns 0
         every { dataSource.getWonLegs() } returns 0
         every { dataSource.getPlayerScores() } returns emptyList()
         val currentState = repository.undoTurn()
 
-        currentState.score should beNull()
+        currentState.score shouldBe poppedInput.toInputScore()
         currentState.set shouldBeExactly 1
         currentState.leg shouldBeExactly 1
         currentState.player shouldBeSameInstanceAs currentPlayer
@@ -273,7 +276,7 @@ internal class TurnRepositoryTest : AnnotationSpec() {
         val doneTurnEvent =
             repository.doneTurn(InputScore.Turn(12).toInputScore(), false, 0, emptyMap())
 
-        doneTurnEvent shouldBe DoneTurnEvent.AddInput
+        doneTurnEvent should beInstanceOf<DoneTurnEvent.AddInput>()
 
         verify(exactly = 2) { dataSource.getPlayerScores() }
     }
