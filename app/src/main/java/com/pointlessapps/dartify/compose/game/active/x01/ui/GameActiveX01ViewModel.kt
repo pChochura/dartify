@@ -471,7 +471,7 @@ internal class GameActiveX01ViewModel(
             }
             .onEach {
                 state = state.copy(isLoading = false)
-                eventChannel.send(GameActiveX01Event.NavigateBack)
+                eventChannel.send(GameActiveX01Event.Navigate(Route.Home))
             }
             .catch {
                 it.printStackTrace()

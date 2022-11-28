@@ -1,5 +1,5 @@
 <resources>
-	<string name="app_name">dartify</string>
+	<string name="app_name">dartify debug</string>
 	<string name="training">training</string>
 	<string name="play">play</string>
 	<string name="stats">stats</string>
@@ -78,4 +78,7 @@
 	<string name="player_has_been_removed">player has been removed</string>
     <string name="cpu">CPU</string>
     <string name="something_went_wrong">something went wrong</string>
+	<string name="previous_fav_game">previous favourite game</string>
+	<string name="next_fav_game">next favourite game</string>
+	<string name="saved_game">saved game</string>
 </resources>

@@ -1,10 +1,7 @@
 package com.pointlessapps.dartify.compose.ui.components
 
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults.buttonColors
@@ -70,12 +67,15 @@ internal fun ComposeButton(
             onClick = onClick,
             enabled = buttonModel.enabled,
         ) {
-            Icon(
-                modifier = iconSizeModifier,
-                painter = painterResource(id = buttonModel.icon),
-                tint = buttonModel.textColor,
-                contentDescription = null,
-            )
+            when (val it = buttonModel.content) {
+                ComposeButtonContent.Icon -> Icon(
+                    modifier = iconSizeModifier,
+                    painter = painterResource(id = buttonModel.icon),
+                    tint = buttonModel.textColor,
+                    contentDescription = null,
+                )
+                is ComposeButtonContent.Custom -> it.content(this)
+            }
         }
 
         label?.also {
@@ -98,6 +98,7 @@ internal fun defaultComposeButtonModel() = ComposeButtonModel(
     shape = ComposeButtonShape.Circle,
     size = ComposeButtonSize.Big,
     icon = R.drawable.ic_settings,
+    content = ComposeButtonContent.Icon,
     enabled = true,
 )
 
@@ -107,6 +108,7 @@ internal data class ComposeButtonModel(
     val shape: ComposeButtonShape,
     val size: ComposeButtonSize,
     @DrawableRes val icon: Int,
+    val content: ComposeButtonContent,
     val enabled: Boolean,
 )
 
@@ -116,4 +118,9 @@ internal enum class ComposeButtonSize {
 
 internal enum class ComposeButtonShape {
     Circle, Pill
+}
+
+internal sealed interface ComposeButtonContent {
+    object Icon : ComposeButtonContent
+    data class Custom(val content: @Composable RowScope.() -> Unit) : ComposeButtonContent
 }
