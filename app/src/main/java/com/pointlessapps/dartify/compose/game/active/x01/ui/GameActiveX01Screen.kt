@@ -53,6 +53,7 @@ internal fun GameActiveX01Screen(
     var numberOfDoublesDialogModel by remember { mutableStateOf<NumberOfDoublesDialogModel?>(null) }
     var winnerDialogModel by remember { mutableStateOf<WinnerDialogModel?>(null) }
     var showWarningDialog by remember { mutableStateOf(false) }
+    var showCorruptedGameDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(gameSettings) {
         viewModel.setGameSettings(gameSettings)
@@ -81,6 +82,8 @@ internal fun GameActiveX01Screen(
                     )
                 is GameActiveX01Event.ShowWinnerDialog ->
                     winnerDialogModel = WinnerDialogModel(it.playerScore)
+                GameActiveX01Event.ShowCorruptedGameDialog ->
+                    showCorruptedGameDialog = true
                 is GameActiveX01Event.ShowSnackbar ->
                     localSnackbarHostState.showSnackbar(it.message)
             }
@@ -214,6 +217,15 @@ internal fun GameActiveX01Screen(
                 viewModel.onSaveAndCloseClicked()
             },
             onDismissRequest = { showWarningDialog = false },
+        )
+    }
+
+    if (showCorruptedGameDialog) {
+        CorruptedDataDialog(
+            onDiscardAndCloseClicked = {
+                showCorruptedGameDialog = false
+                viewModel.onDiscardAndCloseClicked()
+            },
         )
     }
 }

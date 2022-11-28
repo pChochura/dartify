@@ -51,6 +51,8 @@ internal sealed interface GameActiveX01Event {
 
     data class ShowWinnerDialog(val playerScore: PlayerScore) : GameActiveX01Event
 
+    object ShowCorruptedGameDialog : GameActiveX01Event
+
     data class ShowSnackbar(@StringRes val message: Int) : GameActiveX01Event
 }
 
@@ -144,7 +146,7 @@ internal class GameActiveX01ViewModel(
             }
             .catch {
                 it.printStackTrace()
-                eventChannel.send(GameActiveX01Event.ShowSnackbar(R.string.something_went_wrong))
+                eventChannel.send(GameActiveX01Event.ShowCorruptedGameDialog)
                 state = state.copy(isLoading = false)
             }
             .launchIn(viewModelScope)

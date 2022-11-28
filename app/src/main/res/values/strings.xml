@@ -81,4 +81,6 @@
 	<string name="previous_fav_game">previous favourite game</string>
 	<string name="next_fav_game">next favourite game</string>
 	<string name="saved_game">saved game</string>
+	<string name="saved_game_has_been_corrupted">the saved game has been corrupted</string>
+	<string name="corrupted_game_desc">retrieving the game from the database was not possible and the remaining data will be deleted</string>
 </resources>
