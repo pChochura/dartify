@@ -1,7 +1,9 @@
 package com.pointlessapps.dartify.local.datasource.database.game.x01.entity
 
-import androidx.room.*
-import com.pointlessapps.dartify.datasource.database.game.x01.model.GameX01Input
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.PrimaryKey
 import com.pointlessapps.dartify.local.datasource.database.players.entity.PlayerEntity
 
 @Entity(
@@ -37,12 +39,12 @@ internal data class GameX01InputEntity(
     val numberOfThrows: Int,
     @ColumnInfo(name = "number_of_throws_on_double")
     val numberOfThrowsOnDouble: Int,
-    @ColumnInfo(name = "type")
-    val type: GameX01Input.Type,
     @ColumnInfo(name = "won")
     val won: Boolean,
     @ColumnInfo(name = "leg_index")
     val legIndex: Int,
+    @ColumnInfo(name = "set_index")
+    val setIndex: Int,
     @ColumnInfo(name = "order")
     val order: Int,
 )

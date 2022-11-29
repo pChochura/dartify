@@ -37,9 +37,9 @@ private fun GameX01InputWithPlayerEntity.toGameX01Input() = GameX01Input(
     score = InputScore.Turn(input.score),
     numberOfThrows = input.numberOfThrows,
     numberOfThrowsOnDouble = input.numberOfThrowsOnDouble,
-    type = input.type,
     won = input.won,
     legIndex = input.legIndex,
+    setIndex = input.setIndex,
     order = input.order,
 )
 
@@ -49,8 +49,8 @@ internal fun GameX01Input.toGameX01InputEntity(gameId: Long) = GameX01InputEntit
     score = score.score(),
     numberOfThrows = numberOfThrows,
     numberOfThrowsOnDouble = numberOfThrowsOnDouble,
-    type = type,
     won = won,
     legIndex = legIndex,
+    setIndex = setIndex,
     order = order,
 )

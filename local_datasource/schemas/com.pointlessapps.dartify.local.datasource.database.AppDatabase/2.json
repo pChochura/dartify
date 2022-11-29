@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 2,
-    "identityHash": "1ed2c4fcc046cb5211dd78de9e8e9e01",
+    "identityHash": "669ec353ced6cd211c9c3fba7e207297",
     "entities": [
       {
         "tableName": "players",
@@ -160,7 +160,7 @@
       },
       {
         "tableName": "x01_game_inputs",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `game_id` INTEGER NOT NULL, `player_id` INTEGER NOT NULL, `score` INTEGER NOT NULL, `number_of_throws` INTEGER NOT NULL, `number_of_throws_on_double` INTEGER NOT NULL, `type` TEXT NOT NULL, `won` INTEGER NOT NULL, `leg_index` INTEGER NOT NULL, `order` INTEGER NOT NULL, FOREIGN KEY(`player_id`) REFERENCES `players`(`id`) ON UPDATE CASCADE ON DELETE NO ACTION , FOREIGN KEY(`game_id`) REFERENCES `x01_games`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `game_id` INTEGER NOT NULL, `player_id` INTEGER NOT NULL, `score` INTEGER NOT NULL, `number_of_throws` INTEGER NOT NULL, `number_of_throws_on_double` INTEGER NOT NULL, `won` INTEGER NOT NULL, `leg_index` INTEGER NOT NULL, `set_index` INTEGER NOT NULL, `order` INTEGER NOT NULL, FOREIGN KEY(`player_id`) REFERENCES `players`(`id`) ON UPDATE CASCADE ON DELETE NO ACTION , FOREIGN KEY(`game_id`) REFERENCES `x01_games`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -199,12 +199,6 @@
             "notNull": true
           },
           {
-            "fieldPath": "type",
-            "columnName": "type",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
             "fieldPath": "won",
             "columnName": "won",
             "affinity": "INTEGER",
@@ -213,6 +207,12 @@
           {
             "fieldPath": "legIndex",
             "columnName": "leg_index",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "setIndex",
+            "columnName": "set_index",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -359,7 +359,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '1ed2c4fcc046cb5211dd78de9e8e9e01')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '669ec353ced6cd211c9c3fba7e207297')"
     ]
   }
 }
