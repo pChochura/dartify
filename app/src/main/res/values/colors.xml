@@ -9,4 +9,7 @@
 	<color name="gray_7">#1E2225</color>
 	<color name="gray_8">#1A1A1A</color>
 	<color name="red">#EF3F36</color>
+
+	<color name="text_primary">#1A1A1A</color>
+	<color name="background">#CEDAE3</color>
 </resources>
