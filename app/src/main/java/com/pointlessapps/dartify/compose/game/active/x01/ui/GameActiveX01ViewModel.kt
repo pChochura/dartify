@@ -60,6 +60,7 @@ internal sealed interface GameActiveX01Event {
 @Parcelize
 internal data class GameActiveX01State(
     val isLoading: Boolean = false,
+    val isGameFinished: Boolean = false,
     val currentSet: Int = 1,
     val currentLeg: Int = 1,
     val playersScores: List<PlayerScore> = emptyList(),
@@ -254,6 +255,7 @@ internal class GameActiveX01ViewModel(
         startOverAfterFurtherInput = true
         val currentState = turnUseCases.undoTurn()
         state = state.copy(
+            isGameFinished = false,
             currentInputScore = currentState.score?.fromInputScore(),
             currentSet = currentState.set,
             currentLeg = currentState.leg,
@@ -407,7 +409,10 @@ internal class GameActiveX01ViewModel(
             )
         ) {
             is WinState -> {
-                this.state = this.state.copy(currentInputScore = null)
+                this.state = this.state.copy(
+                    currentInputScore = null,
+                    isGameFinished = true,
+                )
                 viewModelScope.launch {
                     eventChannel.send(
                         GameActiveX01Event.ShowWinnerDialog(
@@ -466,8 +471,9 @@ internal class GameActiveX01ViewModel(
 
     fun onSaveAndCloseClicked() {
         vibrateUseCase.click()
-        saveCurrentGameUseCase()
-            .take(1)
+        saveCurrentGameUseCase(
+            isGameFinished = state.isGameFinished,
+        ).take(1)
             .onStart {
                 state = state.copy(isLoading = true)
             }

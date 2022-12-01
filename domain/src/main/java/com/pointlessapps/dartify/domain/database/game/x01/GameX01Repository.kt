@@ -12,9 +12,10 @@ import kotlinx.coroutines.flow.flow
 
 interface GameX01Repository {
     /**
-     * Saves currently running x01 game into the database. Returns the id of the saved game object
+     * Saves currently running x01 game into the database. Returns the id of the saved game object.
+     * If [isFinished] is equal to false then the game will be saved as an active one
      */
-    fun saveCurrentGame(): Flow<Long>
+    fun saveCurrentGame(isFinished: Boolean): Flow<Long>
 
     /**
      * Retrieves a game with the given [gameId] from the database and saves its state as the
@@ -29,7 +30,7 @@ internal class GameX01RepositoryImpl(
     private val turnRepository: TurnRepositoryImpl,
 ) : GameX01Repository {
 
-    override fun saveCurrentGame() = flow {
+    override fun saveCurrentGame(isFinished: Boolean) = flow {
         val inputsHistory = turnRepository.getAllInputsHistory()
         val gameState = turnRepository.getGameState()
         val game = GameX01(
@@ -43,7 +44,9 @@ internal class GameX01RepositoryImpl(
             matchResolutionStrategy = gameState.matchResolutionStrategy.fromMatchResolutionStrategy(),
         )
         val gameId = gameX01DataSource.insertGame(game)
-        gameDataSource.insertActiveGame(game.toActiveGame(gameId))
+        if (!isFinished) {
+            gameDataSource.insertActiveGame(game.toActiveGame(gameId))
+        }
         emit(gameId)
     }
 

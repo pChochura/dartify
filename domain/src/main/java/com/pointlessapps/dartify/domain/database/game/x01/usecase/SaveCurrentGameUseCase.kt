@@ -6,5 +6,5 @@ class SaveCurrentGameUseCase(
     private val gameX01Repository: GameX01Repository,
 ) {
 
-    operator fun invoke() = gameX01Repository.saveCurrentGame()
+    operator fun invoke(isGameFinished: Boolean) = gameX01Repository.saveCurrentGame(isGameFinished)
 }
