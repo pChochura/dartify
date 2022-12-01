@@ -83,4 +83,6 @@
 	<string name="saved_game">saved game</string>
 	<string name="saved_game_has_been_corrupted">the saved game has been corrupted</string>
 	<string name="corrupted_game_desc">retrieving the game from the database was not possible and the remaining data will be deleted</string>
+	<string name="you_have_to_satisfy_check_in">you have to satisfy check-in requirements!</string>
+	<string name="you_have_to_satisfy_check_out">you have to satisfy check-out requirements!</string>
 </resources>

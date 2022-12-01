@@ -80,6 +80,11 @@ interface ScoreRepository {
         numberOfThrows: Int,
         outMode: GameMode,
     ): Boolean
+
+    /**
+     * Returns true if the [score] satisfies the throw in the given [gameMode]
+     */
+    fun isGameModeThrowSatisfied(score: Int, gameMode: GameMode): Boolean
 }
 
 internal class ScoreRepositoryImpl(
@@ -108,19 +113,12 @@ internal class ScoreRepositoryImpl(
         inMode: GameMode,
         outMode: GameMode,
     ): Boolean {
-        val checkInSatisfied = if (score.scores.sum() == startingScore - scoreLeft) {
-            when (inMode) {
-                GameMode.Straight -> true
-                GameMode.Double -> score.scores.first() % 2 == 0
-                GameMode.Master -> score.scores.first() % 2 == 0 || score.scores.first() % 3 == 0
-            }
+        val checkInSatisfied = if (score.score() == startingScore - scoreLeft) {
+            isGameModeThrowSatisfied(score.scores.firstOrNull() ?: 0, inMode)
         } else true
+
         val checkOutSatisfied = if (scoreLeft == 0) {
-            when (outMode) {
-                GameMode.Straight -> true
-                GameMode.Double -> score.scores.last() % 2 == 0
-                GameMode.Master -> score.scores.last() % 2 == 0 || score.scores.last() % 3 == 0
-            }
+            isGameModeThrowSatisfied(score.scores.lastOrNull() ?: 0, outMode)
         } else outMode == GameMode.Straight || scoreLeft != 1
 
         val singleThrowsSatisfied = score.scores.all {
@@ -143,18 +141,11 @@ internal class ScoreRepositoryImpl(
         }
 
         val checkInSatisfied = if (score == startingScore - scoreLeft) {
-            when (inMode) {
-                GameMode.Straight -> true
-                GameMode.Double -> multiplier == 2
-                GameMode.Master -> multiplier == 2 || multiplier == 3
-            }
+            isGameModeThrowSatisfied(multiplier, inMode)
         } else true
+
         val checkOutSatisfied = if (scoreLeft == 0) {
-            when (outMode) {
-                GameMode.Straight -> true
-                GameMode.Double -> multiplier == 2
-                GameMode.Master -> multiplier == 2 || multiplier == 3
-            }
+            isGameModeThrowSatisfied(multiplier, outMode)
         } else outMode == GameMode.Straight || scoreLeft != 1
 
         val singleThrowSatisfied = score in scoreDataSource.getPossibleScoresFor(1)
@@ -197,5 +188,11 @@ internal class ScoreRepositoryImpl(
         GameMode.Straight -> scoreDataSource.getPossibleOutScoresFor(numberOfThrows)
         GameMode.Double -> scoreDataSource.getPossibleDoubleOutScoresFor(numberOfThrows)
         GameMode.Master -> scoreDataSource.getPossibleMasterOutScoresFor(numberOfThrows)
+    }
+
+    override fun isGameModeThrowSatisfied(score: Int, gameMode: GameMode) = when (gameMode) {
+        GameMode.Straight -> true
+        GameMode.Double -> score % 2 == 0
+        GameMode.Master -> score % 2 == 0 || score % 3 == 0
     }
 }

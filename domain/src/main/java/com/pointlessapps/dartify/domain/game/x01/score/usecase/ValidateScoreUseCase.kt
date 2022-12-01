@@ -21,12 +21,12 @@ class ValidateScoreUseCase(
         }?.scoreLeft ?: return false
 
         return scoreRepository.validateScore(
-            score,
-            scoreLeft - score,
-            gameState.startingScore,
-            numberOfThrows,
-            gameState.inMode,
-            currentPlayer.outMode,
+            score = score,
+            scoreLeft = scoreLeft - score,
+            startingScore = gameState.startingScore,
+            numberOfThrows = numberOfThrows,
+            inMode = gameState.inMode,
+            outMode = currentPlayer.outMode,
         )
     }
 
@@ -43,20 +43,50 @@ class ValidateScoreUseCase(
 
         val singleThrowsValid = inputScore !is InputScore.Dart ||
                 scoreRepository.validateSingleThrows(
-                    inputScore,
-                    scoreLeft - score,
-                    gameState.startingScore,
-                    gameState.inMode,
-                    currentPlayer.outMode,
+                    score = inputScore,
+                    scoreLeft = scoreLeft - score,
+                    startingScore = gameState.startingScore,
+                    inMode = gameState.inMode,
+                    outMode = currentPlayer.outMode,
                 )
 
         return singleThrowsValid && scoreRepository.validateScore(
-            score,
-            scoreLeft - score,
-            gameState.startingScore,
-            numberOfThrows,
-            gameState.inMode,
-            currentPlayer.outMode,
+            score = score,
+            scoreLeft = scoreLeft - score,
+            startingScore = gameState.startingScore,
+            numberOfThrows = numberOfThrows,
+            inMode = gameState.inMode,
+            outMode = currentPlayer.outMode,
+        )
+    }
+
+    fun isCheckInSatisfied(multiplier: Int): Boolean {
+        val gameState = turnRepository.getGameState()
+        val currentPlayer = gameState.player
+        val scoreLeft = gameState.playerScores.find {
+            it.player.id == currentPlayer.id
+        }?.scoreLeft ?: return false
+
+        val isCheckIn = gameState.startingScore == scoreLeft
+
+        return !isCheckIn || scoreRepository.isGameModeThrowSatisfied(
+            score = multiplier,
+            gameMode = gameState.inMode,
+        )
+    }
+
+    fun isCheckOutSatisfied(score: Int, multiplier: Int): Boolean {
+        val gameState = turnRepository.getGameState()
+        val currentPlayer = gameState.player
+        val scoreLeft = gameState.playerScores.find {
+            it.player.id == currentPlayer.id
+        }?.scoreLeft ?: return false
+
+        val isCheckOut = scoreLeft - score == 0
+
+        return !isCheckOut || scoreRepository.isGameModeThrowSatisfied(
+            score = multiplier,
+            gameMode = gameState.inMode,
         )
     }
 }

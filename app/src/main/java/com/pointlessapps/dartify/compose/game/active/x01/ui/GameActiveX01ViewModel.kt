@@ -184,10 +184,7 @@ internal class GameActiveX01ViewModel(
 
     fun onQuickScoreClicked(quickScore: Int) {
         vibrateUseCase.tick()
-        if (
-            !validateScoreUseCase(quickScore) &&
-            inputModes[state.currentPlayer?.id] == InputMode.PerTurn
-        ) {
+        if (!validateScoreUseCase(quickScore)) {
             return
         }
 
@@ -201,7 +198,21 @@ internal class GameActiveX01ViewModel(
 
     fun onKeyClicked(key: Int, multiplier: Int = 1) {
         if (!validateKey(key, multiplier)) {
-            vibrateUseCase.tick()
+            vibrateUseCase.error()
+            viewModelScope.launch {
+                eventChannel.send(
+                    GameActiveX01Event.ShowSnackbar(
+                        when {
+                            !validateScoreUseCase.isCheckInSatisfied(multiplier) ->
+                                R.string.you_have_to_satisfy_check_in
+                            !validateScoreUseCase.isCheckOutSatisfied(key, multiplier) ->
+                                R.string.you_have_to_satisfy_check_out
+                            else -> R.string.score_inputted_is_incorrect
+                        },
+                    ),
+                )
+            }
+
             return
         }
 
@@ -213,7 +224,7 @@ internal class GameActiveX01ViewModel(
         startOverAfterFurtherInput = false
 
         if (
-            inputModes[state.currentPlayer?.id] == InputMode.PerDart &&
+            getCurrentInputMode() == InputMode.PerDart &&
             (currentScore as? InputScore.Dart)?.scores?.size == MAX_NUMBER_OF_THROWS
         ) {
             vibrateUseCase.error()
@@ -228,7 +239,7 @@ internal class GameActiveX01ViewModel(
 
         vibrateUseCase.tick()
         state = state.copy(
-            currentInputScore = when (requireNotNull(inputModes[state.currentPlayer?.id])) {
+            currentInputScore = when (getCurrentInputMode()) {
                 InputMode.PerTurn -> InputScore.Turn(
                     currentScore.score().addDecimal(key),
                 )
@@ -265,7 +276,7 @@ internal class GameActiveX01ViewModel(
     }
 
     private fun invokeSingleUndoAction(): Boolean {
-        when (requireNotNull(inputModes[state.currentPlayer?.id])) {
+        when (getCurrentInputMode()) {
             InputMode.PerDart -> {
                 val score = state.currentInputScore
                 if (startOverAfterFurtherInput) {
@@ -304,9 +315,7 @@ internal class GameActiveX01ViewModel(
     }
 
     fun onDoneClicked() {
-        val inputScore = state.currentInputScore.toInputScore(
-            requireNotNull(inputModes[state.currentPlayer?.id]),
-        )
+        val inputScore = state.currentInputScore.toInputScore(getCurrentInputMode())
 
         if (!validateScoreUseCase(inputScore)) {
             vibrateUseCase.error()
@@ -378,9 +387,7 @@ internal class GameActiveX01ViewModel(
         }
 
         addInputUseCase(
-            state.currentInputScore.toInputScore(
-                requireNotNull(inputModes[state.currentPlayer?.id]),
-            ),
+            state.currentInputScore.toInputScore(getCurrentInputMode()),
             numberOfThrowsOnDouble = numberOfDoubles,
         )
         val currentState = turnUseCases.nextTurn()
@@ -401,11 +408,9 @@ internal class GameActiveX01ViewModel(
     private fun invokeFinishLeg(numberOfThrows: Int, numberOfThrowsOnDoubles: Int) {
         when (
             val state = finishLegUseCase(
-                state.currentInputScore.toInputScore(
-                    requireNotNull(inputModes[state.currentPlayer?.id]),
-                ),
-                numberOfThrows,
-                numberOfThrowsOnDoubles,
+                inputScore = state.currentInputScore.toInputScore(getCurrentInputMode()),
+                numberOfThrows = numberOfThrows,
+                numberOfThrowsOnDouble = numberOfThrowsOnDoubles,
             )
         ) {
             is WinState -> {
@@ -436,11 +441,10 @@ internal class GameActiveX01ViewModel(
     fun onChangeInputModeClicked() {
         vibrateUseCase.click()
         startOverAfterFurtherInput = true
-        inputModes[requireNotNull(state.currentPlayer?.id)] =
-            when (requireNotNull(inputModes[state.currentPlayer?.id])) {
-                InputMode.PerDart -> InputMode.PerTurn
-                InputMode.PerTurn -> InputMode.PerDart
-            }
+        inputModes[requireNotNull(state.currentPlayer?.id)] = when (getCurrentInputMode()) {
+            InputMode.PerDart -> InputMode.PerTurn
+            InputMode.PerTurn -> InputMode.PerDart
+        }
     }
 
     fun getCurrentFinishSuggestion(): String? {
@@ -515,12 +519,12 @@ internal class GameActiveX01ViewModel(
             it.player.id == state.currentPlayer?.id
         } ?: return false
 
-        return when (requireNotNull(inputModes[state.currentPlayer?.id])) {
+        return when (getCurrentInputMode()) {
             InputMode.PerDart -> {
                 validateSingleThrowUseCase(
-                    key,
-                    multiplier,
-                    currentPlayerScore.scoreLeft - currentScore.score(),
+                    score = key,
+                    multiplier = multiplier,
+                    scoreLeft = currentPlayerScore.scoreLeft - currentScore.score(),
                 ) && currentScore.score() + key <= currentPlayerScore.scoreLeft
             }
             InputMode.PerTurn -> currentScore.score()
