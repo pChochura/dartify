@@ -303,6 +303,7 @@ private fun Scores(
         ) {
             playersScores.forEach { score ->
                 Score(
+                    isSinglePlayer = playersScores.size == 1,
                     name = score.player.name,
                     icon = when (score.player.botOptions) {
                         null -> R.drawable.ic_person
@@ -355,6 +356,7 @@ private fun Scores(
 
 @Composable
 private fun RowScope.Score(
+    isSinglePlayer: Boolean,
     name: String,
     @DrawableRes icon: Int,
     scoreLeft: Int,
@@ -368,7 +370,7 @@ private fun RowScope.Score(
     Column(
         modifier = Modifier
             .weight(1f)
-            .aspectRatio(1f)
+            .aspectRatio(if (isSinglePlayer) 2f else 1f)
             .background(
                 if (isActive) {
                     MaterialTheme.colors.secondary

@@ -67,7 +67,7 @@
 	<string name="name">name</string>
 	<string name="score_inputted_is_incorrect">score you inputted is incorrect!</string>
 	<string name="you_can_input_three_values">you can input only three values in total!</string>
-	<string name="only_two_players_game_is_supported">only two players game is supported</string>
+	<string name="only_max_of_two_players_game_is_supported">only max of two players game is supported</string>
 	<string name="you_can_input_x01_values">you can only input values ending in a 01!</string>
 	<string name="edit_the_cpu">edit the CPU</string>
 	<string name="remove">remove</string>

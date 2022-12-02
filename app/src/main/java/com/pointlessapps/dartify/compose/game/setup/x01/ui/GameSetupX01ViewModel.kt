@@ -57,11 +57,11 @@ internal class GameSetupX01ViewModel(
     }
 
     fun onStartGameClicked() {
-        if (state.players.size != 2) {
+        if (state.players.size > 2) {
             vibrateUseCase.error()
             viewModelScope.launch {
                 eventChannel.send(
-                    GameSetupX01Event.ShowErrorSnackbar(R.string.only_two_players_game_is_supported),
+                    GameSetupX01Event.ShowErrorSnackbar(R.string.only_max_of_two_players_game_is_supported),
                 )
             }
 
