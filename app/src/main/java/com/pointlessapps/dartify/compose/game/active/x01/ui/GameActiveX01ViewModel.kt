@@ -440,11 +440,18 @@ internal class GameActiveX01ViewModel(
 
     fun onChangeInputModeClicked() {
         vibrateUseCase.click()
-        startOverAfterFurtherInput = true
         inputModes[requireNotNull(state.currentPlayer?.id)] = when (getCurrentInputMode()) {
             InputMode.PerDart -> InputMode.PerTurn
             InputMode.PerTurn -> InputMode.PerDart
         }
+
+        val currentInputMode = getCurrentInputMode()
+        val currentInputScoreMode = when (state.currentInputScore) {
+            is InputScore.Dart -> InputMode.PerDart
+            is InputScore.Turn -> InputMode.PerTurn
+            else -> null
+        }
+        startOverAfterFurtherInput = currentInputMode != currentInputScoreMode
     }
 
     fun getCurrentFinishSuggestion(): String? {
