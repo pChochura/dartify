@@ -57,7 +57,7 @@ private fun RowScope.DartTripleInputScore(
     finishSuggestion: String?,
     currentInputScore: InputScore.Dart?,
 ) {
-    val finishSuggestionSplit = remember { finishSuggestion?.split(" ") }
+    val finishSuggestionSplit = remember(finishSuggestion) { finishSuggestion?.split(" ") }
     repeat(3) { index ->
         val score = currentInputScore?.scores?.getOrNull(index)
         val checkout = finishSuggestionSplit?.getOrNull(index)

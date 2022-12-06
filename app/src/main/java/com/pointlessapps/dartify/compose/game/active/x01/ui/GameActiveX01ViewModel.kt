@@ -17,6 +17,8 @@ import com.pointlessapps.dartify.compose.game.model.Player
 import com.pointlessapps.dartify.compose.ui.theme.Route
 import com.pointlessapps.dartify.compose.utils.extensions.addDecimal
 import com.pointlessapps.dartify.domain.database.game.x01.usecase.SaveCurrentGameUseCase
+import com.pointlessapps.dartify.domain.game.x01.checkout.model.Score
+import com.pointlessapps.dartify.domain.game.x01.checkout.usecase.GetCheckoutUseCase
 import com.pointlessapps.dartify.domain.game.x01.score.usecase.IsCheckoutPossibleUseCase
 import com.pointlessapps.dartify.domain.game.x01.score.usecase.ValidateScoreUseCase
 import com.pointlessapps.dartify.domain.game.x01.score.usecase.ValidateSingleThrowUseCase
@@ -78,6 +80,7 @@ internal class GameActiveX01ViewModel(
     private val setupGameUseCase: SetupGameUseCase,
     private val vibrateUseCase: VibrateUseCase,
     private val saveCurrentGameUseCase: SaveCurrentGameUseCase,
+    private val getCheckoutUseCase: GetCheckoutUseCase,
 ) : ViewModel() {
 
     private lateinit var gameSettings: GameSettings
@@ -459,12 +462,19 @@ internal class GameActiveX01ViewModel(
             it.player.id == state.currentPlayer?.id
         } ?: return null
 
-        // TODO add actual implementation of this
-        if (playerScore.scoreLeft == 101) {
-            return "T20 D20 D1"
+        val numberOfThrowsLeft = MAX_NUMBER_OF_THROWS -
+                ((state.currentInputScore as? InputScore.Dart)?.scores?.size ?: 0)
+        val checkout = getCheckoutUseCase(
+            turnScoreLeft = playerScore.scoreLeft,
+            scoreLeft = playerScore.scoreLeft - state.currentInputScore.score(),
+            numberOfThrows = numberOfThrowsLeft,
+        )?.toMutableList()
+
+        (state.currentInputScore as? InputScore.Dart)?.scores?.forEach {
+            checkout?.add(0, Score(it, Score.Multiplier.Single))
         }
 
-        return null
+        return checkout?.map(Score::toThrowScore)?.joinToString(" ") { it.toString() }
     }
 
     fun getCurrentInputMode() = inputModes[state.currentPlayer?.id] ?: InputMode.PerTurn
