@@ -3,6 +3,8 @@ plugins {
     id(Kotlin.gradlePlugin).version(Kotlin.version).apply(false)
     id(KSP.gradlePlugin).version(KSP.version).apply(false)
     id(Detekt.gradlePlugin).version(Detekt.version)
+    id(Firebase.googleServicesPlugin).version(Firebase.googleServicesVersion).apply(false)
+    id(Firebase.crashlyticsPlugin).version(Firebase.crashlyticsVersion).apply(false)
 }
 
 subprojects {

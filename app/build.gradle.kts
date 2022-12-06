@@ -7,6 +7,8 @@ plugins {
     id(Kotlin.androidPlugin)
     id(Kotlin.parcelizePlugin)
     id(AndroidGitVersion.plugin).version(AndroidGitVersion.version)
+    id(Firebase.googleServicesPlugin)
+    id(Firebase.crashlyticsPlugin)
 }
 
 androidGitVersion {
@@ -108,6 +110,10 @@ dependencies {
     debugImplementation(Compose.UiTooling)
 
     implementation(Koin.compose)
+
+    implementation(platform(Firebase.firebaseBom))
+    implementation(Firebase.analytics)
+    implementation(Firebase.crashlytics)
 
     implementation(project(":domain"))
     implementation(project(":errors"))

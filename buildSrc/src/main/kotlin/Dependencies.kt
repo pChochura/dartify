@@ -12,6 +12,18 @@ object Kotlin {
     }
 }
 
+object Firebase {
+    const val googleServicesVersion = "4.3.13"
+    const val googleServicesPlugin = "com.google.gms.google-services"
+
+    const val crashlyticsVersion = "2.9.2"
+    const val crashlyticsPlugin = "com.google.firebase.crashlytics"
+
+    const val firebaseBom = "com.google.firebase:firebase-bom:31.1.0"
+    const val analytics = "com.google.firebase:firebase-analytics-ktx"
+    const val crashlytics = "com.google.firebase:firebase-crashlytics-ktx"
+}
+
 object KSP {
     const val version = "1.7.20-1.0.8"
     const val gradlePlugin = "com.google.devtools.ksp"
