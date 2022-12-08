@@ -1,6 +1,6 @@
 package com.pointlessapps.dartify.domain.database.game.x01
 
-import com.pointlessapps.dartify.datasource.database.game.GameDataSource
+import com.pointlessapps.dartify.datasource.database.game.ActiveGameDataSource
 import com.pointlessapps.dartify.datasource.database.game.x01.GameX01DataSource
 import com.pointlessapps.dartify.datasource.database.game.x01.model.GameX01
 import com.pointlessapps.dartify.domain.database.game.mappers.toActiveGame
@@ -25,7 +25,7 @@ interface GameX01Repository {
 }
 
 internal class GameX01RepositoryImpl(
-    private val gameDataSource: GameDataSource,
+    private val activeGameDataSource: ActiveGameDataSource,
     private val gameX01DataSource: GameX01DataSource,
     private val turnRepository: TurnRepositoryImpl,
 ) : GameX01Repository {
@@ -34,6 +34,7 @@ internal class GameX01RepositoryImpl(
         val inputsHistory = turnRepository.getAllInputsHistory()
         val gameState = turnRepository.getGameState()
         val game = GameX01(
+            gameId = null,
             currentPlayer = gameState.player.fromPlayer(),
             players = gameState.playerScores.map { it.player.fromPlayer() },
             inputs = inputsHistory,
@@ -45,14 +46,14 @@ internal class GameX01RepositoryImpl(
         )
         val gameId = gameX01DataSource.insertGame(game)
         if (!isFinished) {
-            gameDataSource.insertActiveGame(game.toActiveGame(gameId))
+            activeGameDataSource.insertActiveGame(game.toActiveGame(gameId))
         }
         emit(gameId)
     }
 
     override fun loadGame(gameId: Long) = flow {
         val game = gameX01DataSource.getGame(gameId)
-        gameX01DataSource.deleteGame(gameId)
+        gameX01DataSource.deleteGames(gameId)
         emit(
             turnRepository.load(
                 players = game.players.map { it.toPlayer() },

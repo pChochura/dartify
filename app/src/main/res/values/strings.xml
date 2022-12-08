@@ -86,4 +86,6 @@
 	<string name="you_have_to_satisfy_check_in">you have to satisfy check-in requirements!</string>
 	<string name="you_have_to_satisfy_check_out">you have to satisfy check-out requirements!</string>
     <string name="tap_to_specify_out_mode_individually">tap on an item to specify the out-mode individually</string>
+	<string name="removing_player_desc">all of the games and statistics associated with this player will be removed and you won’t be able to recover them</string>
+	<string name="removing_player_help_message">saved games and stats that have associated more players will still be available</string>
 </resources>

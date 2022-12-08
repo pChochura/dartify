@@ -21,6 +21,7 @@ internal fun GameX01WithPlayersEntity.toGameX01(gamePlayersByPlayerIds: Map<Long
     fun order(playerId: Long) = requireNotNull(gamePlayersByPlayerIds[playerId]?.order)
 
     return GameX01(
+        gameId = game.id,
         currentPlayer = currentPlayer.toPlayer(outMode(currentPlayer.id)),
         players = players.sortedBy { order(it.id) }.map { it.toPlayer(outMode(it.id)) },
         inputs = inputs.map { it.toGameX01Input() },

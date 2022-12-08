@@ -2,7 +2,7 @@ package com.pointlessapps.dartify.datasource.database.game
 
 import com.pointlessapps.dartify.datasource.database.game.model.ActiveGame
 
-interface GameDataSource {
+interface ActiveGameDataSource {
     /**
      * Writes a game data into the database. Returns the id of the created entry
      */
@@ -14,7 +14,7 @@ interface GameDataSource {
     suspend fun getAllActiveGames(): List<ActiveGame>
 
     /**
-     * Removes the active game from the database
+     * Removes active games with the given [gameIds] from the database
      */
-    suspend fun deleteActiveGame(gameId: Long)
+    suspend fun deleteActiveGames(vararg gameIds: Long)
 }

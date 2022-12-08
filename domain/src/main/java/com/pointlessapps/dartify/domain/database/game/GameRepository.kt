@@ -1,6 +1,6 @@
 package com.pointlessapps.dartify.domain.database.game
 
-import com.pointlessapps.dartify.datasource.database.game.GameDataSource
+import com.pointlessapps.dartify.datasource.database.game.ActiveGameDataSource
 import com.pointlessapps.dartify.domain.database.game.mappers.toActiveGame
 import com.pointlessapps.dartify.domain.database.game.model.ActiveGame
 import kotlinx.coroutines.flow.Flow
@@ -19,14 +19,14 @@ interface GameRepository {
 }
 
 internal class GameRepositoryImpl(
-    private val gameDataSource: GameDataSource,
+    private val activeGameDataSource: ActiveGameDataSource,
 ) : GameRepository {
 
     override fun getAllActiveGames() = flow {
-        emit(gameDataSource.getAllActiveGames().map { it.toActiveGame() })
+        emit(activeGameDataSource.getAllActiveGames().map { it.toActiveGame() })
     }
 
     override fun deleteActiveGame(gameId: Long) = flow {
-        emit(gameDataSource.deleteActiveGame(gameId))
+        emit(activeGameDataSource.deleteActiveGames(gameId))
     }
 }

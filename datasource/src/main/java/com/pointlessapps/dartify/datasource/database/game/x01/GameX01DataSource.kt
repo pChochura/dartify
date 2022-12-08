@@ -14,7 +14,17 @@ interface GameX01DataSource {
     suspend fun getGame(gameId: Long): GameX01
 
     /**
-     * Deletes saved game object with the given [gameId]
+     * Returns all games associated with the given [playerId]
      */
-    suspend fun deleteGame(gameId: Long)
+    suspend fun getGamesForPlayer(playerId: Long): List<GameX01>
+
+    /**
+     * Deletes saved games objects with the given [gameIds]
+     */
+    suspend fun deleteGames(vararg gameIds: Long)
+
+    /**
+     * Deletes inputs and game associations for the player with the given [playerId]
+     */
+    suspend fun deletePlayer(playerId: Long)
 }

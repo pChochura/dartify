@@ -25,12 +25,12 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.pointlessapps.dartify.LocalSnackbarHostState
 import com.pointlessapps.dartify.R
 import com.pointlessapps.dartify.compose.game.model.Player
+import com.pointlessapps.dartify.compose.game.setup.players.ui.dialog.RemovePlayerDialog
 import com.pointlessapps.dartify.compose.game.setup.players.ui.dialog.SelectCpuAverageDialog
 import com.pointlessapps.dartify.compose.game.setup.players.ui.dialog.SelectPlayerNameDialog
 import com.pointlessapps.dartify.compose.game.setup.ui.PlayerEntryCard
@@ -50,8 +50,9 @@ internal fun SelectPlayersScreen(
     val localSnackbarHostState = LocalSnackbarHostState.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    var cpuAverageDialogModel by remember { mutableStateOf<CpuAverageDialogModel?>(null) }
-    var playerNameDialogModel by remember { mutableStateOf<PlayerNameDialogModel?>(null) }
+    var cpuAverageDialogModel by remember { mutableStateOf<OptionalPlayerDialogModel?>(null) }
+    var playerNameDialogModel by remember { mutableStateOf<OptionalPlayerDialogModel?>(null) }
+    var removePlayerDialogModel by remember { mutableStateOf<RequiredPlayerDialogModel?>(null) }
 
     BackHandler { onDismissed(selectedPlayers) }
 
@@ -78,9 +79,11 @@ internal fun SelectPlayersScreen(
             when (it) {
                 is SelectPlayersEvent.OnPlayersSelected -> onPlayersSelected(it.players)
                 is SelectPlayersEvent.AskForCpuAverage ->
-                    cpuAverageDialogModel = CpuAverageDialogModel(it.bot)
+                    cpuAverageDialogModel = OptionalPlayerDialogModel(it.bot)
                 is SelectPlayersEvent.AskForPlayerName ->
-                    playerNameDialogModel = PlayerNameDialogModel(it.player)
+                    playerNameDialogModel = OptionalPlayerDialogModel(it.player)
+                is SelectPlayersEvent.ShowRemovePlayerWarning ->
+                    removePlayerDialogModel = RequiredPlayerDialogModel(it.player)
                 is SelectPlayersEvent.ShowSnackbar -> localSnackbarHostState.showSnackbar(
                     it.message,
                     it.actionLabel,
@@ -186,7 +189,7 @@ internal fun SelectPlayersScreen(
             item(key = R.string.long_press_to_rearrange_desc) {
                 ComposeHelpText(
                     text = R.string.long_press_to_rearrange_desc,
-                    modifier =  Modifier.padding(
+                    modifier = Modifier.padding(
                         top = dimensionResource(id = R.dimen.margin_small),
                     ),
                 )
@@ -200,7 +203,7 @@ internal fun SelectPlayersScreen(
 
     cpuAverageDialogModel?.let { model ->
         SelectCpuAverageDialog(
-            bot = model.bot,
+            bot = model.player,
             onRemoveClicked = {
                 viewModel.onPlayerRemoved(it)
                 cpuAverageDialogModel = null
@@ -225,6 +228,16 @@ internal fun SelectPlayersScreen(
                 playerNameDialogModel = null
             },
             onDismissRequest = { playerNameDialogModel = null },
+        )
+    }
+
+    removePlayerDialogModel?.let { model ->
+        RemovePlayerDialog(
+            onRemoveClicked = {
+                viewModel.onPlayerRemovedConfirmed(model.player)
+                removePlayerDialogModel = null
+            },
+            onDismissRequest = { removePlayerDialogModel = null },
         )
     }
 }
@@ -332,6 +345,12 @@ private fun LazyItemScope.PlayerItem(
         },
     )
 
+    LaunchedEffect(dismissState.currentValue) {
+        if (dismissState.currentValue != DismissValue.Default) {
+            dismissState.reset()
+        }
+    }
+
     SwipeToDismiss(
         modifier = Modifier.reorderableItem(
             key = player.id,
@@ -393,5 +412,5 @@ private fun DismissDeleteActionItem(dismissState: DismissState) {
     }
 }
 
-private data class PlayerNameDialogModel(val player: Player?)
-private data class CpuAverageDialogModel(val bot: Player?)
+private data class OptionalPlayerDialogModel(val player: Player?)
+private data class RequiredPlayerDialogModel(val player: Player)

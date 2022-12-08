@@ -32,10 +32,23 @@ internal class LocalGameX01DataSource(
     }
 
     override suspend fun getGame(gameId: Long): GameX01 {
-        val gamePlayersByPlayerIds = gameX01Dao.getGamePlayers(gameId).associateBy { it.playerId }
+        val gamePlayersByPlayerIds = gameX01Dao.getGamesPlayers(gameId).associateBy { it.playerId }
         return gameX01Dao.get(gameId).toGameX01(gamePlayersByPlayerIds)
     }
 
-    override suspend fun deleteGame(gameId: Long) =
-        gameX01Dao.delete(gameId)
+    override suspend fun getGamesForPlayer(playerId: Long): List<GameX01> {
+        val games = gameX01Dao.getForPlayer(playerId)
+        val gamePlayersByPlayerIds = gameX01Dao.getGamesPlayers(
+            *games.map { requireNotNull(it.game.id) }.toLongArray()
+        ).associateBy { it.playerId }
+        return games.map { it.toGameX01(gamePlayersByPlayerIds) }
+    }
+
+    override suspend fun deleteGames(vararg gameIds: Long) =
+        gameX01Dao.delete(*gameIds)
+
+    override suspend fun deletePlayer(playerId: Long) {
+        gameX01Dao.deleteGamePlayer(playerId)
+        gameX01Dao.deleteGameInputs(playerId)
+    }
 }

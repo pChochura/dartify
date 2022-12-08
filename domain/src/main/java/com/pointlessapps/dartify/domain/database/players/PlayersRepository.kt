@@ -1,5 +1,7 @@
 package com.pointlessapps.dartify.domain.database.players
 
+import com.pointlessapps.dartify.datasource.database.game.ActiveGameDataSource
+import com.pointlessapps.dartify.datasource.database.game.x01.GameX01DataSource
 import com.pointlessapps.dartify.datasource.database.players.PlayersDataSource
 import com.pointlessapps.dartify.domain.mappers.fromPlayer
 import com.pointlessapps.dartify.domain.mappers.toPlayer
@@ -20,13 +22,16 @@ interface PlayersRepository {
     fun savePlayer(player: Player): Flow<Unit>
 
     /**
-     * Removes a player from the database with the given [player.id]
+     * Removes a player from the database with the given [player.id].
+     * If the player is associated with active games they'll be deleted.
      */
     fun deletePlayer(player: Player): Flow<Unit>
 }
 
 internal class PlayersRepositoryImpl(
     private val playersDataSource: PlayersDataSource,
+    private val activeGameDataSource: ActiveGameDataSource,
+    private val gameX01DataSource: GameX01DataSource,
 ) : PlayersRepository {
 
     override fun getAllPlayers() = playersDataSource.getPlayers().map { players ->
@@ -38,6 +43,17 @@ internal class PlayersRepositoryImpl(
     }
 
     override fun deletePlayer(player: Player) = flow {
-        emit(playersDataSource.deletePlayer(player.fromPlayer()))
+        val games = gameX01DataSource.getGamesForPlayer(player.id)
+        val gamesToDelete = games
+            .filter { game -> game.players.all { it.id == player.id } }
+            .map { requireNotNull(it.gameId) }
+            .toLongArray()
+        if (gamesToDelete.isNotEmpty()) {
+            gameX01DataSource.deleteGames(*gamesToDelete)
+            activeGameDataSource.deleteActiveGames(*gamesToDelete)
+        }
+        gameX01DataSource.deletePlayer(player.id)
+        playersDataSource.deletePlayer(player.fromPlayer())
+        emit(Unit)
     }
 }

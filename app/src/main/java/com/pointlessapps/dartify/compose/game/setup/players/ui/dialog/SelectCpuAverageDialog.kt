@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
@@ -50,52 +49,45 @@ internal fun SelectCpuAverageDialog(
             icon = R.drawable.ic_robot,
         ),
     ) {
+        ComposeCounter(
+            value = average,
+            maxValue = MAX_AVERAGE,
+            minValue = MIN_AVERAGE,
+            label = stringResource(id = R.string.average),
+            onChange = { average += it * AVERAGE_INCREMENT },
+            counterModel = defaultComposeCounterModel().copy(
+                counterColor = colorResource(id = R.color.red),
+            ),
+        )
+
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(
-                dimensionResource(id = R.dimen.margin_semi_big),
+                dimensionResource(id = R.dimen.margin_tiny),
             ),
         ) {
-            ComposeCounter(
-                value = average,
-                maxValue = MAX_AVERAGE,
-                minValue = MIN_AVERAGE,
-                label = stringResource(id = R.string.average),
-                onChange = { average += it * AVERAGE_INCREMENT },
-                counterModel = defaultComposeCounterModel().copy(
-                    counterColor = colorResource(id = R.color.red),
-                ),
-            )
-
-            Column(
-                verticalArrangement = Arrangement.spacedBy(
-                    dimensionResource(id = R.dimen.margin_small),
-                ),
-            ) {
-                if (bot != null) {
-                    ComposeSimpleButton(
-                        modifier = Modifier.fillMaxWidth(),
-                        label = stringResource(id = R.string.remove),
-                        onClick = { onRemoveClicked(bot) },
-                        simpleButtonModel = defaultComposeSimpleButtonModel().copy(
-                            backgroundColor = MaterialTheme.colors.secondary,
-                            icon = R.drawable.ic_delete,
-                            orientation = ComposeSimpleButtonOrientation.Horizontal,
-                        ),
-                    )
-                }
-
+            if (bot != null) {
                 ComposeSimpleButton(
                     modifier = Modifier.fillMaxWidth(),
-                    label = stringResource(id = R.string.save),
-                    onClick = { onSaveClicked(getBot()) },
+                    label = stringResource(id = R.string.remove),
+                    onClick = { onRemoveClicked(bot) },
                     simpleButtonModel = defaultComposeSimpleButtonModel().copy(
-                        backgroundColor = colorResource(id = R.color.red),
-                        icon = R.drawable.ic_done,
+                        backgroundColor = MaterialTheme.colors.secondary,
+                        icon = R.drawable.ic_delete,
                         orientation = ComposeSimpleButtonOrientation.Horizontal,
                     ),
                 )
             }
+
+            ComposeSimpleButton(
+                modifier = Modifier.fillMaxWidth(),
+                label = stringResource(id = R.string.save),
+                onClick = { onSaveClicked(getBot()) },
+                simpleButtonModel = defaultComposeSimpleButtonModel().copy(
+                    backgroundColor = colorResource(id = R.color.red),
+                    icon = R.drawable.ic_done,
+                    orientation = ComposeSimpleButtonOrientation.Horizontal,
+                ),
+            )
         }
     }
 }

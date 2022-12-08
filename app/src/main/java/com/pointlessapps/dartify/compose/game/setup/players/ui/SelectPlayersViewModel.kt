@@ -30,6 +30,7 @@ internal sealed interface SelectPlayersEvent {
     data class OnPlayersSelected(val players: List<Player>) : SelectPlayersEvent
     data class AskForCpuAverage(val bot: Player?) : SelectPlayersEvent
     data class AskForPlayerName(val player: Player?) : SelectPlayersEvent
+    data class ShowRemovePlayerWarning(val player: Player) : SelectPlayersEvent
 
     data class ShowSnackbar(
         @StringRes val message: Int,
@@ -144,6 +145,12 @@ internal class SelectPlayersViewModel(
     }
 
     fun onPlayerRemoved(player: Player) {
+        viewModelScope.launch {
+            eventChannel.send(SelectPlayersEvent.ShowRemovePlayerWarning(player))
+        }
+    }
+
+    fun onPlayerRemovedConfirmed(player: Player) {
         val index = state.players.indexOf(player)
         val isSelected = index < state.selectedPlayersIndex
         val removePlayerJob = viewModelScope.async(start = CoroutineStart.LAZY) {
