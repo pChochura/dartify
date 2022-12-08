@@ -173,7 +173,7 @@ internal fun SelectPlayersScreen(
                     label = stringResource(id = R.string.cpu),
                     onClick = viewModel::onAddCpuClicked,
                     playerEntryCardModel = defaultPlayerEntryCardModel().copy(
-                        mainIcon = R.drawable.ic_person,
+                        mainIcon = R.drawable.ic_robot,
                         additionalIcon = R.drawable.ic_plus,
                     ),
                 )
@@ -184,30 +184,12 @@ internal fun SelectPlayersScreen(
             }
 
             item(key = R.string.long_press_to_rearrange_desc) {
-                Row(
-                    modifier = Modifier.padding(
+                ComposeHelpText(
+                    text = R.string.long_press_to_rearrange_desc,
+                    modifier =  Modifier.padding(
                         top = dimensionResource(id = R.dimen.margin_small),
                     ),
-                    horizontalArrangement = Arrangement.spacedBy(
-                        dimensionResource(id = R.dimen.margin_tiny),
-                    ),
-                ) {
-                    Icon(
-                        modifier = Modifier.size(dimensionResource(id = R.dimen.caption_icon_size)),
-                        painter = painterResource(id = R.drawable.ic_help),
-                        tint = MaterialTheme.colors.onBackground,
-                        contentDescription = null,
-                    )
-                    ComposeText(
-                        text = stringResource(id = R.string.long_press_to_rearrange_desc),
-                        textStyle = defaultComposeTextStyle().copy(
-                            textColor = MaterialTheme.colors.onBackground,
-                            typography = MaterialTheme.typography.subtitle1.copy(
-                                fontSize = 10.sp,
-                            ),
-                        ),
-                    )
-                }
+                )
             }
 
             item(key = "spacer_bottom") {
@@ -364,29 +346,7 @@ private fun LazyItemScope.PlayerItem(
                 return@background
             }
 
-            val color by animateColorAsState(
-                when (dismissState.targetValue) {
-                    DismissValue.Default -> MaterialTheme.colors.onBackground
-                    else -> colorResource(id = R.color.red)
-                },
-            )
-            val scale by animateFloatAsState(
-                if (dismissState.targetValue == DismissValue.Default) 0.75f else 1f,
-            )
-
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.CenterEnd,
-            ) {
-                Icon(
-                    modifier = Modifier
-                        .size(dimensionResource(id = R.dimen.dialog_icon_size))
-                        .scale(scale),
-                    painter = painterResource(id = R.drawable.ic_delete),
-                    tint = color,
-                    contentDescription = null,
-                )
-            }
+            DismissDeleteActionItem(dismissState)
         },
         dismissContent = {
             PlayerEntryCard(
@@ -403,6 +363,34 @@ private fun LazyItemScope.PlayerItem(
             )
         },
     )
+}
+
+@Composable
+@OptIn(ExperimentalMaterialApi::class)
+private fun DismissDeleteActionItem(dismissState: DismissState) {
+    val color by animateColorAsState(
+        when (dismissState.targetValue) {
+            DismissValue.Default -> MaterialTheme.colors.onBackground
+            else -> colorResource(id = R.color.red)
+        },
+    )
+    val scale by animateFloatAsState(
+        if (dismissState.targetValue == DismissValue.Default) 0.75f else 1f,
+    )
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.CenterEnd,
+    ) {
+        Icon(
+            modifier = Modifier
+                .size(dimensionResource(id = R.dimen.dialog_icon_size))
+                .scale(scale),
+            painter = painterResource(id = R.drawable.ic_delete),
+            tint = color,
+            contentDescription = null,
+        )
+    }
 }
 
 private data class PlayerNameDialogModel(val player: Player?)

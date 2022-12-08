@@ -141,27 +141,7 @@ internal fun NumberOfThrowsAndDoublesDialog(
             }
         }
 
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(
-                dimensionResource(id = R.dimen.margin_tiny),
-            ),
-        ) {
-            Icon(
-                modifier = Modifier.size(dimensionResource(id = R.dimen.caption_icon_size)),
-                painter = painterResource(id = R.drawable.ic_help),
-                tint = MaterialTheme.colors.onBackground,
-                contentDescription = null,
-            )
-            ComposeText(
-                text = stringResource(id = R.string.how_many_throws_on_double_desc),
-                textStyle = defaultComposeTextStyle().copy(
-                    textColor = MaterialTheme.colors.onBackground,
-                    typography = MaterialTheme.typography.subtitle1.copy(
-                        fontSize = 10.sp,
-                    ),
-                ),
-            )
-        }
+        ComposeHelpText(text = R.string.how_many_throws_on_double_desc)
 
         Column(
             verticalArrangement = Arrangement.spacedBy(

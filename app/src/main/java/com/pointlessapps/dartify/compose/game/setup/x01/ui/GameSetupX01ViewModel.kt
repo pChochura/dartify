@@ -199,6 +199,12 @@ internal class GameSetupX01ViewModel(
         )
     }
 
+    fun onPlayerRemoved(player: Player) {
+        state = state.copy(
+            players = state.players.filter { it.id != player.id },
+        )
+    }
+
     fun onDragStarted() {
         vibrateUseCase.click()
     }

@@ -85,4 +85,5 @@
 	<string name="corrupted_game_desc">retrieving the game from the database was not possible and the remaining data will be deleted</string>
 	<string name="you_have_to_satisfy_check_in">you have to satisfy check-in requirements!</string>
 	<string name="you_have_to_satisfy_check_out">you have to satisfy check-out requirements!</string>
+    <string name="tap_to_specify_out_mode_individually">tap on an item to specify the out-mode individually</string>
 </resources>

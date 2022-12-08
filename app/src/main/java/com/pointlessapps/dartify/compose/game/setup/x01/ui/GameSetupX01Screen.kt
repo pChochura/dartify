@@ -1,20 +1,25 @@
+@file:OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
+
 package com.pointlessapps.dartify.compose.game.setup.x01.ui
 
 import androidx.annotation.StringRes
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
@@ -119,7 +124,7 @@ internal fun GameSetupX01Screen(
 
             players(
                 players = viewModel.state.players,
-                state = reorderableState,
+                reorderableState = reorderableState,
                 onPlayerClicked = { player ->
                     gameModeDialogModel = GameModeDialogModel(
                         R.string.out_mode,
@@ -127,6 +132,7 @@ internal fun GameSetupX01Screen(
                         callback = { viewModel.onOutGameModeSelectedForPlayer(it, player) },
                     )
                 },
+                onPlayerRemoved = viewModel::onPlayerRemoved,
                 onSelectPlayersClicked = viewModel::onSelectPlayersClicked,
             )
 
@@ -210,7 +216,7 @@ private fun StartGameButton(
 }
 
 @Composable
-private fun MatchSettings(
+private fun LazyItemScope.MatchSettings(
     startingScore: Int,
     numberOfSets: Int,
     numberOfLegs: Int,
@@ -232,6 +238,7 @@ private fun MatchSettings(
     }
 
     ComposeSwitcher(
+        modifier = Modifier.animateItemPlacement(),
         values = listOf(switcherValueFirstTo, switcherValueBestOf),
         selectedValue = selectedSwitcherValue,
         onSelect = {
@@ -249,6 +256,7 @@ private fun MatchSettings(
     Spacer(modifier = Modifier.height(dimensionResource(R.dimen.margin_semi_big)))
 
     Row(
+        modifier = Modifier.animateItemPlacement(),
         horizontalArrangement = Arrangement.spacedBy(
             dimensionResource(id = R.dimen.margin_small),
         ),
@@ -290,6 +298,7 @@ private fun MatchSettings(
     Spacer(modifier = Modifier.height(dimensionResource(R.dimen.margin_semi_big)))
 
     ComposeInputButton(
+        modifier = Modifier.animateItemPlacement(),
         label = stringResource(id = R.string.starting_score),
         value = "$startingScore",
         onClick = onShowStartingScoreDialog,
@@ -300,7 +309,7 @@ private fun MatchSettings(
 }
 
 @Composable
-private fun GameModes(
+private fun LazyItemScope.GameModes(
     inMode: GameMode,
     outMode: GameMode,
     onInGameModeSelected: (GameMode?) -> Unit,
@@ -308,6 +317,7 @@ private fun GameModes(
     onShowGameModeDialog: (GameModeDialogModel) -> Unit,
 ) {
     Column(
+        modifier = Modifier.animateItemPlacement(),
         verticalArrangement = Arrangement.spacedBy(
             dimensionResource(id = R.dimen.margin_small),
         ),
@@ -353,16 +363,18 @@ private fun GameModes(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 private fun LazyListScope.players(
     players: List<Player>,
-    state: ReorderableListState,
+    reorderableState: ReorderableListState,
     onPlayerClicked: (Player) -> Unit,
+    onPlayerRemoved: (Player) -> Unit,
     onSelectPlayersClicked: () -> Unit,
 ) {
     item(key = R.string.players) {
         ComposeText(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .animateItemPlacement(),
             text = stringResource(id = R.string.players),
             textStyle = defaultComposeTextStyle().copy(
                 typography = MaterialTheme.typography.h2,
@@ -371,27 +383,47 @@ private fun LazyListScope.players(
         )
     }
 
+    if (players.isNotEmpty()) {
+        item(key = R.string.tap_to_specify_out_mode_individually) {
+            ComposeHelpText(
+                modifier = Modifier
+                    .padding(top = dimensionResource(R.dimen.margin_small))
+                    .animateItemPlacement(),
+                text = R.string.tap_to_specify_out_mode_individually,
+            )
+        }
+    }
+
     items(players, { it.id }) { player ->
-        PlayerEntryCard(
+        val dismissState = rememberDismissState(
+            confirmStateChange = {
+                if (it != DismissValue.Default) {
+                    onPlayerRemoved(player)
+                }
+
+                true
+            },
+        )
+
+        SwipeToDismiss(
             modifier = Modifier
                 .padding(top = dimensionResource(R.dimen.margin_small))
                 .reorderableItem(
                     key = player.id,
-                    reorderableListState = state,
+                    reorderableListState = reorderableState,
                     nonDraggedModifier = Modifier.animateItemPlacement(),
                 ),
-            label = player.name,
-            onClick = { onPlayerClicked(player) },
-            infoCardText = player.outMode?.abbrev?.let {
-                stringResource(
-                    id = R.string.out_mode_abbrev,
-                    stringResource(id = it),
-                ).uppercase()
+            state = dismissState,
+            directions = setOf(DismissDirection.EndToStart),
+            dismissThresholds = { FractionalThreshold(0.25f) },
+            background = background@{
+                if (reorderableState.isDragged(player.id)) {
+                    return@background
+                }
+
+                DismissDeleteActionItem(dismissState)
             },
-            playerEntryCardModel = defaultPlayerEntryCardModel().copy(
-                mainIcon = R.drawable.ic_person,
-                additionalIcon = R.drawable.ic_move_handle,
-            ),
+            dismissContent = { PlayerItem(player, onPlayerClicked) },
         )
     }
 
@@ -401,7 +433,59 @@ private fun LazyListScope.players(
 }
 
 @Composable
-private fun SelectPlayersItem(onSelectPlayersClicked: () -> Unit) {
+private fun DismissDeleteActionItem(dismissState: DismissState) {
+    val color by animateColorAsState(
+        when (dismissState.targetValue) {
+            DismissValue.Default -> MaterialTheme.colors.onBackground
+            else -> colorResource(id = R.color.red)
+        },
+    )
+    val scale by animateFloatAsState(
+        if (dismissState.targetValue == DismissValue.Default) 0.75f else 1f,
+    )
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.CenterEnd,
+    ) {
+        Icon(
+            modifier = Modifier
+                .size(dimensionResource(id = R.dimen.dialog_icon_size))
+                .scale(scale),
+            painter = painterResource(id = R.drawable.ic_delete),
+            tint = color,
+            contentDescription = null,
+        )
+    }
+}
+
+@Composable
+private fun PlayerItem(
+    player: Player,
+    onPlayerClicked: (Player) -> Unit,
+) {
+    PlayerEntryCard(
+        label = player.name,
+        onClick = { onPlayerClicked(player) },
+        infoCardText = player.outMode?.abbrev?.let {
+            stringResource(
+                id = R.string.out_mode_abbrev,
+                stringResource(id = it),
+            ).uppercase()
+        },
+        playerEntryCardModel = defaultPlayerEntryCardModel().copy(
+            mainIcon = if (player.botOptions != null) {
+                R.drawable.ic_robot
+            } else {
+                R.drawable.ic_person
+            },
+            additionalIcon = R.drawable.ic_move_handle,
+        ),
+    )
+}
+
+@Composable
+private fun LazyItemScope.SelectPlayersItem(onSelectPlayersClicked: () -> Unit) {
     Row(
         modifier = Modifier
             .padding(top = dimensionResource(R.dimen.margin_small))
@@ -413,7 +497,8 @@ private fun SelectPlayersItem(onSelectPlayersClicked: () -> Unit) {
                 shape = MaterialTheme.shapes.medium,
             )
             .clickable(onClick = onSelectPlayersClicked)
-            .padding(dimensionResource(id = R.dimen.margin_medium)),
+            .padding(dimensionResource(id = R.dimen.margin_medium))
+            .animateItemPlacement(),
         horizontalArrangement = Arrangement.spacedBy(
             dimensionResource(id = R.dimen.margin_small),
             Alignment.CenterHorizontally,

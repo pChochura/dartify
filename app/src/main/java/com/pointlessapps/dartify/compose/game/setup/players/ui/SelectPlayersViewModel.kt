@@ -127,17 +127,13 @@ internal class SelectPlayersViewModel(
     }
 
     fun onPlayerAdded(player: Player) {
-        val isNewlyAdded = state.players.find { it.id == player.id } == null
         savePlayerUseCase(player.toPlayer())
             .take(1)
             .onStart {
                 state = state.copy(isLoading = true)
             }
             .onEach {
-                state = state.copy(
-                    isLoading = false,
-                    selectedPlayersIndex = state.selectedPlayersIndex + if (isNewlyAdded) 1 else 0,
-                )
+                state = state.copy(isLoading = false)
             }
             .catch {
                 it.printStackTrace()
@@ -153,11 +149,6 @@ internal class SelectPlayersViewModel(
         val removePlayerJob = viewModelScope.async(start = CoroutineStart.LAZY) {
             deletePlayerUseCase(player.toPlayer())
                 .take(1)
-                .onEach {
-                    state = state.copy(
-                        selectedPlayersIndex = state.selectedPlayersIndex - if (isSelected) 1 else 0,
-                    )
-                }
                 .catch {
                     it.printStackTrace()
                     eventChannel.send(SelectPlayersEvent.ShowSnackbar(R.string.something_went_wrong))
@@ -165,7 +156,10 @@ internal class SelectPlayersViewModel(
                 .launchIn(viewModelScope)
         }
         removePlayersJobs[player.id] = removePlayerJob
-        state = state.copy(players = state.players.withMarkedAsDeleted(player.id))
+        state = state.copy(
+            players = state.players.withMarkedAsDeleted(player.id),
+            selectedPlayersIndex = state.selectedPlayersIndex - if (isSelected) 1 else 0,
+        )
         vibrateUseCase.error()
 
         viewModelScope.launch {
@@ -193,9 +187,8 @@ internal class SelectPlayersViewModel(
         vibrateUseCase.tick()
 
         if (to.key == R.string.label_all) {
-            val direction = (from.index - to.index).sign
             state = state.copy(
-                selectedPlayersIndex = state.selectedPlayersIndex + direction,
+                selectedPlayersIndex = state.selectedPlayersIndex + (from.index - to.index).sign,
             )
 
             return
