@@ -16,6 +16,7 @@ import com.pointlessapps.dartify.compose.game.model.GameSettings
 import com.pointlessapps.dartify.compose.game.model.Player
 import com.pointlessapps.dartify.compose.ui.theme.Route
 import com.pointlessapps.dartify.compose.utils.extensions.addDecimal
+import com.pointlessapps.dartify.compose.utils.extensions.removeDecimal
 import com.pointlessapps.dartify.domain.database.game.x01.usecase.SaveCurrentGameUseCase
 import com.pointlessapps.dartify.domain.game.x01.checkout.model.Score
 import com.pointlessapps.dartify.domain.game.x01.checkout.usecase.GetCheckoutUseCase
@@ -304,10 +305,20 @@ internal class GameActiveX01ViewModel(
                 }
             }
             InputMode.PerTurn -> {
-                if (state.currentInputScore.score() != 0) {
-                    state = state.copy(
-                        currentInputScore = null,
-                    )
+                val score = state.currentInputScore
+                if (score.score() != 0) {
+                    if (startOverAfterFurtherInput || score is InputScore.Dart) {
+                        startOverAfterFurtherInput = false
+                        state = state.copy(
+                            currentInputScore = null,
+                        )
+                    } else {
+                        state = state.copy(
+                            currentInputScore = InputScore.Turn(
+                                score.score().removeDecimal(),
+                            ),
+                        )
+                    }
 
                     return true
                 }
